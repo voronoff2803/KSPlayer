@@ -261,11 +261,11 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
 
     public func player(layer _: KSPlayerLayer, currentTime: TimeInterval, totalTime: TimeInterval) {
         onPlay?(currentTime, totalTime)
-        if currentTime >= Double(Int.max) || currentTime <= Double(Int.min) || totalTime >= Double(Int.max) || totalTime <= Double(Int.min) {
+        guard var current = Int(exactly: ceil(currentTime)), var total = Int(exactly: ceil(totalTime)) else {
             return
         }
-        let current = Int(max(0, currentTime))
-        let total = Int(max(0, totalTime))
+        current = max(0, current)
+        total = max(0, total)
         if timemodel.currentTime != current {
             timemodel.currentTime = current
         }
