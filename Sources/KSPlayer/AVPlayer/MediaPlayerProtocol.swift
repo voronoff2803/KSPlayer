@@ -101,7 +101,66 @@ public protocol MediaPlayerProtocol: MediaPlayback {
 
 public extension MediaPlayerProtocol {
     var nominalFrameRate: Float {
+        // return the frameRate of the video (xxFPS)
         tracks(mediaType: .video).first { $0.isEnabled }?.nominalFrameRate ?? 0
+    }
+
+    var frameRate: Float {
+        // return the frameRate of the video (xxFPS)
+        nominalFrameRate
+    }
+
+    var subtitlesTracks: [any SubtitleInfo] {
+        // Return the availables subtitles
+        tracks(mediaType: .subtitle).compactMap { $0 as? (any SubtitleInfo) }
+    }
+
+    var audioTracks: [MediaPlayerTrack] {
+        // Return the availables subtitles
+        tracks(mediaType: .audio) ?? []
+    }
+
+    var dynamicRange: DynamicRange? {
+        // return the dynamic range of the video
+        tracks(mediaType: .video).first { $0.isEnabled }?.dynamicRange
+    }
+
+    var audioFormat: String? {
+        // return the audioFormat of the video (HDR, SDR, ...)
+        (tracks(mediaType: .audio).first { $0.isEnabled } as? FFmpegAssetTrack)?.codecName
+    }
+
+    var videoFormat: String? {
+        // return the videoFormat of the video (SD, HD, Full HD, 4K, ...)
+        tracks(mediaType: .video).first { $0.isEnabled }?.dynamicRange?.description
+    }
+
+    var progress: CGFloat {
+        // return the current Progress of the video
+        let total = totalTime
+        return total == 0 ? 0 : currentTime / total
+    }
+
+    var currentTime: TimeInterval {
+        currentPlaybackTime
+    }
+
+    var totalTime: TimeInterval {
+        duration ?? 1
+    }
+
+    var remainingTime: TimeInterval {
+        totalTime - currentTime
+    }
+
+    func set(audioTrack: some MediaPlayerTrack) {
+        // setup the audio track
+        select(track: audioTrack)
+    }
+
+    func updateProgress(to: CGFloat) {
+        seek(time: to * totalTime) { _ in
+        }
     }
 }
 
