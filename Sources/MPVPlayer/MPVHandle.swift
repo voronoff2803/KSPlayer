@@ -19,7 +19,7 @@ public class MPVHandle: NSObject {
     let metalView: MetalView
     private lazy var queue = DispatchQueue(label: "mpv", qos: .userInitiated)
     @MainActor
-    override public init() {
+    public init(options: KSOptions) {
         metalView = MetalView()
         super.init()
         #if DEBUG
@@ -36,7 +36,12 @@ public class MPVHandle: NSObject {
 //        setOption(name: MPVOption.GPURendererOptions.gpuContext, value: "moltenvk")
         setOption(name: MPVOption.Video.vo, value: "gpu-next")
         setOption(name: MPVOption.Video.hwdec, value: "videotoolbox")
-//        setOption(name: MPVOption.ProgramBehavior.ytdl, value: "no")
+        setOption(name: MPVOption.Cache.cacheSecs, value: String(Int(options.maxBufferDuration)))
+        setOption(name: MPVOption.Cache.cachePauseWait, value: String(Int(options.preferredForwardBufferDuration)))
+        setOption(name: MPVOption.Cache.cachePauseInitial, value: "yes")
+        for (k, v) in observeProperties {
+            mpv_observe_property(mpv, 0, k, v)
+        }
         check(status: mpv_initialize(mpv))
         mpv_set_wakeup_callback(mpv, { ctx in
             guard let ctx else {
@@ -64,6 +69,13 @@ public class MPVHandle: NSObject {
             mpv_destroy(mpv)
             mpv = nil
             KSLog("event: shutdown\n")
+        case MPV_EVENT_PROPERTY_CHANGE:
+            let dataOpaquePtr = OpaquePointer(event.data)
+            if let property = UnsafePointer<mpv_event_property>(dataOpaquePtr)?.pointee {
+                let propertyName = String(cString: property.name)
+                change(property: property, name: propertyName)
+            }
+
         case MPV_EVENT_LOG_MESSAGE:
             if let msg = UnsafeMutablePointer<mpv_event_log_message>(OpaquePointer(event.data)) {
                 KSLog("[\(String(cString: (msg.pointee.prefix)!))] \(String(cString: (msg.pointee.level)!)): \(String(cString: (msg.pointee.text)!))")
@@ -74,6 +86,46 @@ public class MPVHandle: NSObject {
             }
         }
     }
+
+    open func change(property _: mpv_event_property, name _: String) {}
+
+    let observeProperties: [String: mpv_format] = [
+        MPVProperty.trackList: MPV_FORMAT_NONE,
+        MPVProperty.vf: MPV_FORMAT_NONE,
+        MPVProperty.af: MPV_FORMAT_NONE,
+        MPVOption.TrackSelection.vid: MPV_FORMAT_INT64,
+        MPVOption.TrackSelection.aid: MPV_FORMAT_INT64,
+        MPVOption.TrackSelection.sid: MPV_FORMAT_INT64,
+        MPVOption.Subtitles.secondarySid: MPV_FORMAT_INT64,
+        MPVOption.PlaybackControl.pause: MPV_FORMAT_FLAG,
+        MPVOption.PlaybackControl.loopPlaylist: MPV_FORMAT_STRING,
+        MPVOption.PlaybackControl.loopFile: MPV_FORMAT_STRING,
+        MPVProperty.chapter: MPV_FORMAT_INT64,
+        MPVOption.Video.deinterlace: MPV_FORMAT_FLAG,
+        MPVOption.Video.hwdec: MPV_FORMAT_STRING,
+        MPVOption.Video.videoRotate: MPV_FORMAT_INT64,
+        MPVOption.Audio.mute: MPV_FORMAT_FLAG,
+        MPVOption.Audio.volume: MPV_FORMAT_DOUBLE,
+        MPVOption.Audio.audioDelay: MPV_FORMAT_DOUBLE,
+        MPVOption.PlaybackControl.speed: MPV_FORMAT_DOUBLE,
+        MPVOption.Subtitles.subDelay: MPV_FORMAT_DOUBLE,
+        MPVOption.Subtitles.subScale: MPV_FORMAT_DOUBLE,
+        MPVOption.Subtitles.subPos: MPV_FORMAT_DOUBLE,
+        MPVOption.Equalizer.contrast: MPV_FORMAT_INT64,
+        MPVOption.Equalizer.brightness: MPV_FORMAT_INT64,
+        MPVOption.Equalizer.gamma: MPV_FORMAT_INT64,
+        MPVOption.Equalizer.hue: MPV_FORMAT_INT64,
+        MPVOption.Equalizer.saturation: MPV_FORMAT_INT64,
+        MPVOption.Window.fullscreen: MPV_FORMAT_FLAG,
+        MPVOption.Window.ontop: MPV_FORMAT_FLAG,
+        MPVOption.Window.windowScale: MPV_FORMAT_DOUBLE,
+        MPVProperty.mediaTitle: MPV_FORMAT_STRING,
+        MPVProperty.videoParamsRotate: MPV_FORMAT_INT64,
+        MPVProperty.videoParamsPrimaries: MPV_FORMAT_STRING,
+        MPVProperty.videoParamsGamma: MPV_FORMAT_STRING,
+        MPVProperty.idleActive: MPV_FORMAT_FLAG,
+        MPVProperty.pausedForCache: MPV_FORMAT_FLAG,
+    ]
 }
 
 extension MPVHandle {

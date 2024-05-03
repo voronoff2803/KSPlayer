@@ -40,9 +40,9 @@ public class KSMPVPlayer: MPVHandle {
     private var bufferingCountDownTimer: Timer?
     private let url: URL
     @MainActor
-    public required init(url: URL, options _: KSOptions) {
+    public required init(url: URL, options: KSOptions) {
         self.url = url
-        super.init()
+        super.init(options: options)
     }
 
     override public func event(_ event: mpv_event) {
@@ -50,6 +50,24 @@ public class KSMPVPlayer: MPVHandle {
         switch event.event_id {
         case MPV_EVENT_FILE_LOADED:
             sourceDidOpened()
+        default:
+            break
+        }
+    }
+
+    override public func change(property: mpv_event_property, name: String) {
+        super.change(property: property, name: name)
+        switch name {
+        case "pause":
+            if let paused = UnsafePointer<Bool>(OpaquePointer(property.data))?.pointee {
+                if paused {
+                    playbackState = .paused
+                }
+            }
+        case MPVProperty.pausedForCache:
+            if let paused = UnsafePointer<Bool>(OpaquePointer(property.data))?.pointee {
+                loadState = paused ? .loading : .playable
+            }
         default:
             break
         }
@@ -195,6 +213,7 @@ extension KSMPVPlayer: MediaPlayerProtocol {
     }
 
     public func seek(time: TimeInterval, completion: @escaping ((Bool) -> Void)) {
+        playbackState = .seeking
         command(.seek, args: [String(time), "absolute"]) { [weak self] code in
             completion(code == 0)
         }
