@@ -101,7 +101,8 @@ extension MPVHandle {
         let returnValue = mpv_command(mpv, &cargs)
         if checkError {
             check(status: returnValue)
-        } else if let cb = returnValueCallback {
+        }
+        if let cb = returnValueCallback {
             cb(returnValue)
         }
     }

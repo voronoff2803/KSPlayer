@@ -194,8 +194,10 @@ extension KSMPVPlayer: MediaPlayerProtocol {
         mpv_set_wakeup_callback(mpv, nil, nil)
     }
 
-    public func seek(time _: TimeInterval, completion _: @escaping ((Bool) -> Void)) {
-        command(.seek, args: ["\(time)", "absolute+exact"])
+    public func seek(time: TimeInterval, completion: @escaping ((Bool) -> Void)) {
+        command(.seek, args: [String(time), "absolute"]) { [weak self] code in
+            completion(code == 0)
+        }
     }
 }
 

@@ -6,6 +6,8 @@ def common
   pod 'DisplayCriteria', :path => '../'
   pod 'Libass', :path => '../FFmpegKit'
   pod 'FFmpegKit', :path => '../FFmpegKit'
+  pod 'Libmpv', :path => '../FFmpegKit'
+  pod 'MPVPlayer', :path => '../'
 #  pod 'Libass',:git => 'https://github.com/kingslay/FFmpegKit.git', :branch => 'main'
 #  pod 'FFmpegKit',:git => 'https://github.com/kingslay/FFmpegKit.git', :branch => 'main'
 end
