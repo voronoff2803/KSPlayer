@@ -18,6 +18,7 @@ public class MPVHandle: NSObject {
     var mpv: OpaquePointer? = mpv_create()
     let metalView = MetalView()
     private lazy var queue = DispatchQueue(label: "mpv", qos: .userInitiated)
+    @MainActor
     override public init() {
         super.init()
         #if DEBUG
