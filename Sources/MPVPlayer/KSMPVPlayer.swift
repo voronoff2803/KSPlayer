@@ -38,7 +38,7 @@ public class KSMPVPlayer: MPVHandle {
 
     private var tracks = [MPVTrack]()
     private var bufferingCountDownTimer: Timer?
-    private let url: URL
+    private var url: URL
     @MainActor
     public required init(url: URL, options: KSOptions) {
         self.url = url
@@ -157,7 +157,10 @@ extension KSMPVPlayer: MediaPlayerProtocol {
         nil
     }
 
-    public func replace(url _: URL, options _: KSPlayer.KSOptions) {}
+    public func replace(url: URL, options _: KSPlayer.KSOptions) {
+        self.url = url
+        prepareToPlay()
+    }
 
     public func play() {
         playbackState = .playing
@@ -192,19 +195,7 @@ extension KSMPVPlayer: MediaPlayerProtocol {
     }
 
     public func prepareToPlay() {
-        let urlString: String
-        if url.isFileURL {
-            urlString = url.path
-        } else {
-            urlString = url.absoluteString
-        }
-        var args = [url.absoluteString]
-        var options = [String]()
-        args.append("replace")
-        if !options.isEmpty {
-            args.append(options.joined(separator: ","))
-        }
-        command(.loadfile, args: args)
+        loadFile(url: url)
     }
 
     public func shutdown() {
@@ -219,7 +210,22 @@ extension KSMPVPlayer: MediaPlayerProtocol {
         }
     }
 }
-
+extension KSMPVPlayer {
+    private func loadFile(url: URL, options: [String] = []) {
+        let urlString: String
+        if url.isFileURL {
+            urlString = url.path
+        } else {
+            urlString = url.absoluteString
+        }
+        var args = [urlString]
+        args.append("replace")
+        if !options.isEmpty {
+            args.append(options.joined(separator: ","))
+        }
+        command(.loadfile, args: args)
+    }
+}
 @available(macOS 12.0, iOS 15.0, tvOS 15.0, *)
 extension KSMPVPlayer: AVPlaybackCoordinatorPlaybackControlDelegate {
     public func playbackCoordinator(_: AVDelegatingPlaybackCoordinator, didIssue playCommand: AVDelegatingPlaybackCoordinatorPlayCommand, completionHandler: @escaping () -> Void) {
