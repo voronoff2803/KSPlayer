@@ -233,18 +233,18 @@ extension MetalPlayView {
     }
 }
 
-class MetalView: UIView {
+public class MetalView: UIView {
     private let render = MetalRender()
     #if canImport(UIKit)
     override public class var layerClass: AnyClass { CAMetalLayer.self }
     #endif
-    var metalLayer: CAMetalLayer {
+    public var metalLayer: CAMetalLayer {
         // swiftlint:disable force_cast
         layer as! CAMetalLayer
         // swiftlint:enable force_cast
     }
 
-    init() {
+    public init() {
         super.init(frame: .zero)
         #if !canImport(UIKit)
         layer = CAMetalLayer()

@@ -239,6 +239,7 @@ open class KSPlayerLayer: NSObject {
         if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
             player.pipController?.contentSource = nil
         }
+        player.shutdown()
         NotificationCenter.default.removeObserver(self)
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
         MPRemoteCommandCenter.shared().playCommand.removeTarget(nil)

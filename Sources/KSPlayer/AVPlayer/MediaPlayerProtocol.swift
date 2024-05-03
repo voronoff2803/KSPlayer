@@ -100,6 +100,18 @@ public protocol MediaPlayerProtocol: MediaPlayback {
 }
 
 public extension MediaPlayerProtocol {
+    @MainActor
+    var contentMode: UIViewContentMode {
+        get {
+            view?.contentMode ?? .center
+        }
+        set {
+            view?.contentMode = newValue
+        }
+    }
+
+    var isExternalPlaybackActive: Bool { false }
+    var isPlaying: Bool { playbackState == .playing }
     var nominalFrameRate: Float {
         // return the frameRate of the video (xxFPS)
         tracks(mediaType: .video).first { $0.isEnabled }?.nominalFrameRate ?? 0
@@ -177,7 +189,6 @@ public protocol MediaPlayerDelegate: AnyObject {
 public protocol MediaPlayerTrack: AnyObject, CustomStringConvertible {
     var trackID: Int32 { get }
     var name: String { get }
-    var languageCode: String? { get }
     var mediaType: AVFoundation.AVMediaType { get }
     var nominalFrameRate: Float { get set }
     var bitRate: Int64 { get }
@@ -185,8 +196,9 @@ public protocol MediaPlayerTrack: AnyObject, CustomStringConvertible {
     var isEnabled: Bool { get set }
     var isImageSubtitle: Bool { get }
     var rotation: Int16 { get }
-    var dovi: DOVIDecoderConfigurationRecord? { get }
     var fieldOrder: FFmpegFieldOrder { get }
+    var languageCode: String? { get }
+    var dovi: DOVIDecoderConfigurationRecord? { get }
     var formatDescription: CMFormatDescription? { get }
 }
 

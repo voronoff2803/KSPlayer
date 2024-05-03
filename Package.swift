@@ -15,9 +15,19 @@ let package = Package(
 //            type: .dynamic,
             targets: ["KSPlayer"]
         ),
+        .library(name: "MPVPlayer", targets: ["MPVPlayer"]),
     ],
     targets: [
-        // Targets are the basic building blocks of a package. A target can define a module or a test suite.
+        .target(
+            name: "MPVPlayer",
+            dependencies: [
+                "KSPlayer",
+                .product(name: "libmpv", package: "FFmpegKit"),
+            ],
+            swiftSettings: [
+                .enableExperimentalFeature("StrictConcurrency"),
+            ]
+        ),
         .target(
             name: "KSPlayer",
             dependencies: [

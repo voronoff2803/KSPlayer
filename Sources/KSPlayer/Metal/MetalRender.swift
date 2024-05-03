@@ -11,8 +11,8 @@ import Metal
 import QuartzCore
 import simd
 
-class MetalRender {
-    static let device = MTLCreateSystemDefaultDevice()!
+public class MetalRender {
+    public static let device = MTLCreateSystemDefaultDevice()!
     static let library: MTLLibrary = {
         var library: MTLLibrary!
         library = device.makeDefaultLibrary()

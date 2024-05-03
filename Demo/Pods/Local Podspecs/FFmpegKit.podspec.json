@@ -20,19 +20,32 @@
   "default_subspecs": "FFmpegKit",
   "static_framework": true,
   "source_files": "Sources/FFmpegKit/**/*.{h,c,m}",
+  "resource_bundles": {
+    "FFmpegKit_FFmpegKit": [
+      "Sources/FFmpegKit/Resources/PrivacyInfo.xcprivacy"
+    ]
+  },
   "subspecs": [
     {
       "name": "FFmpegKit",
       "libraries": [
         "bz2",
         "c++",
-        "expat",
         "iconv",
         "resolv",
         "xml2",
         "z"
       ],
-      "frameworks": "VideoToolbox",
+      "osx": {
+        "libraries": "expat",
+        "vendored_frameworks": "Sources/libbluray.xcframework"
+      },
+      "frameworks": [
+        "AudioToolbox",
+        "AVFoundation",
+        "CoreMedia",
+        "VideoToolbox"
+      ],
       "vendored_frameworks": [
         "Sources/Libavcodec.xcframework",
         "Sources/Libavfilter.xcframework",
@@ -40,6 +53,7 @@
         "Sources/Libavutil.xcframework",
         "Sources/Libswresample.xcframework",
         "Sources/Libswscale.xcframework",
+        "Sources/Libavdevice.xcframework",
         "Sources/libshaderc_combined.xcframework",
         "Sources/MoltenVK.xcframework",
         "Sources/lcms2.xcframework",
@@ -53,9 +67,6 @@
         "Sources/libzvbi.xcframework",
         "Sources/libsrt.xcframework"
       ],
-      "osx": {
-        "vendored_frameworks": "Sources/libbluray.xcframework"
-      },
       "dependencies": {
         "Libass": [
 
