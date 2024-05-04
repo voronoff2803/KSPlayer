@@ -34,6 +34,9 @@ public class MPVHandle: NSObject {
         setOption(name: "subs-fallback", value: "yes")
         setOption(name: MPVOption.GPURendererOptions.gpuApi, value: "vulkan")
 //        setOption(name: MPVOption.GPURendererOptions.gpuContext, value: "moltenvk")
+        if KSOptions.audioPlayerType == AudioRendererPlayer.self {
+            setOption(name: MPVOption.Audio.ao, value: "avfoundation")
+        }
         setOption(name: MPVOption.Video.vo, value: "gpu-next")
         setOption(name: MPVOption.Video.hwdec, value: "videotoolbox")
         setOption(name: MPVOption.Cache.cacheSecs, value: String(Int(options.maxBufferDuration)))

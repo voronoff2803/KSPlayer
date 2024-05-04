@@ -143,7 +143,7 @@ open class KSPlayerLayer: NSObject {
                         play()
                     }
                 } else {
-                    stop()
+                    state = .initialized
                     player.replace(url: url, options: options)
                     if isAutoPlay {
                         prepareToPlay()
@@ -161,6 +161,16 @@ open class KSPlayerLayer: NSObject {
     public private(set) var state = KSPlayerState.initialized {
         willSet {
             if state != newValue {
+                if newValue == .initialized {
+                    bufferedCount = 0
+                    shouldSeekTo = 0
+                    player.playbackRate = 1
+                    player.playbackVolume = 1
+                    MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+                    runOnMainThread {
+                        UIApplication.shared.isIdleTimerDisabled = false
+                    }
+                }
                 runOnMainThread { [weak self] in
                     guard let self else { return }
                     KSLog("playerStateDidChange - \(newValue)")
@@ -318,14 +328,6 @@ open class KSPlayerLayer: NSObject {
         KSLog("stop Player")
         state = .initialized
         player.shutdown()
-        bufferedCount = 0
-        shouldSeekTo = 0
-        player.playbackRate = 1
-        player.playbackVolume = 1
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-        runOnMainThread {
-            UIApplication.shared.isIdleTimerDisabled = false
-        }
     }
 
     open func seek(time: TimeInterval, autoPlay: Bool, completion: @escaping ((Bool) -> Void)) {

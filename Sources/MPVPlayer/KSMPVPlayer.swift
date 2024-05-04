@@ -23,6 +23,7 @@ public class KSMPVPlayer: MPVHandle {
     public private(set) var isReadyToPlay = false
     public private(set) var playbackState = MediaPlaybackState.idle
     public private(set) var loadState = MediaLoadState.idle
+    public var seekable: Bool = false
     public var duration: TimeInterval = 0
     public var fileSize: Double = 0
     public var naturalSize: CGSize = .zero
@@ -75,15 +76,15 @@ public class KSMPVPlayer: MPVHandle {
 
     func sourceDidOpened() {
         isReadyToPlay = true
+        seekable = getFlag(MPVProperty.seekable)
         duration = getDouble(MPVProperty.duration)
         fileSize = getDouble(MPVProperty.fileSize)
         naturalSize = CGSize(width: getInt(MPVProperty.width), height: getInt(MPVProperty.height))
         let trackCount = getInt(MPVProperty.trackListCount)
         tracks = (0 ..< trackCount).compactMap { index in
-            guard let trackType = getString(MPVProperty.trackListNType(index)) else {
+            guard let trackType = getString(MPVProperty.trackListNType(index)), let mediaType = trackType.mpvToMediaType else {
                 return nil
             }
-            let mediaType = AVMediaType(rawValue: trackType)
             let track = MPVTrack(trackID: Int32(getInt(MPVProperty.trackListNId(index))), name: getString(MPVProperty.trackListNTitle(index)) ?? "", mediaType: mediaType, nominalFrameRate: Float(getDouble(MPVProperty.trackListNDemuxFps(index))), bitRate: 0, bitDepth: 0, isEnabled: getFlag(MPVProperty.trackListNSelected(index)), isImageSubtitle: false, rotation: 0, fieldOrder: .unknown, description: getString(MPVProperty.trackListNDecoderDesc(index)) ?? "")
             track.languageCode = getString(MPVProperty.trackListNLang(index))
             return track
@@ -104,10 +105,6 @@ extension KSMPVPlayer: MediaPlayerProtocol {
 
     public var playableTime: TimeInterval {
         1
-    }
-
-    public var seekable: Bool {
-        getFlag(MPVProperty.seekable)
     }
 
     public var isMuted: Bool {
@@ -210,6 +207,7 @@ extension KSMPVPlayer: MediaPlayerProtocol {
         }
     }
 }
+
 extension KSMPVPlayer {
     private func loadFile(url: URL, options: [String] = []) {
         let urlString: String
@@ -219,13 +217,13 @@ extension KSMPVPlayer {
             urlString = url.absoluteString
         }
         var args = [urlString]
-        args.append("replace")
         if !options.isEmpty {
             args.append(options.joined(separator: ","))
         }
         command(.loadfile, args: args)
     }
 }
+
 @available(macOS 12.0, iOS 15.0, tvOS 15.0, *)
 extension KSMPVPlayer: AVPlaybackCoordinatorPlaybackControlDelegate {
     public func playbackCoordinator(_: AVDelegatingPlaybackCoordinator, didIssue playCommand: AVDelegatingPlaybackCoordinatorPlayCommand, completionHandler: @escaping () -> Void) {
@@ -327,5 +325,20 @@ public class MPVTrack: MediaPlayerTrack {
         self.rotation = rotation
         self.fieldOrder = fieldOrder
         self.description = description
+    }
+}
+
+extension String {
+    var mpvToMediaType: AVMediaType? {
+        switch self {
+        case "video":
+            return AVMediaType.video
+        case "audio":
+            return AVMediaType.audio
+        case "sub":
+            return AVMediaType.subtitle
+        default:
+            return nil
+        }
     }
 }
