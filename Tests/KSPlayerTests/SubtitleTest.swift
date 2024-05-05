@@ -53,7 +53,7 @@ class SubtitleTest: XCTestCase {
         let scanner = Scanner(string: string)
         let parse = SrtParse()
         XCTAssertEqual(parse.canParse(scanner: scanner), true)
-        let parts = parse.parse(scanner: scanner)
+        let parts = parse.parse(scanner: scanner) as! [SubtitlePart]
         XCTAssertEqual(parts.count, 9)
         XCTAssertEqual(parts[8].end, 3601.14)
     }
@@ -96,7 +96,7 @@ class SubtitleTest: XCTestCase {
         let scanner = Scanner(string: string)
         let parse = VTTParse()
         XCTAssertEqual(parse.canParse(scanner: scanner), true)
-        let parts = parse.parse(scanner: scanner)
+        let parts = parse.parse(scanner: scanner) as! [SubtitlePart]
         XCTAssertEqual(parts.count, 7)
     }
 
@@ -121,7 +121,7 @@ class SubtitleTest: XCTestCase {
         let scanner = Scanner(string: string)
         let parse = VTTParse()
         XCTAssertEqual(parse.canParse(scanner: scanner), true)
-        let parts = parse.parse(scanner: scanner)
+        let parts = parse.parse(scanner: scanner) as! [SubtitlePart]
         XCTAssertEqual(parts.count, 3)
     }
 }
