@@ -841,6 +841,21 @@ public extension Either {
     init(_ left: Left, or _: Right.Type) { self = .left(left) }
     init(_ left: Left) { self = .left(left) }
     init(_ right: Right) { self = .right(right) }
+    var left: Left? {
+        if case let .left(value) = self {
+            return value
+        } else {
+            return nil
+        }
+    }
+
+    var right: Right? {
+        if case let .right(value) = self {
+            return value
+        } else {
+            return nil
+        }
+    }
 }
 
 /// Allows to "box" another value.

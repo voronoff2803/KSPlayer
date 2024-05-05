@@ -43,7 +43,7 @@ public extension KSParseProtocol {
 }
 
 extension [SubtitlePart]: KSSubtitleProtocol {
-    public func search(for time: TimeInterval) -> [SubtitlePart] {
+    public func search(for time: TimeInterval, size _: CGSize) -> [SubtitlePart] {
         var result = [SubtitlePart]()
         for part in self {
             if part == time {

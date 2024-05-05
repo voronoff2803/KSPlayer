@@ -11,15 +11,14 @@ import CoreGraphics
 import Foundation
 import SwiftUI
 
-public class SubtitlePart: CustomStringConvertible, Identifiable {
+public class SubtitlePart: CustomStringConvertible, Identifiable, SubtitlePartProtocol {
     public var start: TimeInterval
     public var end: TimeInterval
     public var origin: CGPoint = .zero
-    public let text: NSAttributedString?
-    public var image: UIImage?
     public var textPosition: TextPosition?
+    public let render: Either<UIImage, NSAttributedString>
     public var description: String {
-        "Subtile Group ==========\nstart: \(start)\nend:\(end)\ntext:\(String(describing: text))"
+        "Subtile Group ==========\nstart: \(start)\nend:\(end)\ntext:\(String(describing: render))"
     }
 
     public convenience init(_ start: TimeInterval, _ end: TimeInterval, _ string: String) {
@@ -29,11 +28,59 @@ public class SubtitlePart: CustomStringConvertible, Identifiable {
         self.init(start, end, attributedString: NSAttributedString(string: text))
     }
 
-    public init(_ start: TimeInterval, _ end: TimeInterval, attributedString: NSAttributedString?) {
+    public init(_ start: TimeInterval, _ end: TimeInterval, attributedString: NSAttributedString) {
         self.start = start
         self.end = end
-        text = attributedString
+        render = .right(attributedString)
     }
+
+    public init(_ start: TimeInterval, _ end: TimeInterval, image: UIImage) {
+        self.start = start
+        self.end = end
+        render = .left(image)
+    }
+
+    public init(_ start: TimeInterval, _ end: TimeInterval, render: Either<UIImage, NSAttributedString>) {
+        self.start = start
+        self.end = end
+        self.render = render
+    }
+
+    public func render(size _: CGSize) -> SubtitlePart {
+        self
+    }
+
+    public func isEqual(time: TimeInterval) -> Bool {
+        start <= time && end >= time
+    }
+}
+
+public class AsyncSubtitlePart: SubtitlePartProtocol {
+    public let start: TimeInterval
+    public let end: TimeInterval
+    public let render: RenderProtocol
+    init(start: TimeInterval, end: TimeInterval, render: RenderProtocol) {
+        self.start = start
+        self.end = end
+        self.render = render
+    }
+
+    public func render(size: CGSize) -> SubtitlePart {
+        SubtitlePart(start, end, render: render.render(size: size))
+    }
+
+    public func isEqual(time: TimeInterval) -> Bool {
+        start <= time && end >= time
+    }
+}
+
+public protocol SubtitlePartProtocol {
+    func render(size: CGSize) -> SubtitlePart
+    func isEqual(time: TimeInterval) -> Bool
+}
+
+public protocol RenderProtocol {
+    func render(size: CGSize) -> Either<UIImage, NSAttributedString>
 }
 
 public struct TextPosition {
@@ -123,7 +170,7 @@ extension SubtitlePart: NumericComparable {
 }
 
 public protocol KSSubtitleProtocol {
-    func search(for time: TimeInterval) -> [SubtitlePart]
+    func search(for time: TimeInterval, size: CGSize) -> [SubtitlePart]
 }
 
 public protocol SubtitleInfo: KSSubtitleProtocol, AnyObject, Hashable, Identifiable {
@@ -154,8 +201,8 @@ public class KSSubtitle {
 
 extension KSSubtitle: KSSubtitleProtocol {
     /// Search for target group for time
-    public func search(for time: TimeInterval) -> [SubtitlePart] {
-        searchProtocol?.search(for: time) ?? []
+    public func search(for time: TimeInterval, size: CGSize) -> [SubtitlePart] {
+        searchProtocol?.search(for: time, size: size) ?? []
     }
 }
 
@@ -320,11 +367,11 @@ open class SubtitleModel: ObservableObject {
         }
     }
 
-    public func subtitle(currentTime: TimeInterval) -> Bool {
+    public func subtitle(currentTime: TimeInterval, size: CGSize) -> Bool {
         var newParts = [SubtitlePart]()
         if let subtile = selectedSubtitleInfo {
             let currentTime = currentTime - subtile.delay - subtitleDelay
-            newParts = subtile.search(for: currentTime)
+            newParts = subtile.search(for: currentTime, size: size)
             if newParts.isEmpty {
                 newParts = parts.filter { part in
                     part == currentTime
@@ -334,7 +381,7 @@ open class SubtitleModel: ObservableObject {
         // swiftUI不会判断是否相等。所以需要这边判断下。
         if newParts != parts {
             for part in newParts {
-                if let text = part.text as? NSMutableAttributedString {
+                if let text = part.render.right as? NSMutableAttributedString {
                     text.addAttributes([.font: SubtitleModel.textFont],
                                        range: NSRange(location: 0, length: text.length))
                 }

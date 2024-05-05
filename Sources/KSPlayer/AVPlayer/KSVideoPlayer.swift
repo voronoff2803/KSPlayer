@@ -258,7 +258,7 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
         }
     }
 
-    public func player(layer _: KSPlayerLayer, currentTime: TimeInterval, totalTime: TimeInterval) {
+    public func player(layer: KSPlayerLayer, currentTime: TimeInterval, totalTime: TimeInterval) {
         onPlay?(currentTime, totalTime)
         guard var current = Int(exactly: ceil(currentTime)), var total = Int(exactly: ceil(totalTime)) else {
             return
@@ -275,7 +275,7 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
                 timemodel.totalTime = total
             }
         }
-        _ = subtitleModel.subtitle(currentTime: currentTime)
+        _ = subtitleModel.subtitle(currentTime: currentTime, size: layer.player.view?.frame.size ?? .zero)
     }
 
     public func player(layer: KSPlayerLayer, finish error: Error?) {

@@ -649,19 +649,20 @@ private extension SubtitlePart {
     @MainActor
     var subtitleView: some View {
         VStack {
-            if let image {
+            switch self.render {
+            case let .left(image):
                 Spacer()
                 GeometryReader { geometry in
                     let fitRect = image.fitRect(geometry.size)
                     VideoSubtitleView.imageView(image)
                         .offset(CGSize(width: fitRect.origin.x, height: fitRect.origin.y))
                         .frame(width: fitRect.size.width, height: fitRect.size.height)
+                        // 不能加scaledToFit。不然的话图片的缩放比率会有问题。
+                        //                .scaledToFit()
+                        .padding()
                 }
-                // 不能加scaledToFit。不然的话图片的缩放比率会有问题。
-//                .scaledToFit()
-                .padding()
-            } else if let text {
-                let textPosition = textPosition ?? SubtitleModel.textPosition
+            case let .right(text):
+                let textPosition = self.textPosition ?? SubtitleModel.textPosition
                 if textPosition.verticalAlign == .bottom || textPosition.verticalAlign == .center {
                     Spacer()
                 }
@@ -682,9 +683,6 @@ private extension SubtitlePart {
                 if textPosition.verticalAlign == .top || textPosition.verticalAlign == .center {
                     Spacer()
                 }
-            } else {
-                // 需要加这个，不然图片无法清空。感觉是 swiftUI的bug。
-                Text("")
             }
         }
     }

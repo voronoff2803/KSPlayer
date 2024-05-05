@@ -7,7 +7,11 @@
 
 import Foundation
 import libass
-
+#if canImport(UIKit)
+import UIKit
+#else
+import AppKit
+#endif
 @available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *)
 public final class AssImageParse: KSParseProtocol {
     public func canParse(scanner: Scanner) -> Bool {
@@ -52,7 +56,7 @@ public final class AssImageRenderer {
     }
 
     public func setFrame(size: CGSize) {
-        ass_set_frame_size(renderer, Int32(size.width), Int32(size.height))
+        ass_set_frame_size(renderer, Int32(size.width * KSOptions.scale), Int32(size.height * KSOptions.scale))
     }
 
     deinit {
@@ -64,13 +68,14 @@ public final class AssImageRenderer {
 
 @available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *)
 extension AssImageRenderer: KSSubtitleProtocol {
-    public func image(for time: TimeInterval) -> ProcessedImage? {
-        var changed: Int32 = 0
+    public func image(for time: TimeInterval, changed: inout Int32) -> ProcessedImage? {
         let millisecond = Int64(time * 1000)
         guard let frame = ass_render_frame(renderer, currentTrack, millisecond, &changed) else {
             return nil
         }
-        guard changed != 0 else { return nil }
+        guard changed != 0 else {
+            return nil
+        }
         let images = linkedImages(from: frame.pointee)
         let boundingRect = imagesBoundingRect(images: images)
         guard let processedImage = AccelerateImagePipeline.process(images: images, boundingRect: boundingRect) else {
@@ -79,12 +84,37 @@ extension AssImageRenderer: KSSubtitleProtocol {
         return processedImage
     }
 
-    public func search(for time: TimeInterval) -> [SubtitlePart] {
-        guard let processedImage = image(for: time) else {
-            return []
+    public func search(for time: TimeInterval, size: CGSize) -> [SubtitlePart] {
+        setFrame(size: size)
+        var changed = Int32(0)
+        guard let processedImage = image(for: time, changed: &changed), let image = processedImage.image.image() else {
+            if changed == 0 {
+                return []
+            } else {
+                return [SubtitlePart(time, .infinity, "")]
+            }
         }
-        let part = SubtitlePart(time, .infinity, attributedString: nil)
-        part.image = processedImage.image.image()
+        let part = SubtitlePart(time, .infinity, image: image)
         return [part]
+    }
+}
+
+@available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *)
+class ASSRender: RenderProtocol {
+    private let assImageRenderer: AssImageRenderer
+    private let start: TimeInterval
+    init(assImageRenderer: AssImageRenderer, start: TimeInterval) {
+        self.assImageRenderer = assImageRenderer
+        self.start = start
+    }
+
+    func render(size: CGSize) -> Either<UIImage, NSAttributedString> {
+        assImageRenderer.setFrame(size: size)
+        var changed = Int32(0)
+        if let image = assImageRenderer.image(for: start, changed: &changed)?.image.image() {
+            return .left(image)
+        } else {
+            return .right(NSAttributedString())
+        }
     }
 }
