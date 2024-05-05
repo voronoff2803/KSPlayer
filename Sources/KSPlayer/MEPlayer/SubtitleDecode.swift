@@ -18,14 +18,23 @@ class SubtitleDecode: DecodeProtocol {
     private let scale = VideoSwresample(dstFormat: AV_PIX_FMT_ARGB, isDovi: false)
     private var subtitle = AVSubtitle()
     private var startTime = TimeInterval(0)
-    private let assParse = AssParse()
+    private var assParse: AssParse? = nil
+    private var assImageRenderer: AssImageRenderer? = nil
     required init(assetTrack: FFmpegAssetTrack, options: KSOptions) {
         startTime = assetTrack.startTime.seconds
         do {
             codecContext = try assetTrack.createContext(options: options)
-            if let pointer = codecContext?.pointee.subtitle_header {
-                let subtitleHeader = String(cString: pointer)
-                _ = assParse.canParse(scanner: Scanner(string: subtitleHeader))
+            if let codecContext, let pointer = codecContext.pointee.subtitle_header {
+                if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *) {
+                    assImageRenderer = AssImageRenderer()
+                    assImageRenderer?.subtitle(header: pointer, size: codecContext.pointee.subtitle_header_size)
+                } else {
+                    let subtitleHeader = String(cString: pointer)
+                    let assParse = AssParse()
+                    if assParse.canParse(scanner: Scanner(string: subtitleHeader)) {
+                        self.assParse = assParse
+                    }
+                }
             }
         } catch {
             KSLog(error as CustomStringConvertible)
@@ -55,7 +64,7 @@ class SubtitleDecode: DecodeProtocol {
         if duration == 0, packet.duration != 0 {
             duration = packet.assetTrack.timebase.cmtime(for: packet.duration).seconds
         }
-        var parts = text(subtitle: subtitle)
+        var parts = text(subtitle: subtitle, start: start, duration: duration)
         /// 不用preSubtitleFrame来进行更新end。而是插入一个空的字幕来更新字幕。
         /// 因为字幕有可能不按顺序解码。这样就会导致end比start小，然后这个字幕就不会被清空了。
         if parts.isEmpty {
@@ -86,7 +95,7 @@ class SubtitleDecode: DecodeProtocol {
         }
     }
 
-    private func text(subtitle: AVSubtitle) -> [SubtitlePart] {
+    private func text(subtitle: AVSubtitle, start: TimeInterval, duration: TimeInterval) -> [SubtitlePart] {
         var parts = [SubtitlePart]()
         var images = [(CGRect, CGImage)]()
         var origin: CGPoint = .zero
@@ -104,9 +113,13 @@ class SubtitleDecode: DecodeProtocol {
                 }
                 attributedString?.append(NSAttributedString(string: String(cString: text)))
             } else if let ass = rect.ass {
-                let scanner = Scanner(string: String(cString: ass))
-                if let group = assParse.parsePart(scanner: scanner) {
-                    parts.append(group)
+                if let assImageRenderer {
+                    assImageRenderer.add(subtitle: ass, size: Int32(strlen(ass)), start: Int64(start * 1000), duration: Int64(duration * 1000))
+                } else if let assParse {
+                    let scanner = Scanner(string: String(cString: ass))
+                    if let group = assParse.parsePart(scanner: scanner) {
+                        parts.append(group)
+                    }
                 }
             } else if rect.type == SUBTITLE_BITMAP {
                 if let image = scale.transfer(format: AV_PIX_FMT_PAL8, width: rect.w, height: rect.h, data: Array(tuple: rect.data), linesize: Array(tuple: rect.linesize))?.cgImage() {
@@ -119,17 +132,18 @@ class SubtitleDecode: DecodeProtocol {
             if images.count > 1 {
                 origin = .zero
             }
-            var image: UIImage?
             // 因为字幕需要有透明度,所以不能用jpg；tif在iOS支持没有那么好，会有绿色背景； 用heic格式，展示的时候会卡主线程；所以最终用png。
-            if let data = CGImage.combine(images: images)?.data(type: .png, quality: 0.2) {
-                image = UIImage(data: data)
-            }
-            part.image = image
+            part.image = CGImage.combine(images: images)?.image()
             part.origin = origin
             parts.append(part)
         }
         if let attributedString {
             parts.append(SubtitlePart(0, 0, attributedString: attributedString))
+        }
+        if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *), let assImageRenderer {
+            let part = SubtitlePart(0, 0, attributedString: nil)
+            part.image = assImageRenderer.image(for: start)?.image.image()
+            parts.append(part)
         }
         return parts
     }

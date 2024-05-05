@@ -110,6 +110,7 @@ public final class MEPlayerItem: Sendable {
                     let context = ptr.assumingMemoryBound(to: URLContext.self).pointee
                     if let opaque = context.interrupt_callback.opaque {
                         let playerItem = Unmanaged<MEPlayerItem>.fromOpaque(opaque).takeUnretainedValue()
+                        // 不能在这边判断playerItem.formatCtx。不然会报错Simultaneous accesses
                         playerItem.options.urlIO(log: String(log))
                         if log.starts(with: "Will reconnect at") {
                             let seconds = playerItem.mainClock().time.seconds

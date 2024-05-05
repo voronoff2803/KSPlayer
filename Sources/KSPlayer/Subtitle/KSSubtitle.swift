@@ -148,22 +148,14 @@ public extension SubtitleInfo {
 }
 
 public class KSSubtitle {
-    public var parts: [SubtitlePart] = []
+    public var searchProtocol: KSSubtitleProtocol?
     public init() {}
 }
 
 extension KSSubtitle: KSSubtitleProtocol {
     /// Search for target group for time
     public func search(for time: TimeInterval) -> [SubtitlePart] {
-        var result = [SubtitlePart]()
-        for part in parts {
-            if part == time {
-                result.append(part)
-            } else if part.start > time {
-                break
-            }
-        }
-        return result
+        searchProtocol?.search(for: time) ?? []
     }
 }
 
@@ -192,10 +184,7 @@ public extension KSSubtitle {
         _ = scanner.scanCharacters(from: .controlCharacters)
         let parse = KSOptions.subtitleParses.first { $0.canParse(scanner: scanner) }
         if let parse {
-            parts = parse.parse(scanner: scanner)
-            if parts.count == 0 {
-                throw NSError(errorCode: .subtitleUnParse)
-            }
+            searchProtocol = parse.parse(scanner: scanner)
         } else {
             throw NSError(errorCode: .subtitleFormatUnSupport)
         }

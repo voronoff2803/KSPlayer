@@ -797,6 +797,13 @@ extension CGImage {
         }
     }
 
+    func image(type: AVFileType = .png, quality: CGFloat = 0.2) -> UIImage? {
+        if let data = data(type: type, quality: quality) {
+            return UIImage(data: data)
+        }
+        return nil
+    }
+
     static func make(rgbData: UnsafePointer<UInt8>, linesize: Int, width: Int, height: Int, isAlpha: Bool = false) -> CGImage? {
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         let bitmapInfo: CGBitmapInfo = isAlpha ? CGBitmapInfo(rawValue: CGImageAlphaInfo.last.rawValue) : CGBitmapInfo.byteOrderMask

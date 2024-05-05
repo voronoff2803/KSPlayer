@@ -14,18 +14,24 @@ import UIKit
 public protocol KSParseProtocol {
     func canParse(scanner: Scanner) -> Bool
     func parsePart(scanner: Scanner) -> SubtitlePart?
+    func parse(scanner: Scanner) -> KSSubtitleProtocol
 }
 
 public extension KSOptions {
-    static var subtitleParses: [KSParseProtocol] = [AssParse(), VTTParse(), SrtParse()]
+    static var subtitleParses: [KSParseProtocol] = {
+        if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *) {
+            [AssImageParse(), AssParse(), VTTParse(), SrtParse()]
+        } else {
+            [AssParse(), VTTParse(), SrtParse()]
+        }
+    }()
 }
 
 public extension String {}
 
 public extension KSParseProtocol {
-    func parse(scanner: Scanner) -> [SubtitlePart] {
+    func parse(scanner: Scanner) -> KSSubtitleProtocol {
         var groups = [SubtitlePart]()
-
         while !scanner.isAtEnd {
             if let group = parsePart(scanner: scanner) {
                 groups.append(group)
@@ -33,6 +39,20 @@ public extension KSParseProtocol {
         }
         groups = groups.mergeSortBottomUp { $0 < $1 }
         return groups
+    }
+}
+
+extension [SubtitlePart]: KSSubtitleProtocol {
+    public func search(for time: TimeInterval) -> [SubtitlePart] {
+        var result = [SubtitlePart]()
+        for part in self {
+            if part == time {
+                result.append(part)
+            } else if part.start > time {
+                break
+            }
+        }
+        return result
     }
 }
 

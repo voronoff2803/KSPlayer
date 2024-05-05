@@ -19,7 +19,7 @@ public class EmptySubtitleInfo: SubtitleInfo {
 public class URLSubtitleInfo: KSSubtitle, SubtitleInfo {
     public var isEnabled: Bool = false {
         didSet {
-            if isEnabled, parts.isEmpty {
+            if isEnabled, searchProtocol == nil {
                 Task {
                     try? await parse(url: downloadURL, userAgent: userAgent)
                 }

@@ -22,6 +22,10 @@ public extension KSOptions {
         let window = windowScene?.windows.first
         return window?.bounds.size ?? .zero
     }
+
+    static var scale: CGFloat {
+        UITraitCollection.current.displayScale
+    }
 }
 #else
 import AppKit
@@ -32,6 +36,10 @@ public typealias UIPasteboard = NSPasteboard
 public extension KSOptions {
     static var sceneSize: CGSize {
         NSScreen.main?.frame.size ?? .zero
+    }
+
+    static var scale: CGFloat {
+        NSScreen.main?.backingScaleFactor ?? 2
     }
 }
 #endif
