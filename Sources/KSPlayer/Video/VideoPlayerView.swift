@@ -554,10 +554,10 @@ extension VideoPlayerView {
 
     /// change during playback
     public func updateSrt() {
-        subtitleLabel.font = SubtitleModel.textFont
+        subtitleLabel.font = KSOptions.textFont
         if #available(macOS 11.0, iOS 14, tvOS 14, *) {
-            subtitleLabel.textColor = UIColor(SubtitleModel.textColor)
-            subtitleBackView.backgroundColor = UIColor(SubtitleModel.textBackgroundColor)
+            subtitleLabel.textColor = UIColor(KSOptions.textColor)
+            subtitleBackView.backgroundColor = UIColor(KSOptions.textBackgroundColor)
         }
     }
 

@@ -662,16 +662,16 @@ private extension SubtitlePart {
                         .padding()
                 }
             case let .right(text):
-                let textPosition = self.textPosition ?? SubtitleModel.textPosition
+                let textPosition = self.textPosition ?? KSOptions.textPosition
                 if textPosition.verticalAlign == .bottom || textPosition.verticalAlign == .center {
                     Spacer()
                 }
                 Text(AttributedString(text))
-                    .font(Font(SubtitleModel.textFont))
+                    .font(Font(KSOptions.textFont))
                     .shadow(color: .black.opacity(0.9), radius: 1, x: 1, y: 1)
-                    .foregroundColor(SubtitleModel.textColor)
-                    .italic(SubtitleModel.textItalic)
-                    .background(SubtitleModel.textBackgroundColor)
+                    .foregroundColor(KSOptions.textColor)
+                    .italic(KSOptions.textItalic)
+                    .background(KSOptions.textBackgroundColor)
                     .multilineTextAlignment(.center)
                     .alignmentGuide(textPosition.horizontalAlign) {
                         $0[.leading]

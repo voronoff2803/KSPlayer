@@ -313,17 +313,6 @@ open class SubtitleModel: ObservableObject {
         }
     }
 
-    public static var textColor: Color = .white
-    public static var textBackgroundColor: Color = .clear
-    public static var textFont: UIFont {
-        textBold ? .boldSystemFont(ofSize: textFontSize) : .systemFont(ofSize: textFontSize)
-    }
-
-    public static var textFontSize = SubtitleModel.Size.standard.rawValue
-    public static var textBold = false
-    public static var textItalic = false
-    public static var textPosition = TextPosition()
-    public static var audioRecognizes = [any AudioRecognize]()
     private var subtitleDataSouces: [SubtitleDataSouce] = KSOptions.subtitleDataSouces
     @Published
     public private(set) var subtitleInfos = [any SubtitleInfo]()
@@ -335,7 +324,7 @@ open class SubtitleModel: ObservableObject {
             subtitleInfos.removeAll()
             searchSubtitle(query: nil, languages: [])
             if url != nil {
-                subtitleInfos.append(contentsOf: SubtitleModel.audioRecognizes)
+                subtitleInfos.append(contentsOf: KSOptions.audioRecognizes)
             }
             for datasouce in subtitleDataSouces {
                 addSubtitle(dataSouce: datasouce)
@@ -382,7 +371,7 @@ open class SubtitleModel: ObservableObject {
         if newParts != parts {
             for part in newParts {
                 if let text = part.render.right as? NSMutableAttributedString {
-                    text.addAttributes([.font: SubtitleModel.textFont],
+                    text.addAttributes([.font: KSOptions.textFont],
                                        range: NSRange(location: 0, length: text.length))
                 }
             }
