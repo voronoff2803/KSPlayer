@@ -118,6 +118,8 @@ class SubtitleDecode: DecodeProtocol {
                 } else if let assParse {
                     let scanner = Scanner(string: String(cString: ass))
                     if let group = assParse.parsePart(scanner: scanner) {
+                        group.start = start
+                        group.end = end
                         parts.append(group)
                     }
                 }
