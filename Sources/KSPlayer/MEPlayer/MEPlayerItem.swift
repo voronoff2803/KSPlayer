@@ -202,7 +202,6 @@ extension MEPlayerItem {
 //            0
 //        }
         setHttpProxy()
-        var avOptions = options.formatContextOptions.avOptions
         if let pb = options.process(url: url) {
             // 如果要自定义协议的话，那就用avio_alloc_context，对formatCtx.pointee.pb赋值
             formatCtx.pointee.pb = pb.getContext()
@@ -213,6 +212,7 @@ extension MEPlayerItem {
         } else {
             urlString = url.absoluteString
         }
+        var avOptions = options.formatContextOptions.avOptions
         var result = avformat_open_input(&self.formatCtx, urlString, nil, &avOptions)
         av_dict_free(&avOptions)
         if result == AVError.eof.code {
