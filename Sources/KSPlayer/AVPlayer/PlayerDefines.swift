@@ -518,3 +518,9 @@ public struct KSClock {
         time.seconds + CACurrentMediaTime() - lastMediaTime
     }
 }
+
+public enum DecodeType: String {
+    case soft
+    case videotoolbox
+    case vulka
+}

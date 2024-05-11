@@ -107,19 +107,15 @@ public func palettizedBitmap(
     let red = UInt8((image.color >> 24) & 0xFF)
     let green = UInt8((image.color >> 16) & 0xFF)
     let blue = UInt8((image.color >> 8) & 0xFF)
-    let alpha = 255 - UInt8(image.color & 0xFF)
-
+    let alpha = UInt8(image.color & 0xFF)
     let bufferCapacity = 4 * width * height
     let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: bufferCapacity)
-
     var bufferPosition = 0
     var bitmapPosition = 0
-
     loop(iterations: height) { _ in
         loop(iterations: width) { xPosition in
             let alphaValue = image.bitmap.advanced(by: bitmapPosition + xPosition).pointee
-            let normalizedAlpha = Int(alphaValue) * Int(alpha) / 255
-            fillPixel(buffer, bufferPosition, red, green, blue, UInt8(normalizedAlpha))
+            fillPixel(buffer, bufferPosition, red, green, blue, UInt8(alphaValue))
             bufferPosition += 4
         }
         bitmapPosition += stride

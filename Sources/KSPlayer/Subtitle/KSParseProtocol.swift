@@ -131,7 +131,7 @@ public class AssParse: KSParseProtocol {
         }
         var attributes: [NSAttributedString.Key: Any]?
         var textPosition: TextPosition
-        if let style = dic["Style"], let assStyle = styleMap[style] {
+        if let style = dic["Style"], let assStyle = styleMap.match(key: style) {
             attributes = assStyle.attrs
             textPosition = assStyle.textPosition
             if let marginL = dic["MarginL"].flatMap(Double.init), marginL != 0 {
@@ -154,6 +154,24 @@ public class AssParse: KSParseProtocol {
         let part = SubtitlePart(start, end, attributedString: text.build(textPosition: &textPosition, attributed: attributes))
         part.textPosition = textPosition
         return part
+    }
+}
+
+public extension Dictionary where Key == String {
+    func match(key: String) -> Value? {
+        if key.hasPrefix("*") {
+            let newKey = String(key.suffix(from: key.index(key.startIndex, offsetBy: 1)))
+            return first { element in
+                element.key.hasSuffix(newKey)
+            }?.1
+        } else if key.hasSuffix("*") {
+            let newKey = String(key.prefix(upTo: key.index(key.endIndex, offsetBy: -1)))
+            return first { element in
+                element.key.hasPrefix(newKey)
+            }?.1
+        } else {
+            return self[key]
+        }
     }
 }
 

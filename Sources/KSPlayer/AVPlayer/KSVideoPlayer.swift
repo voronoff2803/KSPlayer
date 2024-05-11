@@ -275,7 +275,7 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
                 timemodel.totalTime = total
             }
         }
-        _ = subtitleModel.subtitle(currentTime: currentTime, size: layer.player.view?.frame.size ?? .zero)
+        subtitleModel.subtitle(currentTime: currentTime, size: layer.player.view?.frame.size ?? .zero)
     }
 
     public func player(layer: KSPlayerLayer, finish error: Error?) {

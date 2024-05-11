@@ -42,10 +42,10 @@ public final class AccelerateImagePipeline {
 
     private static func composeBuffers(
         _ buffers: [vImage.PixelBuffer<vImage.Interleaved8x4>],
-        size: vImage.Size
+        size _: vImage.Size
     ) -> vImage.PixelBuffer<vImage.Interleaved8x4> {
-        let destinationBuffer = makePixelBuffer(size: size, fillColor: (0, 0, 0, 0))
-        for buffer in buffers {
+        let destinationBuffer = buffers[0]
+        for buffer in buffers.dropFirst() {
             destinationBuffer.alphaComposite(
                 .nonpremultiplied,
                 topLayer: buffer,

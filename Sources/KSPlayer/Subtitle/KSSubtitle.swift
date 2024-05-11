@@ -356,29 +356,30 @@ open class SubtitleModel: ObservableObject {
         }
     }
 
-    public func subtitle(currentTime: TimeInterval, size: CGSize) -> Bool {
-        var newParts = [SubtitlePart]()
-        if let subtile = selectedSubtitleInfo {
-            let currentTime = currentTime - subtile.delay - subtitleDelay
-            newParts = subtile.search(for: currentTime, size: size)
-            if newParts.isEmpty {
-                newParts = parts.filter { part in
-                    part == currentTime
+    public func subtitle(currentTime: TimeInterval, size: CGSize) {
+        Task { @MainActor in
+            var newParts = [SubtitlePart]()
+            if let subtile = selectedSubtitleInfo {
+                let currentTime = currentTime - subtile.delay - subtitleDelay
+                newParts = await Task.detached {
+                    subtile.search(for: currentTime, size: size)
+                }.value
+                if newParts.isEmpty {
+                    newParts = parts.filter { part in
+                        part == currentTime
+                    }
                 }
             }
-        }
-        // swiftUI不会判断是否相等。所以需要这边判断下。
-        if newParts != parts {
-            for part in newParts {
-                if let text = part.render.right as? NSMutableAttributedString {
-                    text.addAttributes([.font: KSOptions.textFont],
-                                       range: NSRange(location: 0, length: text.length))
+            // swiftUI不会判断是否相等。所以需要这边判断下。
+            if newParts != parts {
+                for part in newParts {
+                    if KSOptions.subAssOverride == "yes", let text = part.render.right as? NSMutableAttributedString {
+                        text.addAttributes([.font: KSOptions.textFont],
+                                           range: NSRange(location: 0, length: text.length))
+                    }
                 }
+                parts = newParts
             }
-            parts = newParts
-            return true
-        } else {
-            return false
         }
     }
 

@@ -250,17 +250,7 @@ open class VideoPlayerView: PlayerView {
     override open func player(layer: KSPlayerLayer, currentTime: TimeInterval, totalTime: TimeInterval) {
         guard !isSliderSliding else { return }
         super.player(layer: layer, currentTime: currentTime, totalTime: totalTime)
-        if srtControl.subtitle(currentTime: currentTime, size: frame.size) {
-            if let part = srtControl.parts.first {
-                subtitleBackView.image = part.render.left
-                subtitleLabel.attributedText = part.render.right
-                subtitleBackView.isHidden = false
-            } else {
-                subtitleBackView.image = nil
-                subtitleLabel.attributedText = nil
-                subtitleBackView.isHidden = true
-            }
-        }
+        srtControl.subtitle(currentTime: currentTime, size: frame.size)
     }
 
     override open func player(layer: KSPlayerLayer, state: KSPlayerState) {
@@ -586,6 +576,20 @@ extension VideoPlayerView {
             subtitleLabel.topAnchor.constraint(equalTo: subtitleBackView.topAnchor, constant: 2),
             subtitleLabel.bottomAnchor.constraint(equalTo: subtitleBackView.bottomAnchor, constant: -2),
         ])
+        srtControl.$parts.sink { [weak self] parts in
+            guard let self else {
+                return
+            }
+            if let part = parts.first {
+                subtitleBackView.image = part.render.left
+                subtitleLabel.attributedText = part.render.right
+                subtitleBackView.isHidden = false
+            } else {
+                subtitleBackView.image = nil
+                subtitleLabel.attributedText = nil
+                subtitleBackView.isHidden = true
+            }
+        }
     }
 
     /**

@@ -466,6 +466,7 @@ open class KSOptions {
     public var autoSelectEmbedSubtitle = true
     public var isSeekImageSubtitle = false
     public static var isASSUseImageRender = false
+    public static var subAssOverride = "yes"
     public static var textColor: Color = .white
     public static var textBackgroundColor: Color = .clear
     public static var textFont: UIFont {

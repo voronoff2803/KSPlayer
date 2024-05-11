@@ -111,8 +111,8 @@ class ASSRender: RenderProtocol {
     func render(size: CGSize) -> Either<UIImage, NSAttributedString> {
         assImageRenderer.setFrame(size: size)
         var changed = Int32(0)
-        if let image = assImageRenderer.image(for: start, changed: &changed)?.image.image() {
-            return .left(image)
+        if let cgImage = assImageRenderer.image(for: start, changed: &changed)?.image {
+            return .left(UIImage(cgImage: cgImage))
         } else {
             return .right(NSAttributedString())
         }
