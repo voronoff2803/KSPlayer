@@ -9,8 +9,9 @@ import QuartzCore
 public final class AccelerateImagePipeline {
     public static func process(images: [ASS_Image]) -> (CGPoint, CGImage)? {
         let boundingRect = imagesBoundingRect(images: images)
-        let start = CACurrentMediaTime()
+//        let start = CACurrentMediaTime()
         guard let cgImage = blendImages(images, boundingRect: boundingRect) else { return nil }
+//        print("time:\(CACurrentMediaTime() - start)")
         return (boundingRect.origin, cgImage)
     }
 
