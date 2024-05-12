@@ -1,6 +1,12 @@
 @testable import KSPlayer
 import XCTest
 
+extension XCTestCase {
+    func testURLForResource(_ resourceName: String) -> URL {
+        Bundle(url: Bundle(for: type(of: self)).url(forResource: "KSPlayer_KSPlayerTests.bundle", withExtension: nil)!)!.url(forResource: resourceName, withExtension: nil)!
+    }
+}
+
 class SubtitleTest: XCTestCase {
     func testSrt() {
         let string = """
@@ -56,6 +62,18 @@ class SubtitleTest: XCTestCase {
         let parts = parse.parse(scanner: scanner) as! [SubtitlePart]
         XCTAssertEqual(parts.count, 9)
         XCTAssertEqual(parts[8].end, 3601.14)
+    }
+
+    func testSrt2() async {
+        let url = testURLForResource("Sons.of.Anarchy.S02E05.txt")
+        let string = try? await url.string()
+        let scanner = Scanner(string: string!)
+        let parse = SrtParse()
+        XCTAssertEqual(parse.canParse(scanner: scanner), true)
+        let parts = parse.parse(scanner: scanner) as! [SubtitlePart]
+        XCTAssertEqual(parts.count, 6)
+        XCTAssertEqual(parts[4].render.right?.string.contains("<"), false)
+        XCTAssertEqual(parts[5].render.right?.string.contains("<"), false)
     }
 
     func testVtt() {

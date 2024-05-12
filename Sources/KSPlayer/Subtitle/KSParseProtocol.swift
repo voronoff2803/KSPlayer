@@ -212,7 +212,30 @@ extension String {
 
     func parseStyle(attributes: inout [NSAttributedString.Key: Any], style: String?, textPosition: inout TextPosition) -> NSAttributedString {
         guard let style else {
-            return NSAttributedString(string: self, attributes: attributes)
+            let attributedStr = NSMutableAttributedString()
+            for string in split(separator: "\n") {
+                if attributedStr.length != 0 {
+                    attributedStr.append(NSAttributedString(string: String("\n")))
+                }
+                if string.hasPrefix("<"), string.hasSuffix(">") {
+                    let scanner = Scanner(string: String(string))
+                    if scanner.scanString("<font ") != nil {
+                        if scanner.scanString("size=\"") != nil, let fontSize = scanner.scanFloat(), scanner.scanUpToString(">") != nil, scanner.scanString(">") != nil, let text = scanner.scanUpToString("<") {
+                            var attributes = attributes
+                            attributes[.font] = UIFont.systemFont(ofSize: CGFloat(fontSize))
+                            attributedStr.append(NSAttributedString(string: text, attributes: attributes))
+                            continue
+                        } else if scanner.scanString("color=\"#") != nil, let hex = scanner.scanInt(representation: .hexadecimal), scanner.scanUpToString(">") != nil, scanner.scanString(">") != nil, let text = scanner.scanUpToString("<") {
+                            var attributes = attributes
+                            attributes[.foregroundColor] = UIColor(rgb: hex)
+                            attributedStr.append(NSAttributedString(string: text, attributes: attributes))
+                            continue
+                        }
+                    }
+                }
+                attributedStr.append(NSAttributedString(string: String(string), attributes: attributes))
+            }
+            return attributedStr
         }
         var fontName: String?
         var fontSize: Float?

@@ -208,22 +208,7 @@ extension KSSubtitle: KSSubtitleProtocol {
 
 public extension KSSubtitle {
     func parse(url: URL, userAgent: String? = nil, encoding: String.Encoding? = nil) async throws {
-        let data = try await url.data(userAgent: userAgent)
-        try parse(data: data, encoding: encoding)
-    }
-
-    func parse(data: Data, encoding: String.Encoding? = nil) throws {
-        var string: String?
-        let encodes = [encoding ?? String.Encoding.utf8,
-                       String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(CFStringEncoding(CFStringEncodings.big5.rawValue))),
-                       String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(CFStringEncoding(CFStringEncodings.GB_18030_2000.rawValue))),
-                       String.Encoding.unicode]
-        for encode in encodes {
-            string = String(data: data, encoding: encode)
-            if string != nil {
-                break
-            }
-        }
+        let string = try await url.string(userAgent: userAgent, encoding: encoding)
         guard let subtitle = string else {
             throw NSError(errorCode: .subtitleUnEncoding)
         }

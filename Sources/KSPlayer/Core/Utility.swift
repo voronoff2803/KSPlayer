@@ -411,6 +411,22 @@ public extension URL {
         }
     }
 
+    func string(userAgent: String? = nil, encoding: String.Encoding? = nil) async throws -> String? {
+        let data = try await data(userAgent: userAgent)
+        var string: String?
+        let encodes = [encoding ?? String.Encoding.utf8,
+                       String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(CFStringEncoding(CFStringEncodings.big5.rawValue))),
+                       String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(CFStringEncoding(CFStringEncodings.GB_18030_2000.rawValue))),
+                       String.Encoding.unicode]
+        for encode in encodes {
+            string = String(data: data, encoding: encode)
+            if string != nil {
+                break
+            }
+        }
+        return string
+    }
+
     func download(userAgent: String? = nil, completion: @escaping ((String, URL) -> Void)) {
         var request = URLRequest(url: self)
         if let userAgent {
