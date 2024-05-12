@@ -203,7 +203,8 @@ extension MetalPlayView {
                 checkFormatDescription(pixelBuffer: pixelBuffer)
                 #if !os(tvOS)
                 if #available(iOS 16, *) {
-                    metalView.metalLayer.edrMetadata = frame.edrMetadata
+                    // 设置edrMetadata会导致过度曝光，还没找到正确的方式。先不设置了
+//                    metalView.metalLayer.edrMetadata = frame.edrMetadata
                 }
                 #endif
                 metalView.draw(pixelBuffer: pixelBuffer, display: options.display, size: size)
@@ -260,9 +261,10 @@ public class MetalView: UIView {
     }
 
     func clear() {
-        if let drawable = metalLayer.nextDrawable() {
-            render.clear(drawable: drawable)
-        }
+        // 这里nextDrawable会必现crash。所以先不用clear了。
+//        if let drawable = metalLayer.nextDrawable() {
+//            render.clear(drawable: drawable)
+//        }
     }
 
     func draw(pixelBuffer: PixelBufferProtocol, display: DisplayEnum, size: CGSize) {

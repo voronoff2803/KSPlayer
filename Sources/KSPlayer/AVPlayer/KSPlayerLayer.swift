@@ -338,6 +338,7 @@ open class KSPlayerLayer: NSObject {
             player.seek(time: time) { [weak self] finished in
                 guard let self else { return }
                 if finished, autoPlay {
+                    state = .buffering
                     self.play()
                 }
                 completion(finished)
