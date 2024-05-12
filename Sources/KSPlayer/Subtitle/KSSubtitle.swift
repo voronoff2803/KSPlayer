@@ -14,9 +14,8 @@ import SwiftUI
 public class SubtitlePart: CustomStringConvertible, Identifiable, SubtitlePartProtocol {
     public var start: TimeInterval
     public var end: TimeInterval
-    public var origin: CGPoint = .zero
     public var textPosition: TextPosition?
-    public let render: Either<UIImage, NSAttributedString>
+    public let render: Either<(CGPoint, UIImage), NSAttributedString>
     public var description: String {
         "Subtile Group ==========\nstart: \(start)\nend:\(end)\ntext:\(String(describing: render))"
     }
@@ -34,13 +33,13 @@ public class SubtitlePart: CustomStringConvertible, Identifiable, SubtitlePartPr
         render = .right(attributedString)
     }
 
-    public init(_ start: TimeInterval, _ end: TimeInterval, image: UIImage) {
+    public init(_ start: TimeInterval, _ end: TimeInterval, image: (CGPoint, UIImage)) {
         self.start = start
         self.end = end
         render = .left(image)
     }
 
-    public init(_ start: TimeInterval, _ end: TimeInterval, render: Either<UIImage, NSAttributedString>) {
+    public init(_ start: TimeInterval, _ end: TimeInterval, render: Either<(CGPoint, UIImage), NSAttributedString>) {
         self.start = start
         self.end = end
         self.render = render
@@ -80,7 +79,7 @@ public protocol SubtitlePartProtocol {
 }
 
 public protocol RenderProtocol {
-    func render(size: CGSize) -> Either<UIImage, NSAttributedString>
+    func render(size: CGSize) -> Either<(CGPoint, UIImage), NSAttributedString>
 }
 
 public struct TextPosition {

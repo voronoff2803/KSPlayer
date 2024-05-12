@@ -581,7 +581,7 @@ extension VideoPlayerView {
                 return
             }
             if let part = parts.first {
-                subtitleBackView.image = part.render.left
+                subtitleBackView.image = part.render.left?.1
                 subtitleLabel.attributedText = part.render.right
                 subtitleBackView.isHidden = false
             } else {

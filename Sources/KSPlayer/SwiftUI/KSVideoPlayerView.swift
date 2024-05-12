@@ -653,8 +653,8 @@ private extension SubtitlePart {
             case let .left(image):
                 Spacer()
                 GeometryReader { geometry in
-                    let fitRect = image.fitRect(geometry.size)
-                    VideoSubtitleView.imageView(image)
+                    let fitRect = image.1.fitRect(geometry.size)
+                    VideoSubtitleView.imageView(image.1)
                         .offset(CGSize(width: fitRect.origin.x, height: fitRect.origin.y))
                         .frame(width: fitRect.size.width, height: fitRect.size.height)
                         // 不能加scaledToFit。不然的话图片的缩放比率会有问题。

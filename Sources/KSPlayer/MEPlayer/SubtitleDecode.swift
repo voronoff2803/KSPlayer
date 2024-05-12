@@ -130,13 +130,11 @@ class SubtitleDecode: DecodeProtocol {
             }
         }
         if images.count > 0, let image = CGImage.combine(images: images)?.image() {
-            // 因为字幕需要有透明度,所以不能用jpg；tif在iOS支持没有那么好，会有绿色背景； 用heic格式，展示的时候会卡主线程；所以最终用png。
-            let part = SubtitlePart(start, end, image: image)
             if images.count > 1 {
                 origin = .zero
             }
-
-            part.origin = origin
+            // 因为字幕需要有透明度,所以不能用jpg；tif在iOS支持没有那么好，会有绿色背景； 用heic格式，展示的时候会卡主线程；所以最终用png。
+            let part = SubtitlePart(start, end, image: (origin, image))
             parts.append(part)
         }
         if let attributedString {

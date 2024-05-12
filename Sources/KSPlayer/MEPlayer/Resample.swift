@@ -167,7 +167,7 @@ class VideoSwresample: FrameChange {
             } else {
                 let planeCount = format.planeCount
                 let byteCount = format.bitDepth > 8 ? 2 : 1
-                for i in 0 ..< bufferPlaneCount {
+                loop(iterations: bufferPlaneCount) { i in
                     let height = pbuf.heightOfPlane(at: i)
                     let size = Int(linesize[i])
                     let bytesPerRow = CVPixelBufferGetBytesPerRowOfPlane(pbuf, i)
@@ -176,26 +176,21 @@ class VideoSwresample: FrameChange {
                     if bufferPlaneCount < planeCount, i + 2 == planeCount {
                         var sourceU = data[i]!
                         var sourceV = data[i + 1]!
-                        var k = 0
-                        while k < height {
+                        loop(iterations: height) { _ in
                             var j = 0
-                            while j < size {
+                            loop(iterations: size, stride: byteCount) { j in
                                 contents?.advanced(by: 2 * j).copyMemory(from: sourceU.advanced(by: j), byteCount: byteCount)
                                 contents?.advanced(by: 2 * j + byteCount).copyMemory(from: sourceV.advanced(by: j), byteCount: byteCount)
-                                j += byteCount
                             }
                             contents = contents?.advanced(by: bytesPerRow)
                             sourceU = sourceU.advanced(by: size)
                             sourceV = sourceV.advanced(by: size)
-                            k += 1
                         }
                     } else if bytesPerRow == size {
                         contents?.copyMemory(from: source, byteCount: height * size)
                     } else {
-                        var j = 0
-                        while j < height {
+                        loop(iterations: height) { j in
                             contents?.advanced(by: j * bytesPerRow).copyMemory(from: source.advanced(by: j * size), byteCount: size)
-                            j += 1
                         }
                     }
                 }

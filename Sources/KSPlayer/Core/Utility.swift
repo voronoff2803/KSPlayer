@@ -946,3 +946,13 @@ extension Array {
         return z[d]
     }
 }
+
+// 性能 while > stride(from:to:by:) > for in
+@inline(__always)
+func loop(iterations: Int, stride: Int = 1, body: (Int) -> Void) {
+    var index = 0
+    while index < iterations {
+        body(index)
+        index += stride
+    }
+}
