@@ -201,10 +201,10 @@ extension MetalPlayView {
                     size = KSOptions.sceneSize
                 }
                 checkFormatDescription(pixelBuffer: pixelBuffer)
-                #if !os(tvOS)
+                #if !os(tvOS) && !os(macOS)
+                // macos 设置edrMetadata会导致过度曝光，还没找到正确的方式。先不设置了
                 if #available(iOS 16, *) {
-                    // 设置edrMetadata会导致过度曝光，还没找到正确的方式。先不设置了
-//                    metalView.metalLayer.edrMetadata = frame.edrMetadata
+                    metalView.metalLayer.edrMetadata = frame.edrMetadata
                 }
                 #endif
                 metalView.draw(pixelBuffer: pixelBuffer, display: options.display, size: size)
@@ -261,10 +261,14 @@ public class MetalView: UIView {
     }
 
     func clear() {
-        // 这里nextDrawable会必现crash。所以先不用clear了。
-//        if let drawable = metalLayer.nextDrawable() {
-//            render.clear(drawable: drawable)
-//        }
+        #if !os(tvOS)
+        if #available(iOS 16, *) {
+            metalLayer.edrMetadata = nil
+        }
+        #endif
+        if let drawable = metalLayer.nextDrawable() {
+            render.clear(drawable: drawable)
+        }
     }
 
     func draw(pixelBuffer: PixelBufferProtocol, display: DisplayEnum, size: CGSize) {
