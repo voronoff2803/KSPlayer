@@ -666,17 +666,23 @@ private extension SubtitlePart {
                 if textPosition.verticalAlign == .bottom || textPosition.verticalAlign == .center {
                     Spacer()
                 }
-                Text(AttributedString(text))
-                    .font(Font(KSOptions.textFont))
-                    .shadow(color: .black.opacity(0.9), radius: 1, x: 1, y: 1)
-                    .foregroundColor(KSOptions.textColor)
-                    .italic(KSOptions.textItalic)
-                    .background(KSOptions.textBackgroundColor)
-                    .multilineTextAlignment(.center)
-                    .alignmentGuide(textPosition.horizontalAlign) {
-                        $0[.leading]
+                Group {
+                    if KSOptions.stripSutitleStyle {
+                        Text(text.string)
+                    } else {
+                        Text(AttributedString(text))
                     }
-                    .padding(textPosition.edgeInsets)
+                }
+                .font(Font(KSOptions.textFont))
+                .shadow(color: .black.opacity(0.9), radius: 1, x: 1, y: 1)
+                .foregroundColor(KSOptions.textColor)
+                .italic(KSOptions.textItalic)
+                .background(KSOptions.textBackgroundColor)
+                .multilineTextAlignment(.center)
+                .alignmentGuide(textPosition.horizontalAlign) {
+                    $0[.leading]
+                }
+                .padding(textPosition.edgeInsets)
                 #if !os(tvOS)
                     .textSelection(.enabled)
                 #endif

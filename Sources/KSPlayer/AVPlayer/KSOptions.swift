@@ -305,7 +305,8 @@ open class KSOptions {
     public var autoSelectEmbedSubtitle = true
     public var isSeekImageSubtitle = false
     public static var isASSUseImageRender = false
-    public static var subAssOverride = "yes"
+    // 丢弃掉字幕自带的样式，用自定义的样式
+    public static var stripSutitleStyle = true
     public static var textColor: Color = .white
     public static var textBackgroundColor: Color = .clear
     public static var textFont: UIFont {

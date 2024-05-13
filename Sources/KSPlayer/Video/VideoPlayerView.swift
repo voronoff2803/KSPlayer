@@ -582,7 +582,11 @@ extension VideoPlayerView {
             }
             if let part = parts.first {
                 subtitleBackView.image = part.render.left?.1
-                subtitleLabel.attributedText = part.render.right
+                if KSOptions.stripSutitleStyle, let text = part.render.right?.string {
+                    subtitleLabel.text = text
+                } else {
+                    subtitleLabel.attributedText = part.render.right
+                }
                 subtitleBackView.isHidden = false
             } else {
                 subtitleBackView.image = nil
