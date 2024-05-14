@@ -16,12 +16,16 @@ extension FFmpegAssetTrack: SubtitleInfo {
 
 extension FFmpegAssetTrack: KSSubtitleProtocol {
     public func search(for time: TimeInterval, size: CGSize) async -> [SubtitlePart] {
+        if let assImageRenderer {
+            if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *) {
+                return await assImageRenderer.search(for: time, size: size)
+            } else {
+                return []
+            }
+        }
         var array = subtitle?.outputRenderQueue.search { item -> Bool in
             item.part.isEqual(time: time)
         }.map(\.part) ?? []
-        array = array.removeDuplicate { left, right in
-            (left as? AsyncSubtitlePart) == (right as? AsyncSubtitlePart)
-        }
         return await array.asyncMap { await $0.render(size: size) }
     }
 }

@@ -27,6 +27,7 @@ class SubtitleDecode: DecodeProtocol {
             if let codecContext, let pointer = codecContext.pointee.subtitle_header {
                 if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *), KSOptions.isASSUseImageRender {
                     assImageRenderer = AssImageRenderer()
+                    assetTrack.assImageRenderer = assImageRenderer
                     Task {
                         await assImageRenderer?.subtitle(header: pointer, size: codecContext.pointee.subtitle_header_size)
                     }
@@ -75,7 +76,7 @@ class SubtitleDecode: DecodeProtocol {
         var parts = text(subtitle: subtitle, start: start, end: end)
         /// 不用preSubtitleFrame来进行更新end。而是插入一个空的字幕来更新字幕。
         /// 因为字幕有可能不按顺序解码。这样就会导致end比start小，然后这个字幕就不会被清空了。
-        if parts.isEmpty {
+        if assImageRenderer == nil, parts.isEmpty {
             parts.append(SubtitlePart(start, end, ""))
         }
         for part in parts {
@@ -143,10 +144,6 @@ class SubtitleDecode: DecodeProtocol {
         }
         if let attributedString {
             parts.append(SubtitlePart(start, end, attributedString: attributedString))
-        }
-        if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *), let assImageRenderer {
-            let part = AsyncSubtitlePart(start: start, end: end, render: assImageRenderer)
-            parts.append(part)
         }
         return parts
     }
