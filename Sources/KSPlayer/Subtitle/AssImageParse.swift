@@ -30,10 +30,11 @@ public final class AssImageParse: KSParseProtocol {
     }
 }
 
-public final class AssImageRenderer {
+public final actor AssImageRenderer {
     private let library: OpaquePointer?
     private let renderer: OpaquePointer?
     private var currentTrack: UnsafeMutablePointer<ASS_Track>?
+    private let queue = DispatchQueue(label: "com.swift-ass-renderer.work", qos: .userInteractive)
     public init(content: String? = nil) {
         library = ass_library_init()
         renderer = ass_renderer_init(library)
@@ -68,7 +69,7 @@ public final class AssImageRenderer {
 }
 
 @available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *)
-extension AssImageRenderer: KSSubtitleProtocol {
+extension AssImageRenderer: KSSubtitleProtocol, RenderProtocol {
     public func image(for time: TimeInterval, changed: inout Int32) -> (CGPoint, CGImage)? {
         let millisecond = Int64(time * 1000)
         guard let frame = ass_render_frame(renderer, currentTrack, millisecond, &changed) else {
@@ -84,7 +85,7 @@ extension AssImageRenderer: KSSubtitleProtocol {
         return processedImage
     }
 
-    public func search(for time: TimeInterval, size: CGSize) -> [SubtitlePart] {
+    public func search(for time: TimeInterval, size: CGSize) async -> [SubtitlePart] {
         setFrame(size: size)
         var changed = Int32(0)
         guard let processedImage = image(for: time, changed: &changed) else {
@@ -97,21 +98,11 @@ extension AssImageRenderer: KSSubtitleProtocol {
         let part = SubtitlePart(time, .infinity, image: (processedImage.0, UIImage(cgImage: processedImage.1)))
         return [part]
     }
-}
 
-@available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *)
-class ASSRender: RenderProtocol {
-    private let assImageRenderer: AssImageRenderer
-    private let start: TimeInterval
-    init(assImageRenderer: AssImageRenderer, start: TimeInterval) {
-        self.assImageRenderer = assImageRenderer
-        self.start = start
-    }
-
-    func render(size: CGSize) -> Either<(CGPoint, UIImage), NSAttributedString> {
-        assImageRenderer.setFrame(size: size)
+    public func render(time: TimeInterval, size: CGSize) async -> Either<(CGPoint, UIImage), NSAttributedString> {
+        setFrame(size: size)
         var changed = Int32(0)
-        if let image = assImageRenderer.image(for: start, changed: &changed) {
+        if let image = image(for: time, changed: &changed) {
             return .left((image.0, UIImage(cgImage: image.1)))
         } else {
             return .right(NSAttributedString())

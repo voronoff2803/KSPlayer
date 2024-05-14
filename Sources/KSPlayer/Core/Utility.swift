@@ -947,6 +947,28 @@ extension Array {
     }
 }
 
+extension Array {
+    func removeDuplicate(predicate: (_ left: Element, _ right: Element) -> Bool) -> Array {
+        enumerated().filter { index, value -> Bool in
+            firstIndex { element in
+                predicate(value, element)
+            } == index
+        }.map { _, value in
+            value
+        }
+    }
+}
+
+extension Array {
+    func asyncMap<T>(_ transform: (Element) async throws -> T) async rethrows -> [T] {
+        var values = [T]()
+        for element in self {
+            try await values.append(transform(element))
+        }
+        return values
+    }
+}
+
 // 性能 while > stride(from:to:by:) > for in
 @inline(__always)
 func loop(iterations: Int, stride: Int = 1, body: (Int) -> Void) {

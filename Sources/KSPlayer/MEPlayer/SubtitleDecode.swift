@@ -27,7 +27,9 @@ class SubtitleDecode: DecodeProtocol {
             if let codecContext, let pointer = codecContext.pointee.subtitle_header {
                 if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *), KSOptions.isASSUseImageRender {
                     assImageRenderer = AssImageRenderer()
-                    assImageRenderer?.subtitle(header: pointer, size: codecContext.pointee.subtitle_header_size)
+                    Task {
+                        await assImageRenderer?.subtitle(header: pointer, size: codecContext.pointee.subtitle_header_size)
+                    }
                 } else {
                     let subtitleHeader = String(cString: pointer)
                     let assParse = AssParse()
@@ -114,7 +116,9 @@ class SubtitleDecode: DecodeProtocol {
                 attributedString?.append(NSAttributedString(string: String(cString: text)))
             } else if let ass = rect.ass {
                 if let assImageRenderer {
-                    assImageRenderer.add(subtitle: ass, size: Int32(strlen(ass)), start: Int64(start * 1000), duration: Int64((end - start) * 1000))
+                    Task {
+                        await assImageRenderer.add(subtitle: ass, size: Int32(strlen(ass)), start: Int64(start * 1000), duration: Int64((end - start) * 1000))
+                    }
                 } else if let assParse {
                     let scanner = Scanner(string: String(cString: ass))
                     if let group = assParse.parsePart(scanner: scanner) {
@@ -141,7 +145,7 @@ class SubtitleDecode: DecodeProtocol {
             parts.append(SubtitlePart(start, end, attributedString: attributedString))
         }
         if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *), let assImageRenderer {
-            let part = AsyncSubtitlePart(start: start, end: end, render: ASSRender(assImageRenderer: assImageRenderer, start: start))
+            let part = AsyncSubtitlePart(start: start, end: end, render: assImageRenderer)
             parts.append(part)
         }
         return parts

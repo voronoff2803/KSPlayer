@@ -64,22 +64,26 @@ public class AsyncSubtitlePart: SubtitlePartProtocol {
         self.render = render
     }
 
-    public func render(size: CGSize) -> SubtitlePart {
-        SubtitlePart(start, end, render: render.render(size: size))
+    public func render(size: CGSize) async -> SubtitlePart {
+        await SubtitlePart(start, end, render: render.render(time: start, size: size))
     }
 
     public func isEqual(time: TimeInterval) -> Bool {
         start <= time && end >= time
     }
+
+    public static func == (lhs: AsyncSubtitlePart, rhs: AsyncSubtitlePart) -> Bool {
+        lhs.start == rhs.start && lhs.end == rhs.end && lhs.render === rhs.render
+    }
 }
 
-public protocol SubtitlePartProtocol {
-    func render(size: CGSize) -> SubtitlePart
+public protocol SubtitlePartProtocol: Equatable {
+    func render(size: CGSize) async -> SubtitlePart
     func isEqual(time: TimeInterval) -> Bool
 }
 
-public protocol RenderProtocol {
-    func render(size: CGSize) -> Either<(CGPoint, UIImage), NSAttributedString>
+public protocol RenderProtocol: AnyObject {
+    func render(time: TimeInterval, size: CGSize) async -> Either<(CGPoint, UIImage), NSAttributedString>
 }
 
 public struct TextPosition {
@@ -141,11 +145,7 @@ public struct TextPosition {
 
 extension SubtitlePart: Comparable {
     public static func == (left: SubtitlePart, right: SubtitlePart) -> Bool {
-        if left.start == right.start, left.end == right.end {
-            return true
-        } else {
-            return false
-        }
+        left.start == right.start && left.end == right.end && left.render.right == right.render.right
     }
 
     public static func < (left: SubtitlePart, right: SubtitlePart) -> Bool {
@@ -169,7 +169,7 @@ extension SubtitlePart: NumericComparable {
 }
 
 public protocol KSSubtitleProtocol {
-    func search(for time: TimeInterval, size: CGSize) -> [SubtitlePart]
+    func search(for time: TimeInterval, size: CGSize) async -> [SubtitlePart]
 }
 
 public protocol SubtitleInfo: KSSubtitleProtocol, AnyObject, Hashable, Identifiable {
@@ -200,8 +200,8 @@ public class KSSubtitle {
 
 extension KSSubtitle: KSSubtitleProtocol {
     /// Search for target group for time
-    public func search(for time: TimeInterval, size: CGSize) -> [SubtitlePart] {
-        searchProtocol?.search(for: time, size: size) ?? []
+    public func search(for time: TimeInterval, size: CGSize) async -> [SubtitlePart] {
+        await searchProtocol?.search(for: time, size: size) ?? []
     }
 }
 
@@ -345,9 +345,7 @@ open class SubtitleModel: ObservableObject {
             var newParts = [SubtitlePart]()
             if let subtile = selectedSubtitleInfo {
                 let currentTime = currentTime - subtile.delay - subtitleDelay
-                newParts = await Task.detached {
-                    subtile.search(for: currentTime, size: size)
-                }.value
+                newParts = await subtile.search(for: currentTime, size: size)
                 if newParts.isEmpty {
                     newParts = parts.filter { part in
                         part == currentTime
