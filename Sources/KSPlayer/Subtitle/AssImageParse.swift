@@ -34,7 +34,6 @@ public final actor AssImageRenderer {
     private let library: OpaquePointer?
     private let renderer: OpaquePointer?
     private var currentTrack: UnsafeMutablePointer<ASS_Track>?
-    private let queue = DispatchQueue(label: "com.swift-ass-renderer.work", qos: .userInteractive)
     public init(content: String? = nil) {
         library = ass_library_init()
         renderer = ass_renderer_init(library)
