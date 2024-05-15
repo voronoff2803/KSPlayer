@@ -35,22 +35,20 @@ public final class AccelerateImagePipeline {
         let green = UInt8((image.color >> 16) & 0xFF)
         let blue = UInt8((image.color >> 8) & 0xFF)
         var bitmapPosition = 0
-        destinationBuffer.withUnsafeRegionOfInterest(relativeRect) { buffer in
-            let rowBytes = (buffer.rowStride * buffer.byteCountPerPixel)
-            var vImagePosition = 0
-            buffer.withUnsafeMutableBufferPointer { bufferPtr in
-                loop(iterations: height) { _ in
-                    loop(iterations: width) { x in
-                        let alpha = image.bitmap.advanced(by: bitmapPosition + x).pointee
-                        let index = vImagePosition + x * buffer.channelCount
-                        bufferPtr[index + 0] = alpha
-                        bufferPtr[index + 1] = red
-                        bufferPtr[index + 2] = green
-                        bufferPtr[index + 3] = blue
-                    }
-                    vImagePosition += rowBytes
-                    bitmapPosition += stride
+        let rowBytes = destinationBuffer.rowStride * destinationBuffer.byteCountPerPixel
+        var vImagePosition = Int(relativeRect.minY) * rowBytes
+        destinationBuffer.withUnsafeMutableBufferPointer { bufferPtr in
+            loop(iterations: height) { _ in
+                loop(iterations: width) { x in
+                    let alpha = image.bitmap.advanced(by: bitmapPosition + x).pointee
+                    let index = vImagePosition + (x + Int(relativeRect.minX)) * destinationBuffer.channelCount
+                    bufferPtr[index + 0] = alpha
+                    bufferPtr[index + 1] = red
+                    bufferPtr[index + 2] = green
+                    bufferPtr[index + 3] = blue
                 }
+                vImagePosition += rowBytes
+                bitmapPosition += stride
             }
         }
         return destinationBuffer

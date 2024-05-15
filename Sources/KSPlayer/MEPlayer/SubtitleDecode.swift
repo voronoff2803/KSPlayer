@@ -25,14 +25,14 @@ class SubtitleDecode: DecodeProtocol {
         do {
             codecContext = try assetTrack.createContext(options: options)
             if let codecContext, let pointer = codecContext.pointee.subtitle_header {
+                let subtitleHeader = String(cString: pointer)
                 if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *), KSOptions.isASSUseImageRender {
                     assImageRenderer = AssImageRenderer()
                     assetTrack.sutitleRender = assImageRenderer
-                    Task {
-                        await assImageRenderer?.subtitle(header: pointer, size: codecContext.pointee.subtitle_header_size)
+                    Task(priority: .high) {
+                        await assImageRenderer?.subtitle(header: subtitleHeader)
                     }
                 } else {
-                    let subtitleHeader = String(cString: pointer)
                     let assParse = AssParse()
                     if assParse.canParse(scanner: Scanner(string: subtitleHeader)) {
                         self.assParse = assParse
@@ -116,12 +116,13 @@ class SubtitleDecode: DecodeProtocol {
                 }
                 attributedString?.append(NSAttributedString(string: String(cString: text)))
             } else if let ass = rect.ass {
+                let subtitle = String(cString: ass)
                 if let assImageRenderer {
-                    Task {
-                        await assImageRenderer.add(subtitle: ass, size: Int32(strlen(ass)), start: Int64(start * 1000), duration: Int64((end - start) * 1000))
+                    Task(priority: .high) {
+                        await assImageRenderer.add(subtitle: subtitle, start: Int64(start * 1000), duration: Int64((end - start) * 1000))
                     }
                 } else if let assParse {
-                    let scanner = Scanner(string: String(cString: ass))
+                    let scanner = Scanner(string: subtitle)
                     if let group = assParse.parsePart(scanner: scanner) {
                         group.start = start
                         group.end = end

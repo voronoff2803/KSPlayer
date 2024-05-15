@@ -358,6 +358,18 @@ extension MEPlayerItem {
                     }
                     assetTrack.seekByBytes = seekByBytes
                     return assetTrack
+                } else if coreStream.pointee.codecpar.pointee.codec_type == AVMEDIA_TYPE_ATTACHMENT {
+                    if coreStream.pointee.codecpar.pointee.codec_id == AV_CODEC_ID_TTF {
+                        let metadata = toDictionary(coreStream.pointee.metadata)
+                        if let filename = metadata["filename"], let extradata = coreStream.pointee.codecpar.pointee.extradata {
+                            let extradataSize = coreStream.pointee.codecpar.pointee.extradata_size
+                            let data = Data(bytes: extradata, count: Int(extradataSize))
+                            var fontsDir = URL(fileURLWithPath: KSOptions.fontsDir)
+                            try? FileManager.default.createDirectory(at: fontsDir, withIntermediateDirectories: true)
+                            fontsDir.appendPathComponent(filename)
+                            try? data.write(to: fontsDir)
+                        }
+                    }
                 }
             }
             return nil
