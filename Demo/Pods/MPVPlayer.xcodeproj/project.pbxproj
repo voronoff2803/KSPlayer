@@ -41,6 +41,13 @@
 			remoteGlobalIDString = E9D29EC267067D41407F0D5CFC0EE5F3;
 			remoteInfo = "Libmpv-iOS";
 		};
+		48CEE99C820F7BDF191864D738E0F884 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9BA873639DF7BF2866BF56C42FFDDDCF /* KSPlayer.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 95DA2FE73CA400BD80E9EC469E8608BA;
+			remoteInfo = "KSPlayer-macOS";
+		};
 		4D26D0C00D998B56A779CFD1AA7BAE37 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D70B9DAF459522DF995312B83EAFA370 /* Libmpv.xcodeproj */;
@@ -48,33 +55,26 @@
 			remoteGlobalIDString = 414B784CFBFE981829285DF44E2E68C5;
 			remoteInfo = "Libmpv-macOS";
 		};
-		5BEB4EA01D25236C1DC07D42A6AFD319 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 9BA873639DF7BF2866BF56C42FFDDDCF /* KSPlayer.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 95DA2FE73CA400BD80E9EC469E8608BA;
-			remoteInfo = "KSPlayer-macOS";
-		};
-		BDBCF1125B3E123212A2BCE9B604E6EB /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 9BA873639DF7BF2866BF56C42FFDDDCF /* KSPlayer.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = F22803BCEDED223E4EE29EE62D7067B4;
-			remoteInfo = "KSPlayer-iOS";
-		};
-		D64E852E66EFF75B8546ECC30310C2B9 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 9BA873639DF7BF2866BF56C42FFDDDCF /* KSPlayer.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 608A83DCB9EBF762DEECEF8F2EE81950;
-			remoteInfo = "KSPlayer-tvOS";
-		};
 		DCC5108A100AAE32EB5A7DD83E65586D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D70B9DAF459522DF995312B83EAFA370 /* Libmpv.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = D9D3D8532247338E7FB4726FE870B78B;
 			remoteInfo = "Libmpv-tvOS";
+		};
+		F14B788C0929A9BFC0D392A39A419229 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9BA873639DF7BF2866BF56C42FFDDDCF /* KSPlayer.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = F22803BCEDED223E4EE29EE62D7067B4;
+			remoteInfo = "KSPlayer-iOS";
+		};
+		F843E8AEB427841A959B8A600B2E0FC9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9BA873639DF7BF2866BF56C42FFDDDCF /* KSPlayer.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 608A83DCB9EBF762DEECEF8F2EE81950;
+			remoteInfo = "KSPlayer-tvOS";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -309,7 +309,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				DD64E3D2D89A2E5C66FC0832128E0718 /* PBXTargetDependency */,
+				EA766284528E36859BA070A5D48CC5CE /* PBXTargetDependency */,
 				5F13AF845AD35239A7EA3EE6284652CB /* PBXTargetDependency */,
 			);
 			name = "MPVPlayer-iOS";
@@ -329,7 +329,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				65E3EBE3363101B3E2E0D270412A78CD /* PBXTargetDependency */,
+				7B5EA3F237448E50C5804D4D1B717515 /* PBXTargetDependency */,
 				297AAAB8490F2684E2F356C81801BE2F /* PBXTargetDependency */,
 			);
 			name = "MPVPlayer-tvOS";
@@ -349,7 +349,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				8156CF24AA2A3207C8F8C0850349596F /* PBXTargetDependency */,
+				96D04D6D476C847006D84A0FD39335CE /* PBXTargetDependency */,
 				4AC13DCAED1560A3C5C0D503A647BB9F /* PBXTargetDependency */,
 			);
 			name = "MPVPlayer-macOS";
@@ -476,24 +476,61 @@
 			name = "Libmpv-iOS";
 			targetProxy = 22BF922EA337CD78E33E4B6504619E8E /* PBXContainerItemProxy */;
 		};
-		65E3EBE3363101B3E2E0D270412A78CD /* PBXTargetDependency */ = {
+		7B5EA3F237448E50C5804D4D1B717515 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "KSPlayer-tvOS";
-			targetProxy = D64E852E66EFF75B8546ECC30310C2B9 /* PBXContainerItemProxy */;
+			targetProxy = F843E8AEB427841A959B8A600B2E0FC9 /* PBXContainerItemProxy */;
 		};
-		8156CF24AA2A3207C8F8C0850349596F /* PBXTargetDependency */ = {
+		96D04D6D476C847006D84A0FD39335CE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "KSPlayer-macOS";
-			targetProxy = 5BEB4EA01D25236C1DC07D42A6AFD319 /* PBXContainerItemProxy */;
+			targetProxy = 48CEE99C820F7BDF191864D738E0F884 /* PBXContainerItemProxy */;
 		};
-		DD64E3D2D89A2E5C66FC0832128E0718 /* PBXTargetDependency */ = {
+		EA766284528E36859BA070A5D48CC5CE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "KSPlayer-iOS";
-			targetProxy = BDBCF1125B3E123212A2BCE9B604E6EB /* PBXContainerItemProxy */;
+			targetProxy = F14B788C0929A9BFC0D392A39A419229 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		176B2F9F776128307DF3E31DD90498CE /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9A83AFD101792AC9A3A1E0C571CA4F0B /* MPVPlayer-macOS.release.xcconfig */;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GCC_PREFIX_HEADER = "Target Support Files/MPVPlayer-macOS/MPVPlayer-macOS-prefix.pch";
+				INFOPLIST_FILE = "Target Support Files/MPVPlayer-macOS/MPVPlayer-macOS-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MODULEMAP_FILE = "Target Support Files/MPVPlayer-macOS/MPVPlayer-macOS.modulemap";
+				PRODUCT_MODULE_NAME = MPVPlayer;
+				PRODUCT_NAME = MPVPlayer;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
 		4E2A2A727DF6725EF0162AC185892910 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -562,11 +599,10 @@
 			};
 			name = Debug;
 		};
-		5297CA4E3AC4CFB7B9A969D71070B0E5 /* Debug */ = {
+		5F9CC8B240DBC829F2B4A769482DB510 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 97A51764E10ED44E26230A28486096C2 /* MPVPlayer-iOS.debug.xcconfig */;
+			baseConfigurationReference = A9EAEE922E494271112456D5D1781D88 /* MPVPlayer-tvOS.release.xcconfig */;
 			buildSettings = {
-				CLANG_ENABLE_OBJC_WEAK = NO;
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
@@ -575,30 +611,31 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				GCC_PREFIX_HEADER = "Target Support Files/MPVPlayer-iOS/MPVPlayer-iOS-prefix.pch";
-				INFOPLIST_FILE = "Target Support Files/MPVPlayer-iOS/MPVPlayer-iOS-Info.plist";
+				GCC_PREFIX_HEADER = "Target Support Files/MPVPlayer-tvOS/MPVPlayer-tvOS-prefix.pch";
+				INFOPLIST_FILE = "Target Support Files/MPVPlayer-tvOS/MPVPlayer-tvOS-Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
 				MACH_O_TYPE = staticlib;
-				MODULEMAP_FILE = "Target Support Files/MPVPlayer-iOS/MPVPlayer-iOS.modulemap";
+				MODULEMAP_FILE = "Target Support Files/MPVPlayer-tvOS/MPVPlayer-tvOS.modulemap";
 				PRODUCT_MODULE_NAME = MPVPlayer;
 				PRODUCT_NAME = MPVPlayer;
-				SDKROOT = iphoneos;
+				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 13.0;
+				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
-			name = Debug;
+			name = Release;
 		};
-		605D02419F48F8EE6AB671C108CCD170 /* Debug */ = {
+		C12193F8ACE1782AE225C86ECB03B8F4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7ED3809FC436C8EC2A0576F6FA200D81 /* MPVPlayer-macOS.debug.xcconfig */;
 			buildSettings = {
@@ -635,80 +672,7 @@
 			};
 			name = Debug;
 		};
-		6446E200F0FB879A3AAB91A72895CAA2 /* Release */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = A9EAEE922E494271112456D5D1781D88 /* MPVPlayer-tvOS.release.xcconfig */;
-			buildSettings = {
-				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
-				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
-				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				GCC_PREFIX_HEADER = "Target Support Files/MPVPlayer-tvOS/MPVPlayer-tvOS-prefix.pch";
-				INFOPLIST_FILE = "Target Support Files/MPVPlayer-tvOS/MPVPlayer-tvOS-Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				MACH_O_TYPE = staticlib;
-				MODULEMAP_FILE = "Target Support Files/MPVPlayer-tvOS/MPVPlayer-tvOS.modulemap";
-				PRODUCT_MODULE_NAME = MPVPlayer;
-				PRODUCT_NAME = MPVPlayer;
-				SDKROOT = appletvos;
-				SKIP_INSTALL = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 13.0;
-				VALIDATE_PRODUCT = YES;
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
-			};
-			name = Release;
-		};
-		8B0CCEBC6952476BB98ED9D5D1F56C84 /* Release */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 9A83AFD101792AC9A3A1E0C571CA4F0B /* MPVPlayer-macOS.release.xcconfig */;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
-				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				GCC_PREFIX_HEADER = "Target Support Files/MPVPlayer-macOS/MPVPlayer-macOS-prefix.pch";
-				INFOPLIST_FILE = "Target Support Files/MPVPlayer-macOS/MPVPlayer-macOS-Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@loader_path/Frameworks",
-				);
-				MACH_O_TYPE = staticlib;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MODULEMAP_FILE = "Target Support Files/MPVPlayer-macOS/MPVPlayer-macOS.modulemap";
-				PRODUCT_MODULE_NAME = MPVPlayer;
-				PRODUCT_NAME = MPVPlayer;
-				SDKROOT = macosx;
-				SKIP_INSTALL = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
-				SWIFT_VERSION = 5.0;
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
-			};
-			name = Release;
-		};
-		D7B7A9CC9B6D8DAFDC8BD263B45B228A /* Debug */ = {
+		DC9130307D088711C5E957805D156BF3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = BFD7D9EDC68FCCE663DFD8B90C785C36 /* MPVPlayer-tvOS.debug.xcconfig */;
 			buildSettings = {
@@ -743,7 +707,7 @@
 			};
 			name = Debug;
 		};
-		E6637B2436D627B130A890E4F9B2A5BE /* Release */ = {
+		EEEC30C9E3BA30623EC86E13079505C4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = FEED659F6FA250089607EDBB1F0A1BAC /* MPVPlayer-iOS.release.xcconfig */;
 			buildSettings = {
@@ -844,14 +808,50 @@
 			};
 			name = Release;
 		};
+		FFAD50B90A3617C01F5656ABA104CDE1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 97A51764E10ED44E26230A28486096C2 /* MPVPlayer-iOS.debug.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GCC_PREFIX_HEADER = "Target Support Files/MPVPlayer-iOS/MPVPlayer-iOS-prefix.pch";
+				INFOPLIST_FILE = "Target Support Files/MPVPlayer-iOS/MPVPlayer-iOS-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/MPVPlayer-iOS/MPVPlayer-iOS.modulemap";
+				PRODUCT_MODULE_NAME = MPVPlayer;
+				PRODUCT_NAME = MPVPlayer;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
 		90FAB154C58EA29B0075860EE8D92AE0 /* Build configuration list for PBXNativeTarget "MPVPlayer-macOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				605D02419F48F8EE6AB671C108CCD170 /* Debug */,
-				8B0CCEBC6952476BB98ED9D5D1F56C84 /* Release */,
+				C12193F8ACE1782AE225C86ECB03B8F4 /* Debug */,
+				176B2F9F776128307DF3E31DD90498CE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -859,8 +859,8 @@
 		B7B9E22AE3485A5047DE827C30E6EAE6 /* Build configuration list for PBXNativeTarget "MPVPlayer-tvOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D7B7A9CC9B6D8DAFDC8BD263B45B228A /* Debug */,
-				6446E200F0FB879A3AAB91A72895CAA2 /* Release */,
+				DC9130307D088711C5E957805D156BF3 /* Debug */,
+				5F9CC8B240DBC829F2B4A769482DB510 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -868,8 +868,8 @@
 		D740348E11118812A3874425896416E7 /* Build configuration list for PBXNativeTarget "MPVPlayer-iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				5297CA4E3AC4CFB7B9A969D71070B0E5 /* Debug */,
-				E6637B2436D627B130A890E4F9B2A5BE /* Release */,
+				FFAD50B90A3617C01F5656ABA104CDE1 /* Debug */,
+				EEEC30C9E3BA30623EC86E13079505C4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

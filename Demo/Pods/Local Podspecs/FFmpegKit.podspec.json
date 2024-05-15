@@ -31,15 +31,12 @@
       "libraries": [
         "bz2",
         "c++",
+        "expat",
         "iconv",
         "resolv",
         "xml2",
         "z"
       ],
-      "osx": {
-        "libraries": "expat",
-        "vendored_frameworks": "Sources/libbluray.xcframework"
-      },
       "frameworks": [
         "AudioToolbox",
         "AVFoundation",
@@ -67,6 +64,9 @@
         "Sources/libzvbi.xcframework",
         "Sources/libsrt.xcframework"
       ],
+      "osx": {
+        "vendored_frameworks": "Sources/libbluray.xcframework"
+      },
       "dependencies": {
         "Libass": [
 

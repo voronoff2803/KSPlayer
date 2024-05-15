@@ -235,8 +235,8 @@ final class SubtitleFrame: MEFrame {
     var duration: Int64 = 0
     var position: Int64 = 0
     var size: Int32 = 0
-    let part: any SubtitlePartProtocol
-    init(part: any SubtitlePartProtocol, timebase: Timebase) {
+    let part: SubtitlePart
+    init(part: SubtitlePart, timebase: Timebase) {
         self.part = part
         self.timebase = timebase
     }

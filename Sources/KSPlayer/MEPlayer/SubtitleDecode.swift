@@ -27,7 +27,7 @@ class SubtitleDecode: DecodeProtocol {
             if let codecContext, let pointer = codecContext.pointee.subtitle_header {
                 if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *), KSOptions.isASSUseImageRender {
                     assImageRenderer = AssImageRenderer()
-                    assetTrack.assImageRenderer = assImageRenderer
+                    assetTrack.sutitleRender = assImageRenderer
                     Task {
                         await assImageRenderer?.subtitle(header: pointer, size: codecContext.pointee.subtitle_header_size)
                     }
@@ -98,8 +98,8 @@ class SubtitleDecode: DecodeProtocol {
         }
     }
 
-    private func text(subtitle: AVSubtitle, start: TimeInterval, end: TimeInterval) -> [any SubtitlePartProtocol] {
-        var parts = [any SubtitlePartProtocol]()
+    private func text(subtitle: AVSubtitle, start: TimeInterval, end: TimeInterval) -> [SubtitlePart] {
+        var parts = [SubtitlePart]()
         var images = [(CGRect, CGImage)]()
         var origin: CGPoint = .zero
         var attributedString: NSMutableAttributedString?

@@ -572,7 +572,7 @@ extension MEPlayerItem {
                         options.readAudioTime = CACurrentMediaTime()
                     }
                     audioTrack?.putPacket(packet: packet)
-                } else {
+                } else if first.mediaType == .subtitle {
                     first.subtitle?.putPacket(packet: packet)
                 }
             }

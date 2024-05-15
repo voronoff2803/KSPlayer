@@ -32,6 +32,7 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
     public let isImageSubtitle: Bool
     public var delay: TimeInterval = 0
     var subtitle: SyncPlayerItemTrack<SubtitleFrame>?
+    var sutitleRender: KSSubtitleProtocol?
     // video
     public private(set) var rotation: Int16 = 0
     public var dovi: DOVIDecoderConfigurationRecord?
@@ -40,7 +41,6 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
     var closedCaptionsTrack: FFmpegAssetTrack?
     let isConvertNALSize: Bool
     var seekByBytes = false
-    var assImageRenderer: AssImageRenderer?
     public var description: String {
         var description = codecName
         if let formatName {
