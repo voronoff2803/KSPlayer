@@ -69,6 +69,7 @@ open class KSOptions {
 
     // MARK: playback options
 
+    public static var stackSize = 65536
     public var startPlayTime: TimeInterval = 0
     public var startPlayRate: Float = 1.0
     public var registerRemoteControll: Bool = true // 默认支持来自系统控制中心的控制
@@ -282,6 +283,7 @@ open class KSOptions {
 
     // MARK: audio options
 
+    public static var audioPlayerType: AudioOutput.Type = AudioEnginePlayer.self
     public var audioFilters = [String]()
     public var syncDecodeAudio = false
     /// wanted audio stream index, or nil for automatic selection
@@ -322,6 +324,12 @@ open class KSOptions {
 
     // MARK: video options
 
+    /// 开启VR模式的陀飞轮
+    public static var enableSensor = true
+    public static var isClearVideoWhereReplace = true
+    public static var videoPlayerType: (VideoOutput & UIView).Type = MetalPlayView.self
+    public static var yadifMode = 1
+    public static var deInterlaceAddIdet = false
     public static var hardwareDecode = true
     // 默认不用自研的硬解，因为有些视频的AVPacket的pts顺序是不对的，只有解码后的AVFrame里面的pts是对的。
     public static var asynchronousDecompression = false

@@ -26,7 +26,7 @@ class SubtitleDecode: DecodeProtocol {
             codecContext = try assetTrack.createContext(options: options)
             if let codecContext, let pointer = codecContext.pointee.subtitle_header {
                 let subtitleHeader = String(cString: pointer)
-                if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *), KSOptions.isASSUseImageRender {
+                if KSOptions.isASSUseImageRender {
                     assImageRenderer = AssImageRenderer()
                     assetTrack.sutitleRender = assImageRenderer
                     Task(priority: .high) {

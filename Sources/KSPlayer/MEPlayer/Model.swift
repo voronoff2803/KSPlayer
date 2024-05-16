@@ -78,14 +78,6 @@ protocol MEFrame: ObjectQueueItem {
 
 // for MEPlayer
 public extension KSOptions {
-    /// 开启VR模式的陀飞轮
-    static var enableSensor = true
-    static var stackSize = 65536
-    static var isClearVideoWhereReplace = true
-    static var audioPlayerType: AudioOutput.Type = AudioEnginePlayer.self
-    static var videoPlayerType: (VideoOutput & UIView).Type = MetalPlayView.self
-    static var yadifMode = 1
-    static var deInterlaceAddIdet = false
     static func colorSpace(ycbcrMatrix: CFString?, transferFunction: CFString?) -> CGColorSpace? {
         switch ycbcrMatrix {
         case kCVImageBufferYCbCrMatrix_ITU_R_709_2:

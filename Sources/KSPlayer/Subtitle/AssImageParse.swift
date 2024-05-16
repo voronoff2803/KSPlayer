@@ -12,7 +12,7 @@ import UIKit
 #else
 import AppKit
 #endif
-@available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *)
+
 public final class AssImageParse: KSParseProtocol {
     public func canParse(scanner: Scanner) -> Bool {
         guard scanner.scanString("[Script Info]") != nil else {
@@ -72,7 +72,6 @@ public final actor AssImageRenderer {
     }
 }
 
-@available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *)
 extension AssImageRenderer: KSSubtitleProtocol {
     public func image(for time: TimeInterval, changed: inout Int32) -> (CGPoint, CGImage)? {
         let millisecond = Int64(time * 1000)
@@ -83,12 +82,20 @@ extension AssImageRenderer: KSSubtitleProtocol {
             return nil
         }
         let images = frame.pointee.linkedImages()
+        let boundingRect = imagesBoundingRect(images: images)
+        var imagePipeline: ImagePipelineType.Type
+        // 图片少的话，用Accelerate性能会更好，耗时是0.005左右,而BlendImagePipeline就要0.04左右了
+        if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *), images.count <= 10 {
+            imagePipeline = AccelerateImagePipeline.self
+        } else {
+            imagePipeline = BlendImagePipeline.self
+        }
 //        let start = CACurrentMediaTime()
-        guard let processedImage = AccelerateImagePipeline.process(images: images) else {
+        guard let image = imagePipeline.process(images: images, boundingRect: boundingRect) else {
             return nil
         }
 //        print("image count: \(images.count) time:\(CACurrentMediaTime() - start)")
-        return processedImage
+        return (boundingRect.origin, image)
     }
 
     public func search(for time: TimeInterval, size: CGSize) async -> [SubtitlePart] {
@@ -104,4 +111,25 @@ extension AssImageRenderer: KSSubtitleProtocol {
         let part = SubtitlePart(time, .infinity, image: (processedImage.0, UIImage(cgImage: processedImage.1)))
         return [part]
     }
+}
+
+/// Pipeline that processed an `ASS_Image` into a ``ProcessedImage`` that can be drawn on the screen.
+public protocol ImagePipelineType {
+    static func process(images: [ASS_Image], boundingRect: CGRect) -> CGImage?
+}
+
+/// Find the bounding rect of all linked images.
+///
+/// - Parameters:
+///   - images: Images list to find the bounding rect for.
+///
+/// - Returns: A `CGRect` containing all image rectangles.
+private func imagesBoundingRect(images: [ASS_Image]) -> CGRect {
+    let imagesRect = images.map(\.imageRect)
+    guard let minX = imagesRect.map(\.minX).min(),
+          let minY = imagesRect.map(\.minY).min(),
+          let maxX = imagesRect.map(\.maxX).max(),
+          let maxY = imagesRect.map(\.maxY).max() else { return .zero }
+
+    return CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
 }

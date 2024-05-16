@@ -6,16 +6,8 @@ import QuartzCore
 /// Pipeline that processed an `ASS_Image` into a ``ProcessedImage``
 /// by combining all images using `vImage.PixelBuffer`.
 @available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *)
-public final class AccelerateImagePipeline {
-    public static func process(images: [ASS_Image]) -> (CGPoint, CGImage)? {
-        let boundingRect = imagesBoundingRect(images: images)
-        guard let cgImage = blendImages(images, boundingRect: boundingRect) else { return nil }
-        return (boundingRect.origin, cgImage)
-    }
-
-    // MARK: - Private
-
-    private static func blendImages(_ images: [ASS_Image], boundingRect: CGRect) -> CGImage? {
+public final class AccelerateImagePipeline: ImagePipelineType {
+    public static func process(images: [ASS_Image], boundingRect: CGRect) -> CGImage? {
         let buffers = images.compactMap { translateBuffer($0, boundingRect: boundingRect) }
         let composedBuffers = composeBuffers(buffers)
         return makeImage(from: composedBuffers, alphaInfo: .first)
@@ -37,7 +29,7 @@ public final class AccelerateImagePipeline {
         destinationBuffer.withUnsafeMutableBufferPointer { bufferPtr in
             loop(iterations: height) { _ in
                 loop(iterations: width) { x in
-                    let alpha = image.bitmap.advanced(by: bitmapPosition + x).pointee
+                    let alpha = image.bitmap[bitmapPosition + x]
                     if alpha == 0 {
                         return
                     }
@@ -126,20 +118,4 @@ extension ASS_Image {
         }
         return allImages
     }
-}
-
-/// Find the bounding rect of all linked images.
-///
-/// - Parameters:
-///   - images: Images list to find the bounding rect for.
-///
-/// - Returns: A `CGRect` containing all image rectangles.
-private func imagesBoundingRect(images: [ASS_Image]) -> CGRect {
-    let imagesRect = images.map(\.imageRect)
-    guard let minX = imagesRect.map(\.minX).min(),
-          let minY = imagesRect.map(\.minY).min(),
-          let maxX = imagesRect.map(\.maxX).max(),
-          let maxY = imagesRect.map(\.maxY).max() else { return .zero }
-
-    return CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
 }

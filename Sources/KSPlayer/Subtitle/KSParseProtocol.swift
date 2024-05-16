@@ -19,7 +19,7 @@ public protocol KSParseProtocol {
 
 public extension KSOptions {
     static var subtitleParses: [KSParseProtocol] = {
-        if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *), KSOptions.isASSUseImageRender {
+        if KSOptions.isASSUseImageRender {
             [AssImageParse(), AssParse(), VTTParse(), SrtParse()]
         } else {
             [AssParse(), VTTParse(), SrtParse()]
