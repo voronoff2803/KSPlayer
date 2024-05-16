@@ -18,8 +18,8 @@ public final class BlendImagePipeline: ImagePipelineType {
         buffer.initialize(repeating: 0, count: bufferCapacity)
         loop(iterations: images.count) { i in
             let image = images[i]
-            ///因为对于复杂的ass字幕的话，耗时会很高。超过0.1的话，就会感受到字幕延迟，体验不好。
-            ///所以先过滤掉一部分的ass特效。如果这个算法后续可以优化的话，那可以放开这个特殊的过滤逻辑
+            /// 因为对于复杂的ass字幕的话，耗时会很高。超过0.1的话，就会感受到字幕延迟，体验不好。
+            /// 所以先过滤掉一部分的ass特效。如果这个算法后续可以优化的话，那可以放开这个特殊的过滤逻辑
             if images.count > 100, image.w <= 25, image.h <= 25 {
                 return
             }
