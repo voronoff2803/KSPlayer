@@ -22,7 +22,7 @@ extension FFmpegAssetTrack: KSSubtitleProtocol {
         let array = subtitle?.outputRenderQueue.search { item -> Bool in
             item.part.isEqual(time: time)
         }.map(\.part) ?? []
-        return await array.asyncMap { await $0.render(size: size) }
+        return array.map { $0.render(size: size) }
     }
 }
 

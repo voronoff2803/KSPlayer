@@ -44,8 +44,7 @@ open class VideoPlayerView: PlayerView {
     public let topMaskView = LayerContainerView()
     // 是否播放过
     private(set) var isPlayed = false
-    private var cancellable: AnyCancellable?
-
+    private var cancellables = [AnyCancellable]()
     public private(set) var currentDefinition = 0 {
         didSet {
             if let resource {
@@ -141,7 +140,9 @@ open class VideoPlayerView: PlayerView {
     override public init(frame: CGRect) {
         super.init(frame: frame)
         setupUIComponents()
-        cancellable = playerLayer?.$isPipActive.assign(to: \.isSelected, on: toolBar.pipButton)
+        if let cancellable = playerLayer?.$isPipActive.assign(to: \.isSelected, on: toolBar.pipButton) {
+            cancellables.append(cancellable)
+        }
         toolBar.onFocusUpdate = { [weak self] _ in
             self?.autoFadeOutViewWithAnimation()
         }
@@ -576,7 +577,7 @@ extension VideoPlayerView {
             subtitleLabel.topAnchor.constraint(equalTo: subtitleBackView.topAnchor, constant: 2),
             subtitleLabel.bottomAnchor.constraint(equalTo: subtitleBackView.bottomAnchor, constant: -2),
         ])
-        srtControl.$parts.sink { [weak self] parts in
+        let cancellable = srtControl.$parts.sink { [weak self] parts in
             guard let self else {
                 return
             }
@@ -594,6 +595,7 @@ extension VideoPlayerView {
                 subtitleBackView.isHidden = true
             }
         }
+        cancellables.append(cancellable)
     }
 
     /**

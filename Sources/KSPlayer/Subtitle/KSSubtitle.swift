@@ -54,36 +54,9 @@ public class SubtitlePart: CustomStringConvertible, Identifiable, SubtitlePartPr
     }
 }
 
-public class AsyncSubtitlePart: SubtitlePartProtocol {
-    public let start: TimeInterval
-    public let end: TimeInterval
-    public let render: RenderProtocol
-    init(start: TimeInterval, end: TimeInterval, render: RenderProtocol) {
-        self.start = start
-        self.end = end
-        self.render = render
-    }
-
-    public func render(size: CGSize) async -> SubtitlePart {
-        await SubtitlePart(start, end, render: render.render(time: start, size: size))
-    }
-
-    public func isEqual(time: TimeInterval) -> Bool {
-        start <= time && end >= time
-    }
-
-    public static func == (lhs: AsyncSubtitlePart, rhs: AsyncSubtitlePart) -> Bool {
-        lhs.start == rhs.start && lhs.end == rhs.end && lhs.render === rhs.render
-    }
-}
-
 public protocol SubtitlePartProtocol: Equatable {
-    func render(size: CGSize) async -> SubtitlePart
+    func render(size: CGSize) -> SubtitlePart
     func isEqual(time: TimeInterval) -> Bool
-}
-
-public protocol RenderProtocol: AnyObject {
-    func render(time: TimeInterval, size: CGSize) async -> Either<(CGPoint, UIImage), NSAttributedString>
 }
 
 public struct TextPosition {

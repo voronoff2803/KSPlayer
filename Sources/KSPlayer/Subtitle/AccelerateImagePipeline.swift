@@ -9,9 +9,7 @@ import QuartzCore
 public final class AccelerateImagePipeline {
     public static func process(images: [ASS_Image]) -> (CGPoint, CGImage)? {
         let boundingRect = imagesBoundingRect(images: images)
-//        let start = CACurrentMediaTime()
         guard let cgImage = blendImages(images, boundingRect: boundingRect) else { return nil }
-//        print("time:\(CACurrentMediaTime() - start)")
         return (boundingRect.origin, cgImage)
     }
 
@@ -26,7 +24,6 @@ public final class AccelerateImagePipeline {
     private static func translateBuffer(_ image: ASS_Image, boundingRect: CGRect) -> vImage.PixelBuffer<vImage.Interleaved8x4>? {
         let width = Int(image.w)
         let height = Int(image.h)
-        if width == 0 || height == 0 { return nil }
         guard let size = vImage.Size(exactly: boundingRect.size) else { return nil }
         let destinationBuffer = makePixelBuffer(size: size, fillColor: (0, 0, 0, 0))
         let relativeRect = image.relativeImageRect(to: boundingRect)
@@ -41,6 +38,9 @@ public final class AccelerateImagePipeline {
             loop(iterations: height) { _ in
                 loop(iterations: width) { x in
                     let alpha = image.bitmap.advanced(by: bitmapPosition + x).pointee
+                    if alpha == 0 {
+                        return
+                    }
                     let index = vImagePosition + (x + Int(relativeRect.minX)) * destinationBuffer.channelCount
                     bufferPtr[index + 0] = alpha
                     bufferPtr[index + 1] = red
@@ -81,10 +81,7 @@ public final class AccelerateImagePipeline {
         return destinationBuffer
     }
 
-    private static func makeImage(
-        from buffer: vImage.PixelBuffer<vImage.Interleaved8x4>,
-        alphaInfo: CGImageAlphaInfo
-    ) -> CGImage? {
+    private static func makeImage(from buffer: vImage.PixelBuffer<vImage.Interleaved8x4>, alphaInfo: CGImageAlphaInfo) -> CGImage? {
         vImage_CGImageFormat(
             bitsPerComponent: 8,
             bitsPerPixel: 8 * 4,
@@ -122,10 +119,11 @@ extension ASS_Image {
         var allImages: [ASS_Image] = []
         var currentImage: ASS_Image? = self
         while let image = currentImage {
-            allImages.append(image)
+            if image.w != 0, image.h != 0 {
+                allImages.append(image)
+            }
             currentImage = image.next?.pointee
         }
-
         return allImages
     }
 }

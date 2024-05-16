@@ -62,7 +62,7 @@ public final actor AssImageRenderer {
     }
 
     public func setFrame(size: CGSize) {
-        ass_set_frame_size(renderer, Int32(size.width * KSOptions.scale), Int32(size.height * KSOptions.scale))
+        ass_set_frame_size(renderer, Int32(size.width), Int32(size.height))
     }
 
     deinit {
@@ -73,7 +73,7 @@ public final actor AssImageRenderer {
 }
 
 @available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *)
-extension AssImageRenderer: KSSubtitleProtocol, RenderProtocol {
+extension AssImageRenderer: KSSubtitleProtocol {
     public func image(for time: TimeInterval, changed: inout Int32) -> (CGPoint, CGImage)? {
         let millisecond = Int64(time * 1000)
         guard let frame = ass_render_frame(renderer, currentTrack, millisecond, &changed) else {
@@ -83,9 +83,11 @@ extension AssImageRenderer: KSSubtitleProtocol, RenderProtocol {
             return nil
         }
         let images = frame.pointee.linkedImages()
+//        let start = CACurrentMediaTime()
         guard let processedImage = AccelerateImagePipeline.process(images: images) else {
             return nil
         }
+//        print("image count: \(images.count) time:\(CACurrentMediaTime() - start)")
         return processedImage
     }
 
@@ -101,15 +103,5 @@ extension AssImageRenderer: KSSubtitleProtocol, RenderProtocol {
         }
         let part = SubtitlePart(time, .infinity, image: (processedImage.0, UIImage(cgImage: processedImage.1)))
         return [part]
-    }
-
-    public func render(time: TimeInterval, size: CGSize) async -> Either<(CGPoint, UIImage), NSAttributedString> {
-        setFrame(size: size)
-        var changed = Int32(0)
-        if let image = image(for: time, changed: &changed) {
-            return .left((image.0, UIImage(cgImage: image.1)))
-        } else {
-            return .right(NSAttributedString())
-        }
     }
 }
