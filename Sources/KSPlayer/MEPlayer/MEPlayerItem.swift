@@ -628,7 +628,7 @@ extension MEPlayerItem: MediaPlayback {
         }
         var seekable = true
         if let ioContext = formatCtx.pointee.pb {
-            seekable = ioContext.pointee.seekable > 0
+            seekable = ioContext.pointee.seekable > 0 || duration != 0
         }
         return seekable
     }
