@@ -654,8 +654,9 @@ private extension SubtitlePart {
                 Spacer()
                 GeometryReader { geometry in
                     let fitRect = image.1.fitRect(geometry.size)
+                    let offset = image.0 == .zero ? fitRect.origin : image.0
                     VideoSubtitleView.imageView(image.1)
-                        .offset(CGSize(width: fitRect.origin.x, height: fitRect.origin.y))
+                        .offset(CGSize(width: offset.x, height: offset.y))
                         .frame(width: fitRect.size.width, height: fitRect.size.height)
                         // 不能加scaledToFit。不然的话图片的缩放比率会有问题。
                         //                .scaledToFit()

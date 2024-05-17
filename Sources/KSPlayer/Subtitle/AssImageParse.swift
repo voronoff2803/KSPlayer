@@ -84,8 +84,8 @@ extension AssImageRenderer: KSSubtitleProtocol {
         let images = frame.pointee.linkedImages()
         let boundingRect = imagesBoundingRect(images: images)
         var imagePipeline: ImagePipelineType.Type
-        // 图片少的话，用Accelerate性能会更好，耗时是0.005左右,而BlendImagePipeline就要0.04左右了
-        if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *), images.count <= 10 {
+//         图片少的话，用Accelerate性能会更好，耗时是0.005左右,而BlendImagePipeline就要0.04左右了
+        if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *), images.count <= 220 {
             imagePipeline = AccelerateImagePipeline.self
         } else {
             imagePipeline = BlendImagePipeline.self
