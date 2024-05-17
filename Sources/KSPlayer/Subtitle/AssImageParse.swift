@@ -75,6 +75,7 @@ public final actor AssImageRenderer {
 extension AssImageRenderer: KSSubtitleProtocol {
     public func image(for time: TimeInterval, changed: inout Int32) -> (CGPoint, CGImage)? {
         let millisecond = Int64(time * 1000)
+//        let start = CACurrentMediaTime()
         guard let frame = ass_render_frame(renderer, currentTrack, millisecond, &changed) else {
             return nil
         }
@@ -90,7 +91,6 @@ extension AssImageRenderer: KSSubtitleProtocol {
         } else {
             imagePipeline = BlendImagePipeline.self
         }
-//        let start = CACurrentMediaTime()
         guard let image = imagePipeline.process(images: images, boundingRect: boundingRect) else {
             return nil
         }

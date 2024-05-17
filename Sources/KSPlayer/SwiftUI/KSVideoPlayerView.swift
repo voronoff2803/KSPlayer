@@ -653,8 +653,8 @@ private extension SubtitlePart {
             case let .left(image):
                 Spacer()
                 GeometryReader { geometry in
-                    let fitRect = image.1.fitRect(geometry.size)
-                    let offset = image.0 == .zero ? fitRect.origin : image.0
+                    let fitRect = geometry.size.fitRect(point: image.0, image: image.1)
+                    let offset = fitRect.origin
                     VideoSubtitleView.imageView(image.1)
                         .offset(CGSize(width: offset.x, height: offset.y))
                         .frame(width: fitRect.size.width, height: fitRect.size.height)

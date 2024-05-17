@@ -74,13 +74,16 @@ public extension Image {
 }
 #endif
 
-public extension UIImage {
-    func fitRect(_ fitSize: CGSize) -> CGRect {
-        let hZoom = fitSize.width / size.width
-        let vZoom = fitSize.height / size.height
+public extension CGSize {
+    func fitRect(point: CGPoint, image: UIImage) -> CGRect {
+        let hZoom = width / (point.x + image.size.width)
+        let vZoom = height / (point.y + image.size.height)
         let zoom = min(min(hZoom, vZoom), 1)
-        let newSize = size * zoom
-        return CGRect(origin: CGPoint(x: (fitSize.width - newSize.width) / 2, y: fitSize.height - newSize.height), size: newSize)
+        let newSize = image.size * zoom
+//        let origin = CGPoint(x: (width - newSize.width) / 2, y: height - newSize.height)
+        // ass图片字幕需要根据传进来的point来定位。这样才不会位置偏远。但是对于其他的图片字幕，还不知道要如何处理
+        let origin = point * zoom
+        return CGRect(origin: origin, size: newSize)
     }
 }
 
