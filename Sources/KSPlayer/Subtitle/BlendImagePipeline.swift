@@ -34,18 +34,10 @@ public final class BlendImagePipeline: ImagePipelineType {
                 loop(iterations: Int(image.w)) { x in
                     let alpha = Float(image.bitmap[bitmapPosition + x]) / 255.0
                     let index = vImagePosition + (x + Int(relativeRect.minX)) << 2
-                    let invAlpha = 1.0 - alpha
-                    if alpha == 1 {
-                        buffer[index] = red
-                        buffer[index + 1] = green
-                        buffer[index + 2] = blue
-                        buffer[index + 3] = alpha
-                    } else if alpha != 0 {
-                        buffer[index] = red * alpha + buffer[index] * invAlpha
-                        buffer[index + 1] = green * alpha + buffer[index + 1] * invAlpha
-                        buffer[index + 2] = blue * alpha + buffer[index + 2] * invAlpha
-                        buffer[index + 3] = alpha + buffer[index + 3] * invAlpha
-                    }
+                    buffer[index] += (red - buffer[index]) * alpha
+                    buffer[index + 1] += (green - buffer[index + 1]) * alpha
+                    buffer[index + 2] += (blue - buffer[index + 2]) * alpha
+                    buffer[index + 3] += (1 - buffer[index + 3]) * alpha
                 }
                 vImagePosition += rowBytes
                 bitmapPosition += stride
