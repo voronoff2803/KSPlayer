@@ -73,7 +73,7 @@ public final actor AssImageRenderer {
 }
 
 extension AssImageRenderer: KSSubtitleProtocol {
-    public func image(for time: TimeInterval, changed: inout Int32) -> (CGPoint, CGImage)? {
+    public func image(for time: TimeInterval, changed: inout Int32) -> (CGRect, CGImage)? {
         let millisecond = Int64(time * 1000)
 //        let start = CACurrentMediaTime()
         guard let frame = ass_render_frame(renderer, currentTrack, millisecond, &changed) else {
@@ -83,7 +83,7 @@ extension AssImageRenderer: KSSubtitleProtocol {
             return nil
         }
         let images = frame.pointee.linkedImages()
-        let boundingRect = imagesBoundingRect(images: images)
+        let boundingRect = images.map(\.imageRect).boundingRect()
         var imagePipeline: ImagePipelineType.Type
 //         图片少的话，用Accelerate性能会更好，耗时是0.005左右,而BlendImagePipeline就要0.04左右了
         if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *), images.count <= 220 {
@@ -95,7 +95,7 @@ extension AssImageRenderer: KSSubtitleProtocol {
             return nil
         }
 //        print("image count: \(images.count) time:\(CACurrentMediaTime() - start)")
-        return (boundingRect.origin, image)
+        return (boundingRect, image)
     }
 
     public func search(for time: TimeInterval, size: CGSize) async -> [SubtitlePart] {
@@ -116,20 +116,4 @@ extension AssImageRenderer: KSSubtitleProtocol {
 /// Pipeline that processed an `ASS_Image` into a ``ProcessedImage`` that can be drawn on the screen.
 public protocol ImagePipelineType {
     static func process(images: [ASS_Image], boundingRect: CGRect) -> CGImage?
-}
-
-/// Find the bounding rect of all linked images.
-///
-/// - Parameters:
-///   - images: Images list to find the bounding rect for.
-///
-/// - Returns: A `CGRect` containing all image rectangles.
-private func imagesBoundingRect(images: [ASS_Image]) -> CGRect {
-    let imagesRect = images.map(\.imageRect)
-    guard let minX = imagesRect.map(\.minX).min(),
-          let minY = imagesRect.map(\.minY).min(),
-          let maxX = imagesRect.map(\.maxX).max(),
-          let maxY = imagesRect.map(\.maxY).max() else { return .zero }
-
-    return CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
 }

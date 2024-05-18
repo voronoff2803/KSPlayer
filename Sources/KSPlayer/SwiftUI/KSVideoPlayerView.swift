@@ -59,26 +59,22 @@ public struct KSVideoPlayerView: View {
 
     public var body: some View {
         ZStack {
-            GeometryReader { proxy in
-                playView
-                HStack {
-                    Spacer()
-                    VideoSubtitleView(model: playerCoordinator.subtitleModel)
-                        .allowsHitTesting(false) // 禁止字幕视图交互，以免抢占视图的点击事件或其它手势事件
-                    Spacer()
-                }
-                .padding()
-                controllerView(playerWidth: proxy.size.width)
-                #if os(tvOS)
-                    .ignoresSafeArea()
-                #endif
-                #if os(tvOS)
-                if isDropdownShow {
-                    VideoSettingView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, subtitleTitle: title)
-                        .focused($focusableField, equals: .info)
-                }
-                #endif
+            playView
+            VideoSubtitleView(model: playerCoordinator.subtitleModel)
+                .ignoresSafeArea()
+                .allowsHitTesting(false) // 禁止字幕视图交互，以免抢占视图的点击事件或其它手势事件
+            VideoControllerView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, title: $title, playerWidth: playerCoordinator.playerLayer?.player.view?.frame.width ?? 0, focusableField: $focusableField)
+                .focused($focusableField, equals: .controller)
+                .opacity(playerCoordinator.isMaskShow ? 1 : 0)
+            #if os(tvOS)
+                .ignoresSafeArea()
+            #endif
+            #if os(tvOS)
+            if isDropdownShow {
+                VideoSettingView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, subtitleTitle: title)
+                    .focused($focusableField, equals: .info)
             }
+            #endif
         }
         .preferredColorScheme(.dark)
         .tint(.white)
@@ -222,12 +218,6 @@ public struct KSVideoPlayerView: View {
         #endif
     }
 
-    private func controllerView(playerWidth: Double) -> some View {
-        VideoControllerView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, title: $title, playerWidth: playerWidth, focusableField: $focusableField)
-            .focused($focusableField, equals: .controller)
-            .opacity(playerCoordinator.isMaskShow ? 1 : 0)
-    }
-
     fileprivate enum FocusableField {
         case play, controller, info
     }
@@ -288,7 +278,7 @@ struct VideoControllerView: View {
     fileprivate var subtitleModel: SubtitleModel
     @Binding
     fileprivate var title: String
-    fileprivate var playerWidth: Double
+    fileprivate let playerWidth: CGFloat
     @FocusState.Binding
     fileprivate var focusableField: KSVideoPlayerView.FocusableField?
     @State
@@ -651,16 +641,11 @@ private extension SubtitlePart {
         VStack {
             switch self.render {
             case let .left(image):
-                Spacer()
-                GeometryReader { geometry in
-                    let fitRect = geometry.size.fitRect(point: image.0, image: image.1)
-                    let offset = fitRect.origin
+                GeometryReader { _ in
+                    // 不能加scaledToFit。不然的话图片的缩放比率会有问题。
                     VideoSubtitleView.imageView(image.1)
-                        .offset(CGSize(width: offset.x, height: offset.y))
-                        .frame(width: fitRect.size.width, height: fitRect.size.height)
-                        // 不能加scaledToFit。不然的话图片的缩放比率会有问题。
-                        //                .scaledToFit()
-                        .padding()
+                        .offset(CGSize(width: image.0.origin.x, height: image.0.origin.y))
+                        .frame(width: image.0.width, height: image.0.height)
                 }
             case let .right(text):
                 let textPosition = self.textPosition ?? KSOptions.textPosition

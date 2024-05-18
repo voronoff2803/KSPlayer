@@ -241,7 +241,11 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
             formatName = nil
             bitDepth = 0
             isConvertNALSize = false
-            _ = CMFormatDescriptionCreate(allocator: kCFAllocatorDefault, mediaType: kCMMediaType_Subtitle, mediaSubType: codecType.rawValue, extensions: nil, formatDescriptionOut: &formatDescriptionOut)
+            let dic: NSMutableDictionary = [
+                kCVImageBufferDisplayWidthKey: codecpar.width,
+                kCVImageBufferDisplayHeightKey: codecpar.height,
+            ]
+            _ = CMFormatDescriptionCreate(allocator: kCFAllocatorDefault, mediaType: kCMMediaType_Subtitle, mediaSubType: codecType.rawValue, extensions: dic, formatDescriptionOut: &formatDescriptionOut)
         } else {
             bitDepth = 0
             return nil

@@ -360,6 +360,18 @@ public extension CMFormatDescription {
         return CGSize(width: Int(dimensions.width), height: Int(CGFloat(dimensions.height) * aspectRatio.height / aspectRatio.width))
     }
 
+    var displaySize: CGSize? {
+        if let dictionary = CMFormatDescriptionGetExtensions(self) as NSDictionary? {
+            if let width = (dictionary[kCVImageBufferDisplayWidthKey] as? NSNumber)?.intValue,
+               let height = (dictionary[kCVImageBufferDisplayHeightKey] as? NSNumber)?.intValue,
+               width > 0, height > 0
+            {
+                return CGSize(width: width, height: height)
+            }
+        }
+        return nil
+    }
+
     var aspectRatio: CGSize {
         if let dictionary = CMFormatDescriptionGetExtensions(self) as NSDictionary? {
             if let ratio = dictionary[kCVImageBufferPixelAspectRatioKey] as? NSDictionary,

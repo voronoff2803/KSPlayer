@@ -768,33 +768,33 @@ extension Date: RawRepresentable {
 }
 
 extension CGImage {
-    static func combine(images: [(CGRect, CGImage)]) -> CGImage? {
+    static func combine(images: [(CGRect, CGImage)]) -> (CGRect, CGImage)? {
         if images.isEmpty {
             return nil
         }
         if images.count == 1 {
-            return images[0].1
+            return images[0]
         }
-        var width = 0
-        var height = 0
-        for (rect, _) in images {
-            width = max(width, Int(rect.maxX))
-            height = max(height, Int(rect.maxY))
-        }
+        let boundingRect = images.map(\.0).boundingRect()
         let bitsPerComponent = 8
         // RGBA(的bytes) * bitsPerComponent *width
-        let bytesPerRow = 4 * 8 * bitsPerComponent * width
-        return autoreleasepool {
-            let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+        let bytesPerRow = 4 * 8 * bitsPerComponent * Int(boundingRect.width)
+        let image: CGImage? = autoreleasepool {
+            let context = CGContext(data: nil, width: Int(boundingRect.width), height: Int(boundingRect.height), bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
             guard let context else {
                 return nil
             }
             //            context.clear(CGRect(origin: .zero, size: CGSize(width: width, height: height)))
             for (rect, cgImage) in images {
-                context.draw(cgImage, in: CGRect(x: rect.origin.x, y: CGFloat(height) - rect.maxY, width: rect.width, height: rect.height))
+                context.draw(cgImage, in: rect.relativeRect(to: boundingRect))
             }
             let cgImage = context.makeImage()
             return cgImage
+        }
+        if let image {
+            return (boundingRect, image)
+        } else {
+            return nil
         }
     }
 
@@ -966,6 +966,44 @@ extension Array {
             try await values.append(transform(element))
         }
         return values
+    }
+}
+
+extension [CGRect] {
+    /// Find the bounding rect of all rect
+    ///
+    /// - Returns: A `CGRect` containing all  rectangles.
+    func boundingRect() -> CGRect {
+        guard let minX = map(\.minX).min(),
+              let minY = map(\.minY).min(),
+              let maxX = map(\.maxX).max(),
+              let maxY = map(\.maxY).max() else { return .zero }
+        return CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
+    }
+}
+
+extension CGRect {
+    /** the x-coordinate of this rectangles center
+     - note: Acts as a settable midX
+     - returns: The x-coordinate of the center
+     */
+    var centerX: CGFloat {
+        get { midX }
+        set { origin.x = newValue - width / 2 }
+    }
+
+    /** the y-coordinate of this rectangles center
+     - note: Acts as a settable midY
+     - returns: The y-coordinate of the center
+     */
+    var centerY: CGFloat {
+        get { midY }
+        set { origin.y = newValue - height / 2 }
+    }
+
+    func relativeRect(to boundingRect: CGRect) -> CGRect {
+        let origin = CGPoint(x: minX - boundingRect.minX, y: minY - boundingRect.minY)
+        return CGRect(origin: origin, size: size)
     }
 }
 

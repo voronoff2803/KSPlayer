@@ -27,7 +27,7 @@ public final class BlendImagePipeline: ImagePipelineType {
             let red = Float((image.color >> 24) & 0xFF)
             let green = Float((image.color >> 16) & 0xFF)
             let blue = Float((image.color >> 8) & 0xFF)
-            let relativeRect = image.relativeImageRect(to: boundingRect)
+            let relativeRect = image.imageRect.relativeRect(to: boundingRect)
             var bitmapPosition = 0
             var vImagePosition = Int(relativeRect.minY) * rowBytes
             loop(iterations: Int(image.h)) { _ in

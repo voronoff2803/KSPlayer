@@ -18,7 +18,7 @@ public final class AccelerateImagePipeline: ImagePipelineType {
         let height = Int(image.h)
         guard let size = vImage.Size(exactly: boundingRect.size) else { return nil }
         let destinationBuffer = makePixelBuffer(size: size, fillColor: (0, 0, 0, 0))
-        let relativeRect = image.relativeImageRect(to: boundingRect)
+        let relativeRect = image.imageRect.relativeRect(to: boundingRect)
         let stride = Int(image.stride)
         let red = UInt8((image.color >> 24) & 0xFF)
         let green = UInt8((image.color >> 16) & 0xFF)
@@ -91,13 +91,6 @@ extension ASS_Image {
         let size = CGSize(width: Int(w), height: Int(h))
 
         return CGRect(origin: origin, size: size)
-    }
-
-    func relativeImageRect(to boundingRect: CGRect) -> CGRect {
-        let rect = imageRect
-        let origin = CGPoint(x: rect.minX - boundingRect.minX, y: rect.minY - boundingRect.minY)
-
-        return CGRect(origin: origin, size: rect.size)
     }
 
     /// Find all the linked images from an `ASS_Image`.
