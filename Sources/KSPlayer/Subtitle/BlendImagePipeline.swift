@@ -1,3 +1,4 @@
+import Accelerate
 import CoreGraphics
 import libass
 
@@ -27,6 +28,7 @@ public final class BlendImagePipeline: ImagePipelineType {
             let red = Float((image.color >> 24) & 0xFF)
             let green = Float((image.color >> 16) & 0xFF)
             let blue = Float((image.color >> 8) & 0xFF)
+//            let colorVector: [Float] = [red, green, blue, 1.0]
             let relativeRect = image.imageRect.relativeRect(to: boundingRect)
             var bitmapPosition = 0
             var vImagePosition = Int(relativeRect.minY) * rowBytes
@@ -34,6 +36,11 @@ public final class BlendImagePipeline: ImagePipelineType {
                 loop(iterations: Int(image.w)) { x in
                     let alpha = Float(image.bitmap[bitmapPosition + x]) / 255.0
                     let index = vImagePosition + (x + Int(relativeRect.minX)) << 2
+                    // 用vDSP反而更慢。无法理解
+//                    var tmpVector = [Float](repeating: 0.0, count: 4)
+//                    vDSP_vsub(buffer.advanced(by: index), 1, colorVector, 1, &tmpVector, 1, 4)
+//                    vDSP_vsmul(tmpVector, 1, &alpha, &tmpVector, 1, 4)
+//                    vDSP_vadd(tmpVector, 1, buffer.advanced(by: index), 1, buffer.advanced(by: index), 1, 4)
                     buffer[index] += (red - buffer[index]) * alpha
                     buffer[index + 1] += (green - buffer[index + 1]) * alpha
                     buffer[index + 2] += (blue - buffer[index + 2]) * alpha
