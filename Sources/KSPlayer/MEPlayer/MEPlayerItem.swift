@@ -503,6 +503,18 @@ extension MEPlayerItem {
                 }
                 let seekMin = increase > 0 ? timeStamp - increase + 2 : Int64.min
                 let seekMax = increase < 0 ? timeStamp - increase - 2 : Int64.max
+                let seekSuccess = seekUsePacketCache(seconds: seekToTime)
+                if seekSuccess {
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self else { return }
+                        self.seekingCompletionHandler?(true)
+                        self.seekingCompletionHandler = nil
+                    }
+                    state = .reading
+                    KSLog("seek use packet cache \(seekToTime)")
+                    continue
+                }
+//                allPlayerItemTracks.forEach { $0.seek(time: seekToTime) }
                 // can not seek to key frame
                 let seekStartTime = CACurrentMediaTime()
                 var result = avformat_seek_file(formatCtx, -1, seekMin, timeStamp, seekMax, seekFlags)
@@ -525,13 +537,14 @@ extension MEPlayerItem {
                 }
                 isSeek = true
                 allPlayerItemTracks.forEach { $0.seek(time: seekToTime) }
+                codecDidChangeCapacity()
+                audioClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale) + startTime
+                videoClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale) + startTime
                 DispatchQueue.main.async { [weak self] in
                     guard let self else { return }
                     self.seekingCompletionHandler?(result >= 0)
                     self.seekingCompletionHandler = nil
                 }
-                audioClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale) + startTime
-                videoClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale) + startTime
                 state = .reading
             } else if state == .reading {
                 autoreleasepool {
@@ -539,6 +552,36 @@ extension MEPlayerItem {
                 }
             }
         }
+    }
+
+    private func seekUsePacketCache(seconds: Double) -> Bool {
+        if options.seekUsePacketCache {
+            var array = [(PlayerItemTrackProtocol, UInt)]()
+            if let track = videoTrack {
+                if let index = track.seekCache(time: seconds, needKeyFrame: true) {
+                    array.append((track, index))
+                } else {
+                    return false
+                }
+            }
+            if let track = audioTrack {
+                if let index = track.seekCache(time: seconds, needKeyFrame: false) {
+                    array.append((track, index))
+                } else {
+                    return false
+                }
+            }
+            for (track, index) in array {
+                track.updateCache(headIndex: index)
+            }
+            for track in assetTracks {
+                if let index = track.subtitle?.outputRenderQueue.seek(seconds: seconds) {
+                    track.subtitle?.outputRenderQueue.update(headIndex: index)
+                }
+            }
+            return true
+        }
+        return false
     }
 
     private func reading() -> Int32 {
@@ -707,7 +750,6 @@ extension MEPlayerItem: MediaPlayback {
             state = .seeking
             seekingCompletionHandler = completion
             condition.broadcast()
-            allPlayerItemTracks.forEach { $0.seek(time: time) }
         } else if state == .finished {
             seekTime = time
             state = .seeking

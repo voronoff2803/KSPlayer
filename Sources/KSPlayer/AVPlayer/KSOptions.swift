@@ -233,12 +233,12 @@ open class KSOptions {
 
     // MARK: cache options
 
-    // 这个开关不能用，因为ff_tempfile: Cannot open temporary file
-    public var cache = false
     /// 最低缓存视频时间
     public static var preferredForwardBufferDuration = 3.0
     /// 最大缓存视频时间
     public static var maxBufferDuration = 30.0
+    public var cache = false
+    public var seekUsePacketCache = false
     /// 最低缓存视频时间
     @Published
     public var preferredForwardBufferDuration = KSOptions.preferredForwardBufferDuration
