@@ -337,12 +337,24 @@ func * (left: CGSize, right: CGFloat) -> CGSize {
     CGSize(width: left.width * right, height: left.height * right)
 }
 
+func / (left: CGSize, right: CGFloat) -> CGSize {
+    CGSize(width: left.width / right, height: left.height / right)
+}
+
 func * (left: CGPoint, right: CGFloat) -> CGPoint {
     CGPoint(x: left.x * right, y: left.y * right)
 }
 
+func / (left: CGPoint, right: CGFloat) -> CGPoint {
+    CGPoint(x: left.x / right, y: left.y / right)
+}
+
 func * (left: CGRect, right: CGFloat) -> CGRect {
     CGRect(origin: left.origin * right, size: left.size * right)
+}
+
+func / (left: CGRect, right: CGFloat) -> CGRect {
+    CGRect(origin: left.origin / right, size: left.size / right)
 }
 
 func - (left: CGSize, right: CGSize) -> CGSize {

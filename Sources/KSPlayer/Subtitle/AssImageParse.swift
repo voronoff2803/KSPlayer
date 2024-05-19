@@ -62,7 +62,7 @@ public final actor AssImageRenderer {
     }
 
     public func setFrame(size: CGSize) {
-        ass_set_frame_size(renderer, Int32(size.width), Int32(size.height))
+        ass_set_frame_size(renderer, Int32(size.width * KSOptions.scale), Int32(size.height * KSOptions.scale))
     }
 
     deinit {
@@ -108,7 +108,7 @@ extension AssImageRenderer: KSSubtitleProtocol {
                 return [SubtitlePart(time, .infinity, "")]
             }
         }
-        let part = SubtitlePart(time, .infinity, image: (processedImage.0, UIImage(cgImage: processedImage.1)))
+        let part = SubtitlePart(time, .infinity, image: (processedImage.0 / KSOptions.scale, UIImage(cgImage: processedImage.1)))
         return [part]
     }
 }
