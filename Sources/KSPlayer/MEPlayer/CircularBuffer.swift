@@ -178,14 +178,7 @@ public class CircularBuffer<Item: ObjectQueueItem> {
                                 return i
                             }
                         } else {
-                            i += 1
-                            while i < headIndex {
-                                if let packet = _buffer[Int(i & mask)] as? Packet, packet.isKeyFrame {
-                                    return i
-                                }
-                                i += 1
-                            }
-                            return nil
+                            return i
                         }
                     }
                     i -= 1

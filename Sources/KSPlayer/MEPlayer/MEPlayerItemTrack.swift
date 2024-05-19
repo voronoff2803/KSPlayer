@@ -62,7 +62,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
             outputRenderQueue = CircularBuffer(initialCapacity: Int(frameCapacity), sorted: true, expanding: false)
         } else {
             // 有的图片字幕不按顺序来输出，所以要排序下。
-            outputRenderQueue = CircularBuffer(initialCapacity: Int(frameCapacity), sorted: true)
+            outputRenderQueue = CircularBuffer(initialCapacity: Int(frameCapacity), sorted: true, isClearItem: !options.seekUsePacketCache)
         }
     }
 
