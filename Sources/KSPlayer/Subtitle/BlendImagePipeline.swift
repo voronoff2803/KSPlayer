@@ -31,11 +31,12 @@ public final class BlendImagePipeline: ImagePipelineType {
 //            let colorVector: [Float] = [red, green, blue, 1.0]
             let relativeRect = image.imageRect.relativeRect(to: boundingRect)
             var bitmapPosition = 0
-            var vImagePosition = Int(relativeRect.minY) * rowBytes
+            var vImagePosition = Int(relativeRect.minY) * rowBytes + Int(relativeRect.origin.x) * 4
             loop(iterations: Int(image.h)) { _ in
                 loop(iterations: Int(image.w)) { x in
                     let alpha = Float(image.bitmap[bitmapPosition + x]) / 255.0
-                    let index = vImagePosition + (x + Int(relativeRect.minX)) << 2
+                    // 用*4 反而比<<2 更快。无法理解
+                    let index = vImagePosition + x * 4
                     // 用vDSP反而更慢。无法理解
 //                    var tmpVector = [Float](repeating: 0.0, count: 4)
 //                    vDSP_vsub(buffer.advanced(by: index), 1, colorVector, 1, &tmpVector, 1, 4)
@@ -55,7 +56,7 @@ public final class BlendImagePipeline: ImagePipelineType {
         var position = 0
         loop(iterations: height) { _ in
             loop(iterations: width) { x in
-                let index = position + x << 2
+                let index = position + x * 4
                 let alpha = buffer[index + 3]
                 if alpha >= 1 / 255.0 {
                     result[index] = UInt8(buffer[index] / alpha)

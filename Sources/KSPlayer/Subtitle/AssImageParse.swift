@@ -108,7 +108,7 @@ extension AssImageRenderer: KSSubtitleProtocol {
                 return [SubtitlePart(time, .infinity, "")]
             }
         }
-        let part = SubtitlePart(time, .infinity, image: (processedImage.0 / KSOptions.scale, UIImage(cgImage: processedImage.1)))
+        let part = SubtitlePart(time, .infinity, image: ((processedImage.0 / KSOptions.scale).integral, UIImage(cgImage: processedImage.1)))
         return [part]
     }
 }

@@ -31,7 +31,7 @@ extension FFmpegAssetTrack: KSSubtitleProtocol {
                 let newDisplaySize = displaySize * zoom
                 newRect.origin.x += (size.width - newDisplaySize.width) / 2
                 newRect.origin.y += (size.height - newDisplaySize.height) / 2
-                $0.render = .left((newRect, image))
+                $0.render = .left((newRect.integral, image))
             }
             return $0
         }
