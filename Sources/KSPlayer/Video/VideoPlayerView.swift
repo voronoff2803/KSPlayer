@@ -251,7 +251,7 @@ open class VideoPlayerView: PlayerView {
     override open func player(layer: KSPlayerLayer, currentTime: TimeInterval, totalTime: TimeInterval) {
         guard !isSliderSliding else { return }
         super.player(layer: layer, currentTime: currentTime, totalTime: totalTime)
-        srtControl.subtitle(currentTime: currentTime, size: frame.size)
+        srtControl.subtitle(currentTime: currentTime, size: layer.player.naturalSize.within(size: layer.player.view?.frame.size))
     }
 
     override open func player(layer: KSPlayerLayer, state: KSPlayerState) {
@@ -582,7 +582,7 @@ extension VideoPlayerView {
                 return
             }
             if let part = parts.first {
-                subtitleBackView.image = part.render.left?.1
+                subtitleBackView.image = part.render.left?.image
                 if KSOptions.stripSutitleStyle, let text = part.render.right?.string {
                     subtitleLabel.text = text
                 } else {

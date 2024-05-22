@@ -11,11 +11,22 @@ import CoreGraphics
 import Foundation
 import SwiftUI
 
+public struct SubtitleImageInfo {
+    public let rect: CGRect
+    public let image: UIImage
+    public let displaySize: CGSize
+    public init(rect: CGRect, image: UIImage, displaySize: CGSize) {
+        self.rect = rect
+        self.image = image
+        self.displaySize = displaySize
+    }
+}
+
 public class SubtitlePart: CustomStringConvertible, Identifiable, SubtitlePartProtocol {
     public var start: TimeInterval
     public var end: TimeInterval
     public var textPosition: TextPosition?
-    public var render: Either<(CGRect, UIImage), NSAttributedString>
+    public var render: Either<SubtitleImageInfo, NSAttributedString>
     public var description: String {
         "Subtile Group ==========\nstart: \(start)\nend:\(end)\ntext:\(String(describing: render))"
     }
@@ -33,13 +44,13 @@ public class SubtitlePart: CustomStringConvertible, Identifiable, SubtitlePartPr
         render = .right(attributedString)
     }
 
-    public init(_ start: TimeInterval, _ end: TimeInterval, image: (CGRect, UIImage)) {
+    public init(_ start: TimeInterval, _ end: TimeInterval, image: SubtitleImageInfo) {
         self.start = start
         self.end = end
         render = .left(image)
     }
 
-    public init(_ start: TimeInterval, _ end: TimeInterval, render: Either<(CGRect, UIImage), NSAttributedString>) {
+    public init(_ start: TimeInterval, _ end: TimeInterval, render: Either<SubtitleImageInfo, NSAttributedString>) {
         self.start = start
         self.end = end
         self.render = render

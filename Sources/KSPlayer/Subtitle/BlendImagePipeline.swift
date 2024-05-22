@@ -28,16 +28,15 @@ public final class BlendImagePipeline: ImagePipelineType {
             let red = Float((image.color >> 24) & 0xFF)
             let green = Float((image.color >> 16) & 0xFF)
             let blue = Float((image.color >> 8) & 0xFF)
-//            let colorVector: [Float] = [red, green, blue, 1.0]
-            let relativeRect = image.imageRect.relativeRect(to: boundingRect)
             var bitmapPosition = 0
-            var vImagePosition = Int(relativeRect.minY) * rowBytes + Int(relativeRect.origin.x) * 4
+            var vImagePosition = (Int(image.dst_y) - Int(boundingRect.origin.y)) * rowBytes + (Int(image.dst_x) - Int(boundingRect.origin.x)) * 4
             loop(iterations: Int(image.h)) { _ in
                 loop(iterations: Int(image.w)) { x in
                     let alpha = Float(image.bitmap[bitmapPosition + x]) / 255.0
                     // 用*4 反而比<<2 更快。无法理解
                     let index = vImagePosition + x * 4
-                    // 用vDSP反而更慢。无法理解
+                    // 用vDSP和SIMD4<Float>反而更慢。无法理解
+                    // 乘法运算float比Int会更快
 //                    var tmpVector = [Float](repeating: 0.0, count: 4)
 //                    vDSP_vsub(buffer.advanced(by: index), 1, colorVector, 1, &tmpVector, 1, 4)
 //                    vDSP_vsmul(tmpVector, 1, &alpha, &tmpVector, 1, 4)
@@ -47,8 +46,8 @@ public final class BlendImagePipeline: ImagePipelineType {
                     buffer[index + 2] += (blue - buffer[index + 2]) * alpha
                     buffer[index + 3] += (1 - buffer[index + 3]) * alpha
                 }
-                vImagePosition += rowBytes
                 bitmapPosition += stride
+                vImagePosition += rowBytes
             }
         }
         let result = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferCapacity)

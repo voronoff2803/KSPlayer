@@ -331,6 +331,15 @@ extension CGSize {
     var isHorizonal: Bool {
         width > height
     }
+
+    // 维持原有的比率。但是宽高不能超过size
+    func within(size: CGSize?) -> CGSize {
+        guard let size else {
+            return self
+        }
+        let aspectRatio = width / height
+        return size.height * aspectRatio < size.width ? CGSize(width: size.width, height: size.width / aspectRatio) : CGSize(width: size.height * aspectRatio, height: size.height)
+    }
 }
 
 func * (left: CGSize, right: CGFloat) -> CGSize {
@@ -1016,6 +1025,17 @@ extension CGRect {
     func relativeRect(to boundingRect: CGRect) -> CGRect {
         let origin = CGPoint(x: minX - boundingRect.minX, y: minY - boundingRect.minY)
         return CGRect(origin: origin, size: size)
+    }
+
+    func adjust(size: CGSize, displaySize: CGSize) -> CGRect {
+        let hZoom = size.width / displaySize.width
+        let vZoom = size.height / displaySize.height
+        let zoom = min(hZoom, vZoom)
+        var newRect = self * zoom
+        let newDisplaySize = displaySize * zoom
+        newRect.origin.x += (size.width - newDisplaySize.width) / 2
+        newRect.origin.y += (size.height - newDisplaySize.height) / 2
+        return newRect.integral
     }
 }
 

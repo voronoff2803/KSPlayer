@@ -58,28 +58,32 @@ public struct KSVideoPlayerView: View {
     }
 
     public var body: some View {
-        ZStack {
-            playView
-            VideoSubtitleView(model: playerCoordinator.subtitleModel)
-                .ignoresSafeArea()
-                .allowsHitTesting(false) // 禁止字幕视图交互，以免抢占视图的点击事件或其它手势事件
-            VideoControllerView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, title: $title, playerWidth: playerCoordinator.playerLayer?.player.view?.frame.width ?? 0, focusableField: $focusableField)
-                .focused($focusableField, equals: .controller)
-                .opacity(playerCoordinator.isMaskShow ? 1 : 0)
-            #if os(tvOS)
-                .ignoresSafeArea()
-            #endif
-            #if os(tvOS)
-            if isDropdownShow {
-                VideoSettingView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, subtitleTitle: title)
-                    .focused($focusableField, equals: .info)
+        playView
+            .overlay {
+                VideoSubtitleView(model: playerCoordinator.subtitleModel)
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false) // 禁止字幕视图交互，以免抢占视图的点击事件或其它手势事件
             }
-            #endif
-        }
-        .preferredColorScheme(.dark)
-        .tint(.white)
-        .persistentSystemOverlays(.hidden)
-        .toolbar(.hidden, for: .automatic)
+            .overlay {
+                VideoControllerView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, title: $title, playerWidth: playerCoordinator.playerLayer?.player.view?.frame.width ?? 0, focusableField: $focusableField)
+                    .focused($focusableField, equals: .controller)
+                    .opacity(playerCoordinator.isMaskShow ? 1 : 0)
+                #if os(tvOS)
+                    .ignoresSafeArea()
+                #endif
+            }
+        #if os(tvOS)
+            .overlay {
+                if isDropdownShow {
+                    VideoSettingView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, subtitleTitle: title)
+                        .focused($focusableField, equals: .info)
+                }
+            }
+        #endif
+            .preferredColorScheme(.dark)
+            .tint(.white)
+            .persistentSystemOverlays(.hidden)
+            .toolbar(.hidden, for: .automatic)
         #if os(tvOS)
             .onPlayPauseCommand {
                 if playerCoordinator.state.isPlaying {
@@ -638,42 +642,45 @@ private extension SubtitlePart {
     @available(iOS 16, tvOS 16, macOS 13, *)
     @MainActor
     var subtitleView: some View {
-        VStack {
+        Group {
             switch self.render {
-            case let .left(image):
-                GeometryReader { _ in
+            case let .left(info):
+                GeometryReader { geometry in
                     // 不能加scaledToFit。不然的话图片的缩放比率会有问题。
-                    VideoSubtitleView.imageView(image.1)
-                        .offset(CGSize(width: image.0.origin.x, height: image.0.origin.y))
-                        .frame(width: image.0.width, height: image.0.height)
+                    let rect = info.rect.adjust(size: geometry.size, displaySize: info.displaySize)
+                    VideoSubtitleView.imageView(info.image)
+                        .offset(CGSize(width: rect.origin.x, height: rect.origin.y))
+                        .frame(width: rect.width, height: rect.height)
                 }
             case let .right(text):
-                let textPosition = self.textPosition ?? KSOptions.textPosition
-                if textPosition.verticalAlign == .bottom || textPosition.verticalAlign == .center {
-                    Spacer()
-                }
-                Group {
-                    if KSOptions.stripSutitleStyle {
-                        Text(text.string)
-                    } else {
-                        Text(AttributedString(text))
+                VStack {
+                    let textPosition = self.textPosition ?? KSOptions.textPosition
+                    if textPosition.verticalAlign == .bottom || textPosition.verticalAlign == .center {
+                        Spacer()
                     }
-                }
-                .font(Font(KSOptions.textFont))
-                .shadow(color: .black.opacity(0.9), radius: 1, x: 1, y: 1)
-                .foregroundColor(KSOptions.textColor)
-                .italic(KSOptions.textItalic)
-                .background(KSOptions.textBackgroundColor)
-                .multilineTextAlignment(.center)
-                .alignmentGuide(textPosition.horizontalAlign) {
-                    $0[.leading]
-                }
-                .padding(textPosition.edgeInsets)
-                #if !os(tvOS)
-                    .textSelection(.enabled)
-                #endif
-                if textPosition.verticalAlign == .top || textPosition.verticalAlign == .center {
-                    Spacer()
+                    Group {
+                        if KSOptions.stripSutitleStyle {
+                            Text(text.string)
+                        } else {
+                            Text(AttributedString(text))
+                        }
+                    }
+                    .font(Font(KSOptions.textFont))
+                    .shadow(color: .black.opacity(0.9), radius: 1, x: 1, y: 1)
+                    .foregroundColor(KSOptions.textColor)
+                    .italic(KSOptions.textItalic)
+                    .background(KSOptions.textBackgroundColor)
+                    .multilineTextAlignment(.center)
+                    .alignmentGuide(textPosition.horizontalAlign) {
+                        $0[.leading]
+                    }
+                    .padding(textPosition.edgeInsets)
+                    #if !os(tvOS)
+                        .textSelection(.enabled)
+                    #endif
+                    if textPosition.verticalAlign == .top || textPosition.verticalAlign == .center {
+                        Spacer()
+                    }
                 }
             }
         }

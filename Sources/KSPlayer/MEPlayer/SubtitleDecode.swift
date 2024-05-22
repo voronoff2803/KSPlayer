@@ -20,8 +20,10 @@ class SubtitleDecode: DecodeProtocol {
     private var startTime = TimeInterval(0)
     private var assParse: AssParse? = nil
     private var assImageRenderer: AssImageRenderer? = nil
+    private let displaySize: CGSize
     required init(assetTrack: FFmpegAssetTrack, options: KSOptions) {
         startTime = assetTrack.startTime.seconds
+        displaySize = assetTrack.formatDescription?.displaySize ?? CGSize(width: 1, height: 1)
         do {
             codecContext = try assetTrack.createContext(options: options)
             if let codecContext, let pointer = codecContext.pointee.subtitle_header {
@@ -137,7 +139,8 @@ class SubtitleDecode: DecodeProtocol {
         }
         if let (rect, cgimage) = CGImage.combine(images: images), let image = cgimage.image() {
             // 因为字幕需要有透明度,所以不能用jpg；tif在iOS支持没有那么好，会有绿色背景； 用heic格式，展示的时候会卡主线程；所以最终用png。
-            let part = SubtitlePart(start, end, image: (rect, image))
+            let info = SubtitleImageInfo(rect: rect, image: image, displaySize: displaySize)
+            let part = SubtitlePart(start, end, image: info)
             parts.append(part)
         }
         if let attributedString {
