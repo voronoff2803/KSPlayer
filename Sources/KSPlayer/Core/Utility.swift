@@ -319,7 +319,7 @@ extension CGPoint {
     }
 }
 
-extension CGSize {
+public extension CGSize {
     var reverse: CGSize {
         CGSize(width: height, height: width)
     }
@@ -339,6 +339,17 @@ extension CGSize {
         }
         let aspectRatio = width / height
         return size.height * aspectRatio < size.width ? CGSize(width: size.width, height: size.width / aspectRatio) : CGSize(width: size.height * aspectRatio, height: size.height)
+    }
+
+    func convert(rect: CGRect, toSize: CGSize) -> CGRect {
+        let hZoom = toSize.width / width
+        let vZoom = toSize.height / height
+        let zoom = min(hZoom, vZoom)
+        var newRect = rect * zoom
+        let newDisplaySize = self * zoom
+        newRect.origin.x += (toSize.width - newDisplaySize.width) / 2
+        newRect.origin.y += (toSize.height - newDisplaySize.height) / 2
+        return newRect.integral
     }
 }
 
@@ -1025,17 +1036,6 @@ extension CGRect {
     func relativeRect(to boundingRect: CGRect) -> CGRect {
         let origin = CGPoint(x: minX - boundingRect.minX, y: minY - boundingRect.minY)
         return CGRect(origin: origin, size: size)
-    }
-
-    func adjust(size: CGSize, displaySize: CGSize) -> CGRect {
-        let hZoom = size.width / displaySize.width
-        let vZoom = size.height / displaySize.height
-        let zoom = min(hZoom, vZoom)
-        var newRect = self * zoom
-        let newDisplaySize = displaySize * zoom
-        newRect.origin.x += (size.width - newDisplaySize.width) / 2
-        newRect.origin.y += (size.height - newDisplaySize.height) / 2
-        return newRect.integral
     }
 }
 
