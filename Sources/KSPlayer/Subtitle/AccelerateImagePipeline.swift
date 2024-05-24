@@ -8,9 +8,16 @@ import QuartzCore
 @available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *)
 public final class AccelerateImagePipeline: ImagePipelineType {
     public static func process(images: [ASS_Image], boundingRect: CGRect) -> CGImage? {
-        let buffers = images.compactMap { translateBuffer($0, boundingRect: boundingRect) }
-        let composedBuffers = composeBuffers(buffers)
-        return makeImage(from: composedBuffers, alphaInfo: .first)
+        let buffers = images.lazy.compactMap { translateBuffer($0, boundingRect: boundingRect) }
+        let destinationBuffer = buffers[0]
+        for buffer in buffers.dropFirst() {
+            destinationBuffer.alphaComposite(
+                .nonpremultiplied,
+                topLayer: buffer,
+                destination: destinationBuffer
+            )
+        }
+        return makeImage(from: destinationBuffer, alphaInfo: .first)
     }
 
     private static func translateBuffer(_ image: ASS_Image, boundingRect: CGRect) -> vImage.PixelBuffer<vImage.Interleaved8x4>? {
@@ -43,19 +50,6 @@ public final class AccelerateImagePipeline: ImagePipelineType {
                 bitmapPosition += stride
             }
         }
-        return destinationBuffer
-    }
-
-    private static func composeBuffers(_ buffers: [vImage.PixelBuffer<vImage.Interleaved8x4>]) -> vImage.PixelBuffer<vImage.Interleaved8x4> {
-        let destinationBuffer = buffers[0]
-        for buffer in buffers.dropFirst() {
-            destinationBuffer.alphaComposite(
-                .nonpremultiplied,
-                topLayer: buffer,
-                destination: destinationBuffer
-            )
-        }
-
         return destinationBuffer
     }
 
