@@ -23,7 +23,7 @@ class SubtitleDecode: DecodeProtocol {
     private let displaySize: CGSize
     required init(assetTrack: FFmpegAssetTrack, options: KSOptions) {
         startTime = assetTrack.startTime.seconds
-        displaySize = assetTrack.formatDescription?.displaySize ?? CGSize(width: 1, height: 1)
+        displaySize = assetTrack.formatDescription?.displaySize ?? .one
         do {
             codecContext = try assetTrack.createContext(options: options)
             if let codecContext, let pointer = codecContext.pointee.subtitle_header {

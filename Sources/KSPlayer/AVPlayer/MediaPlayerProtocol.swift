@@ -19,6 +19,7 @@ public protocol MediaPlayback: AnyObject {
     var naturalSize: CGSize { get }
     var chapters: [Chapter] { get }
     var currentPlaybackTime: TimeInterval { get }
+    var playbackRate: Float { get set }
     func prepareToPlay()
     func shutdown()
     func seek(time: TimeInterval, completion: @escaping ((Bool) -> Void))
@@ -79,7 +80,6 @@ public protocol MediaPlayerProtocol: MediaPlayback {
     var allowsExternalPlayback: Bool { get set }
     var usesExternalPlaybackWhileExternalScreenIsActive: Bool { get set }
     var isExternalPlaybackActive: Bool { get }
-    var playbackRate: Float { get set }
     var playbackVolume: Float { get set }
     var contentMode: UIViewContentMode { get set }
     var subtitleDataSouce: SubtitleDataSouce? { get }
@@ -382,7 +382,7 @@ public extension CMFormatDescription {
                 return CGSize(width: horizontal, height: vertical)
             }
         }
-        return CGSize(width: 1, height: 1)
+        return CGSize.one
     }
 
     var depth: Int32 {

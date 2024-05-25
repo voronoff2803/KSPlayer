@@ -136,7 +136,7 @@ public extension UIColor {
         self.init(red: red / 255.0, green: green / 255.0, blue: blue / 255.0, alpha: alpha)
     }
 
-    func createImage(size: CGSize = CGSize(width: 1, height: 1)) -> UIImage {
+    func createImage(size: CGSize = .one) -> UIImage {
         #if canImport(UIKit)
         let rect = CGRect(origin: .zero, size: size)
         UIGraphicsBeginImageContext(rect.size)
@@ -320,6 +320,10 @@ extension CGPoint {
 }
 
 public extension CGSize {
+    static var one: CGSize {
+        CGSize(width: 1, height: 1)
+    }
+
     var reverse: CGSize {
         CGSize(width: height, height: width)
     }

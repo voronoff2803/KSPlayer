@@ -42,6 +42,16 @@ public final class MEPlayerItem: Sendable {
     private var seekByBytes = false
     private var lastVideoClock = KSClock()
     public private(set) var chapters: [Chapter] = []
+    public var playbackRate: Float {
+        get {
+            Float(videoClock.rate)
+        }
+        set {
+            audioClock.rate = Double(newValue)
+            videoClock.rate = Double(newValue)
+        }
+    }
+
     public var currentPlaybackTime: TimeInterval {
         state == .seeking ? seekTime : (mainClock().time - startTime).seconds
     }
@@ -50,7 +60,7 @@ public final class MEPlayerItem: Sendable {
     private var startTime = CMTime.zero
     public private(set) var duration: TimeInterval = 0
     public private(set) var fileSize: Double = 0
-    public private(set) var naturalSize = CGSize.zero
+    public private(set) var naturalSize = CGSize.one
     private var error: NSError? {
         didSet {
             if error != nil {

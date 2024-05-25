@@ -54,7 +54,7 @@ extension CVPixelBuffer: PixelBufferProtocol {
             {
                 return CGSize(width: horizontal, height: vertical)
             } else {
-                return CGSize(width: 1, height: 1)
+                return .one
             }
         }
         set {
