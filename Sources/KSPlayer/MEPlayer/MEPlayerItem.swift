@@ -6,12 +6,12 @@
 //
 
 import AVFoundation
+import CoreText
 import FFmpegKit
 import Libavcodec
 import Libavfilter
 import Libavformat
 import Libavutil
-
 public final class MEPlayerItem: Sendable {
     private let url: URL
     let options: KSOptions
@@ -103,6 +103,9 @@ public final class MEPlayerItem: Sendable {
     }
 
     private static var onceInitial: Void = {
+        if let urls = try? FileManager.default.contentsOfDirectory(at: KSOptions.fontsDir, includingPropertiesForKeys: nil) {
+            CTFontManagerRegisterFontURLs(urls as CFArray, .process, true, nil)
+        }
         var result = avformat_network_init()
         av_log_set_callback { ptr, level, format, args in
             guard let format else {
@@ -369,14 +372,15 @@ extension MEPlayerItem {
                     assetTrack.seekByBytes = seekByBytes
                     return assetTrack
                 } else if coreStream.pointee.codecpar.pointee.codec_type == AVMEDIA_TYPE_ATTACHMENT {
-                    if coreStream.pointee.codecpar.pointee.codec_id == AV_CODEC_ID_TTF {
+                    if coreStream.pointee.codecpar.pointee.codec_id == AV_CODEC_ID_TTF || coreStream.pointee.codecpar.pointee.codec_id == AV_CODEC_ID_OTF {
                         let metadata = toDictionary(coreStream.pointee.metadata)
                         if let filename = metadata["filename"], let extradata = coreStream.pointee.codecpar.pointee.extradata {
                             let extradataSize = coreStream.pointee.codecpar.pointee.extradata_size
                             let data = Data(bytes: extradata, count: Int(extradataSize))
-                            var fontsDir = URL(fileURLWithPath: KSOptions.fontsDir)
+                            var fontsDir = KSOptions.fontsDir
                             try? FileManager.default.createDirectory(at: fontsDir, withIntermediateDirectories: true)
                             fontsDir.appendPathComponent(filename)
+                            let result = CTFontManagerRegisterFontsForURL(fontsDir as CFURL, .process, nil)
                             try? data.write(to: fontsDir)
                         }
                     }

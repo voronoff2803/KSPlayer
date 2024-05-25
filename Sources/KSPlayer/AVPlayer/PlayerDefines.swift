@@ -488,12 +488,12 @@ public func KSLog(level: LogLevel = .warning, _ message: @autoclosure () -> Cust
     }
 }
 
-@inlinable
-public func KSLog(level: LogLevel = .warning, dso: UnsafeRawPointer = #dsohandle, _ message: StaticString, _ args: CVarArg...) {
-    if level.rawValue <= KSOptions.logLevel.rawValue {
-        os_log(level.logType, dso: dso, message, args)
-    }
-}
+// @inlinable
+// public func KSLog(level: LogLevel = .warning, dso: UnsafeRawPointer = #dsohandle, _ message: StaticString, _ args: CVarArg...) {
+//    if level.rawValue <= KSOptions.logLevel.rawValue {
+//        os_log(level.logType, dso: dso, message, args)
+//    }
+// }
 
 public extension Array {
     func toDictionary<Key: Hashable>(with selectKey: (Element) -> Key) -> [Key: Element] {

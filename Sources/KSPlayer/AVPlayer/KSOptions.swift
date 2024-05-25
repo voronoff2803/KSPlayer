@@ -304,7 +304,7 @@ open class KSOptions {
 
     // MARK: sutile options
 
-    static let fontsDir: String = NSTemporaryDirectory() + "fontsDir"
+    static let fontsDir = URL(fileURLWithPath: NSTemporaryDirectory() + "fontsDir")
     public var autoSelectEmbedSubtitle = true
     public var isSeekImageSubtitle = false
     public static var isASSUseImageRender = false

@@ -38,7 +38,7 @@ public final actor AssImageRenderer {
         library = ass_library_init()
         renderer = ass_renderer_init(library)
         ass_set_extract_fonts(library, 1)
-        ass_set_fonts_dir(library, KSOptions.fontsDir)
+        ass_set_fonts_dir(library, KSOptions.fontsDir.path)
         // 用FONTCONFIG会比较耗时，并且文字可能会大小不一致
         ass_set_fonts(renderer, nil, nil, Int32(ASS_FONTPROVIDER_AUTODETECT.rawValue), nil, 1)
         if let content, var buffer = content.cString(using: .utf8) {
