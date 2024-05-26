@@ -12,6 +12,7 @@ import Libavcodec
 import Libavfilter
 import Libavformat
 import Libavutil
+
 public final class MEPlayerItem: Sendable {
     private let url: URL
     let options: KSOptions
@@ -189,6 +190,8 @@ public final class MEPlayerItem: Sendable {
 
 extension MEPlayerItem {
     private func openThread() {
+        formatCtx?.pointee.interrupt_callback.opaque = nil
+        formatCtx?.pointee.interrupt_callback.callback = nil
         avformat_close_input(&self.formatCtx)
         formatCtx = avformat_alloc_context()
         guard let formatCtx else {
@@ -235,6 +238,8 @@ extension MEPlayerItem {
         }
         guard result == 0 else {
             error = .init(errorCode: .formatOpenInput, avErrorCode: result)
+            formatCtx.pointee.interrupt_callback.opaque = nil
+            formatCtx.pointee.interrupt_callback.callback = nil
             avformat_close_input(&self.formatCtx)
             return
         }
@@ -252,6 +257,8 @@ extension MEPlayerItem {
         result = avformat_find_stream_info(formatCtx, nil)
         guard result == 0 else {
             error = .init(errorCode: .formatFindStreamInfo, avErrorCode: result)
+            formatCtx.pointee.interrupt_callback.opaque = nil
+            formatCtx.pointee.interrupt_callback.callback = nil
             avformat_close_input(&self.formatCtx)
             return
         }

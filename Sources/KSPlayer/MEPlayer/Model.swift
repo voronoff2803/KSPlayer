@@ -253,7 +253,7 @@ public final class AudioFrame: MEFrame {
         }
     }
 
-    init(array: [AudioFrame]) {
+    public init(array: [AudioFrame]) {
         audioFormat = array[0].audioFormat
         timebase = array[0].timebase
         timestamp = array[0].timestamp
