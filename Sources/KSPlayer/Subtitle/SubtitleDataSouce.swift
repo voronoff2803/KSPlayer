@@ -390,7 +390,7 @@ extension URL {
 
         let offsets: [UInt64] = [
             4096,
-            fileSize / 3 * 2,
+            fileSize * 2 / 3,
             fileSize / 3,
             fileSize - 8192,
         ]
