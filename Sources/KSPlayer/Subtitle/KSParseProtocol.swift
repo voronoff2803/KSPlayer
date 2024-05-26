@@ -366,16 +366,15 @@ public extension [String: String] {
                 if let assColor = self["OutlineColour"] {
                     attributes[.strokeColor] = UIColor(assColor: assColor)
                 }
-            }
-            if let assColor = self["BackColour"],
-               let shadowOffset = self["Shadow"].flatMap(Double.init),
-               shadowOffset > 0
-            {
-                let shadow = NSShadow()
-                shadow.shadowOffset = CGSize(width: CGFloat(shadowOffset), height: CGFloat(shadowOffset))
-                shadow.shadowBlurRadius = shadowOffset
-                shadow.shadowColor = UIColor(assColor: assColor)
-                attributes[.shadow] = shadow
+                if let assColor = self["BackColour"] {
+                    let shadow = NSShadow()
+                    if let shadowOffset = self["Shadow"].flatMap(Double.init) {
+                        shadow.shadowOffset = CGSize(width: CGFloat(shadowOffset), height: CGFloat(shadowOffset))
+                    }
+                    shadow.shadowBlurRadius = strokeWidth
+                    shadow.shadowColor = UIColor(assColor: assColor)
+                    attributes[.shadow] = shadow
+                }
             }
         }
         var textPosition = TextPosition()
