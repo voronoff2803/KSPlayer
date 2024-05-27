@@ -657,15 +657,15 @@ private extension SubtitlePart {
                     Group {
                         if KSOptions.stripSutitleStyle {
                             Text(text.string)
-                                .font(Font(KSOptions.textFont))
-                                .shadow(color: .black.opacity(0.9), radius: 1, x: 1, y: 1)
-                                .foregroundColor(KSOptions.textColor)
                                 .italic(KSOptions.textItalic)
-                                .background(KSOptions.textBackgroundColor)
                         } else {
                             Text(AttributedString(text))
                         }
                     }
+                    .font(Font(KSOptions.textFont))
+                    .shadow(color: .black.opacity(0.9), radius: 2, x: 1, y: 1)
+                    .foregroundColor(KSOptions.textColor)
+                    .background(KSOptions.textBackgroundColor)
                     .multilineTextAlignment(.center)
                     .alignmentGuide(textPosition.horizontalAlign) {
                         $0[.leading]
