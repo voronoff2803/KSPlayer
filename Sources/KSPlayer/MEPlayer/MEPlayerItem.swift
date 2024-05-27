@@ -238,8 +238,9 @@ extension MEPlayerItem {
         }
         guard result == 0 else {
             error = .init(errorCode: .formatOpenInput, avErrorCode: result)
-            formatCtx.pointee.interrupt_callback.opaque = nil
-            formatCtx.pointee.interrupt_callback.callback = nil
+            // opaque设置为空的话，可能会crash。但是我本地无法复现，暂时先注释掉吧。
+//            formatCtx.pointee.interrupt_callback.opaque = nil
+//            formatCtx.pointee.interrupt_callback.callback = nil
             avformat_close_input(&self.formatCtx)
             return
         }
