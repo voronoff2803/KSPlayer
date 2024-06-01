@@ -452,7 +452,7 @@ struct VideoControllerView: View {
                     KSVideoPlayerViewBuilder.infoButton(showVideoSetting: $showVideoSetting)
                 }
             }
-            .frame(width: playerWidth / 1.5)
+            .frame(minWidth: playerWidth / 1.5)
             .buttonStyle(.plain)
             .padding(.vertical, 24)
             .padding(.horizontal, 36)
