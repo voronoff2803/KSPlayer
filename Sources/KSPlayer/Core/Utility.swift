@@ -338,7 +338,7 @@ public extension CGSize {
 
     // 维持原有的比率。但是宽高不能超过size
     func within(size: CGSize?) -> CGSize {
-        guard let size, !size.width.isInfinite, !size.width.isNaN, !size.height.isInfinite, !size.height.isNaN else {
+        guard let size, height != 0, width != 0 else {
             return self
         }
         let aspectRatio = width / height
@@ -346,6 +346,9 @@ public extension CGSize {
     }
 
     func convert(rect: CGRect, toSize: CGSize) -> CGRect {
+        guard height != 0, width != 0 else {
+            return rect
+        }
         let hZoom = toSize.width / width
         let vZoom = toSize.height / height
         let zoom = min(hZoom, vZoom)
