@@ -96,6 +96,20 @@ public struct KSVideoPlayerView: View {
                     }
                 }
             }
+            .onMoveCommand { direction in
+                switch direction {
+                case .left:
+                    playerCoordinator.skip(interval: -15)
+                case .right:
+                    playerCoordinator.skip(interval: 15)
+                case .up:
+                    playerCoordinator.mask(show: true, autoHide: false)
+                case .down:
+                    focusableField = .info
+                @unknown default:
+                    break
+                }
+            }
             .sheet(isPresented: $isDropdownShow) {
                 VideoSettingView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, subtitleTitle: title)
                     .focused($focusableField, equals: .info)
@@ -188,33 +202,18 @@ public struct KSVideoPlayerView: View {
         .onTapGesture {
             playerCoordinator.isMaskShow.toggle()
         }
-        #if os(tvOS)
-        .onMoveCommand { direction in
-            switch direction {
-            case .left:
-                playerCoordinator.skip(interval: -15)
-            case .right:
-                playerCoordinator.skip(interval: 15)
-            case .up:
-                playerCoordinator.mask(show: true, autoHide: false)
-            case .down:
-                focusableField = .info
-            @unknown default:
-                break
-            }
-        }
-        #else
+        #if !os(tvOS)
         .onHover { _ in
-                playerCoordinator.isMaskShow = true
-            }
-            .onDrop(of: ["public.file-url"], isTargeted: nil) { providers -> Bool in
-                providers.first?.loadDataRepresentation(forTypeIdentifier: "public.file-url") { data, _ in
-                    if let data, let path = NSString(data: data, encoding: 4), let url = URL(string: path as String) {
-                        openURL(url)
-                    }
+            playerCoordinator.isMaskShow = true
+        }
+        .onDrop(of: ["public.file-url"], isTargeted: nil) { providers -> Bool in
+            providers.first?.loadDataRepresentation(forTypeIdentifier: "public.file-url") { data, _ in
+                if let data, let path = NSString(data: data, encoding: 4), let url = URL(string: path as String) {
+                    openURL(url)
                 }
-                return true
             }
+            return true
+        }
         #endif
     }
 
