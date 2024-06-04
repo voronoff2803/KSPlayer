@@ -201,8 +201,8 @@ extension MetalPlayView {
                     size = KSOptions.sceneSize
                 }
                 checkFormatDescription(pixelBuffer: pixelBuffer)
-                #if !os(tvOS) && !os(macOS)
-                // macos 设置edrMetadata会导致过度曝光，还没找到正确的方式。先不设置了
+                #if !os(tvOS)
+                // 设置edrMetadata 需要同时设置对的colorspace，不然会导致过度曝光。
                 if #available(iOS 16, *) {
                     metalView.metalLayer.edrMetadata = frame.edrMetadata
                 }

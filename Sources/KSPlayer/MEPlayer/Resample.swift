@@ -86,7 +86,10 @@ class VideoSwresample: FrameChange {
     func change(avframe: UnsafeMutablePointer<AVFrame>) throws -> MEFrame {
         let frame = VideoVTBFrame(fps: fps, isDovi: isDovi)
         if avframe.pointee.format == AV_PIX_FMT_VIDEOTOOLBOX.rawValue {
-            frame.corePixelBuffer = unsafeBitCast(avframe.pointee.data.3, to: CVPixelBuffer.self)
+            let pbuf = unsafeBitCast(avframe.pointee.data.3, to: CVPixelBuffer.self)
+            // ffmpeg硬解码出来的colorspace不对，所以要自己设置下。我自己实现的硬解是对的，所以不用在设置了。
+            pbuf.colorspace = KSOptions.colorSpace(ycbcrMatrix: pbuf.yCbCrMatrix, transferFunction: pbuf.transferFunction)
+            frame.corePixelBuffer = pbuf
         } else {
             frame.corePixelBuffer = transfer(frame: avframe.pointee)
         }
