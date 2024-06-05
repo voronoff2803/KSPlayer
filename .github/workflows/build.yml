@@ -14,10 +14,11 @@ jobs:
       - uses: actions/checkout@main
         with:
           submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }}
 #      https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md#xcode
       - name: Set up Xcode
         run: |
-          sudo xcode-select -s /Applications/Xcode_15.3.app/Contents/Developer
+          sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
           xcode-select -p
           xcodebuild -version
       - name: Build macOS
