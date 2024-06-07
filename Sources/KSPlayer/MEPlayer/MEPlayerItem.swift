@@ -594,7 +594,7 @@ extension MEPlayerItem {
                 }
             }
             for (track, index) in array {
-                track.updateCache(headIndex: index)
+                track.updateCache(headIndex: index, time: seconds)
             }
             for track in assetTracks {
                 if let index = track.subtitle?.outputRenderQueue.seek(seconds: seconds) {

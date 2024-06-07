@@ -17,7 +17,7 @@ protocol PlayerItemTrackProtocol: CapacityProtocol, AnyObject {
     func decode()
     func seek(time: TimeInterval)
     func seekCache(time: TimeInterval, needKeyFrame: Bool) -> UInt?
-    func updateCache(headIndex: UInt)
+    func updateCache(headIndex: UInt, time: TimeInterval)
     func putPacket(packet: Packet)
 //    func getOutputRender<Frame: ObjectQueueItem>(where predicate: ((Frame) -> Bool)?) -> Frame?
     func shutdown()
@@ -107,7 +107,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         nil
     }
 
-    func updateCache(headIndex _: UInt) {}
+    func updateCache(headIndex _: UInt, time _: TimeInterval) {}
 
     func shutdown() {
         if state == .idle {
@@ -243,7 +243,12 @@ final class AsyncPlayerItemTrack<Frame: MEFrame>: SyncPlayerItemTrack<Frame> {
         packetQueue.seek(seconds: time, needKeyFrame: needKeyFrame)
     }
 
-    override func updateCache(headIndex: UInt) {
+    override func updateCache(headIndex: UInt, time: TimeInterval) {
+        if options.isAccurateSeek {
+            seekTime = time
+        } else {
+            seekTime = 0
+        }
         isEndOfFile = false
         state = .flush
         outputRenderQueue.flush()
