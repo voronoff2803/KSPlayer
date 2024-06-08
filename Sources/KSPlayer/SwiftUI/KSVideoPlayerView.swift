@@ -328,7 +328,7 @@ struct VideoControllerView: View {
                 HStack {
                     KSVideoPlayerViewBuilder.muteButton(config: config)
                     volumeSlider
-                        .frame(width: 100)
+                        .frame(maxWidth: 100)
                     if let audioTracks = config.playerLayer?.player.tracks(mediaType: .audio), !audioTracks.isEmpty {
                         audioButton(audioTracks: audioTracks)
                     }

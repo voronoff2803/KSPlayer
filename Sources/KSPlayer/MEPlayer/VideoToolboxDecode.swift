@@ -96,6 +96,7 @@ class VideoToolboxDecode: DecodeProtocol {
     func doFlushCodec() {
         lastPosition = 0
         startTime = 0
+        VTDecompressionSessionWaitForAsynchronousFrames(session.decompressionSession)
     }
 
     func shutdown() {
