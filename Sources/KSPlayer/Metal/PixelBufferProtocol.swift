@@ -197,6 +197,20 @@ class PixelBuffer: PixelBufferProtocol {
         leftShift = format.leftShift
         bitDepth = format.bitDepth
         planeCount = Int(format.planeCount)
+        if frame.nb_side_data > 0 {
+            for i in 0 ..< frame.nb_side_data {
+                if let sideData = frame.side_data[Int(i)]?.pointee {
+                    if sideData.type == AV_FRAME_DATA_DOVI_RPU_BUFFER {
+                        let data = sideData.data.withMemoryRebound(to: [UInt8].self, capacity: 1) { $0 }
+                    } else if sideData.type == AV_FRAME_DATA_DOVI_METADATA { // AVDOVIMetadata
+                        if colorspace == nil {
+                            colorspace = CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF)
+                        }
+                        let data = sideData.data.withMemoryRebound(to: AVDOVIMetadata.self, capacity: 1) { $0 }
+                    }
+                }
+            }
+        }
         let desc = av_pix_fmt_desc_get(format)?.pointee
         let chromaW = desc?.log2_chroma_w == 1 ? 2 : 1
         let chromaH = desc?.log2_chroma_h == 1 ? 2 : 1

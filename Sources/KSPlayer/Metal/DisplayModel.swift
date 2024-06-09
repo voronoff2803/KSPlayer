@@ -28,14 +28,14 @@ extension DisplayEnum {
         }
     }
 
-    func pipeline(planeCount: Int, bitDepth: Int32) -> MTLRenderPipelineState {
+    func pipeline(pixelBuffer: PixelBufferProtocol) -> MTLRenderPipelineState {
         switch self {
         case .plane:
-            return DisplayEnum.planeDisplay.pipeline(planeCount: planeCount, bitDepth: bitDepth)
+            return DisplayEnum.planeDisplay.pipeline(pixelBuffer: pixelBuffer)
         case .vr:
-            return DisplayEnum.vrDiaplay.pipeline(planeCount: planeCount, bitDepth: bitDepth)
+            return DisplayEnum.vrDiaplay.pipeline(pixelBuffer: pixelBuffer)
         case .vrBox:
-            return DisplayEnum.vrBoxDiaplay.pipeline(planeCount: planeCount, bitDepth: bitDepth)
+            return DisplayEnum.vrBoxDiaplay.pipeline(pixelBuffer: pixelBuffer)
         }
     }
 
@@ -97,7 +97,9 @@ private class PlaneDisplayModel {
         encoder.drawIndexedPrimitives(type: primitiveType, indexCount: indexCount, indexType: indexType, indexBuffer: indexBuffer, indexBufferOffset: 0)
     }
 
-    func pipeline(planeCount: Int, bitDepth: Int32) -> MTLRenderPipelineState {
+    func pipeline(pixelBuffer: PixelBufferProtocol) -> MTLRenderPipelineState {
+        let planeCount = pixelBuffer.planeCount
+        let bitDepth = pixelBuffer.bitDepth
         switch planeCount {
         case 3:
             if bitDepth == 10 {
@@ -226,7 +228,9 @@ private class SphereDisplayModel {
         return (indices, positions, uvs)
     }
 
-    func pipeline(planeCount: Int, bitDepth: Int32) -> MTLRenderPipelineState {
+    func pipeline(pixelBuffer: PixelBufferProtocol) -> MTLRenderPipelineState {
+        let planeCount = pixelBuffer.planeCount
+        let bitDepth = pixelBuffer.bitDepth
         switch planeCount {
         case 3:
             if bitDepth == 10 {

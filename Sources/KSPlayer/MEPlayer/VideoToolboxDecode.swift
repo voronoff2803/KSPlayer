@@ -145,9 +145,11 @@ class DecompressionSession {
                                  value: kCFBooleanTrue)
         }
         if let destinationDynamicRange = options.availableDynamicRange(nil) {
-            let pixelTransferProperties = [kVTPixelTransferPropertyKey_DestinationColorPrimaries: destinationDynamicRange.colorPrimaries,
-                                           kVTPixelTransferPropertyKey_DestinationTransferFunction: destinationDynamicRange.transferFunction,
-                                           kVTPixelTransferPropertyKey_DestinationYCbCrMatrix: destinationDynamicRange.yCbCrMatrix]
+            let pixelTransferProperties = [
+                kVTPixelTransferPropertyKey_DestinationColorPrimaries: destinationDynamicRange.colorPrimaries,
+                kVTPixelTransferPropertyKey_DestinationTransferFunction: destinationDynamicRange.transferFunction,
+                kVTPixelTransferPropertyKey_DestinationYCbCrMatrix: destinationDynamicRange.yCbCrMatrix,
+            ]
             VTSessionSetProperty(decompressionSession,
                                  key: kVTDecompressionPropertyKey_PixelTransferProperties,
                                  value: pixelTransferProperties as CFDictionary)

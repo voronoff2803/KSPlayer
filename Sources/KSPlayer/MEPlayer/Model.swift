@@ -539,3 +539,15 @@ public extension [UInt8] {
         append(UInt8(newElement >> 24 & 0xFF))
     }
 }
+
+extension simd_float3 {
+    init(tuple: (AVRational, AVRational, AVRational)) {
+        self.init(x: tuple.0.float, y: tuple.1.float, z: tuple.2.float)
+    }
+}
+
+extension simd_float3x3 {
+    init(tuple: (AVRational, AVRational, AVRational, AVRational, AVRational, AVRational, AVRational, AVRational, AVRational)) {
+        self.init(simd_float3(tuple.0.float, tuple.1.float, tuple.2.float), simd_float3(tuple.3.float, tuple.4.float, tuple.5.float), simd_float3(tuple.6.float, tuple.7.float, tuple.8.float))
+    }
+}

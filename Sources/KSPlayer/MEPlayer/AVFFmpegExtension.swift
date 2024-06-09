@@ -356,6 +356,10 @@ extension AVRational {
     var size: CGSize {
         num > 0 && den > 0 ? CGSize(width: Int(num), height: Int(den)) : .one
     }
+
+    var float: Float {
+        Float(num) / Float(den)
+    }
 }
 
 extension AVBufferSrcParameters: Equatable {

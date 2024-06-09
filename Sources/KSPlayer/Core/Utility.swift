@@ -923,12 +923,16 @@ final class Box<T> {
 }
 
 extension Array {
+    init(tuple: (Element, Element, Element, Element)) {
+        self.init([tuple.0, tuple.1, tuple.2, tuple.3])
+    }
+
     init(tuple: (Element, Element, Element, Element, Element, Element, Element, Element)) {
         self.init([tuple.0, tuple.1, tuple.2, tuple.3, tuple.4, tuple.5, tuple.6, tuple.7])
     }
 
-    init(tuple: (Element, Element, Element, Element)) {
-        self.init([tuple.0, tuple.1, tuple.2, tuple.3])
+    init(tuple: (Element, Element, Element, Element, Element, Element, Element, Element, Element)) {
+        self.init([tuple.0, tuple.1, tuple.2, tuple.3, tuple.4, tuple.5, tuple.6, tuple.7, tuple.8])
     }
 
     var tuple8: (Element, Element, Element, Element, Element, Element, Element, Element) {

@@ -32,7 +32,6 @@ let package = Package(
             name: "KSPlayer",
             dependencies: [
                 .product(name: "FFmpegKit", package: "FFmpegKit"),
-                .product(name: "renderer", package: "FFmpegKit"),
                 "DisplayCriteria",
             ],
             resources: [.process("Metal/Shaders.metal")],

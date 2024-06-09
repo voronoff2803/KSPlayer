@@ -57,19 +57,9 @@ public class MetalRender {
 
     private lazy var colorConversion2020FullRangeMatrixBuffer: MTLBuffer? = kvImage_YpCbCrToARGBMatrix_ITU_R_2020.buffer
 
-    private lazy var colorOffsetVideoRangeMatrixBuffer: MTLBuffer? = {
-        var firstColumn = SIMD3<Float>(-16.0 / 255.0, -128.0 / 255.0, -128.0 / 255.0)
-        let buffer = MetalRender.device.makeBuffer(bytes: &firstColumn, length: MemoryLayout<SIMD3<Float>>.size)
-        buffer?.label = "colorOffset"
-        return buffer
-    }()
+    private lazy var colorOffsetVideoRangeMatrixBuffer: MTLBuffer? = SIMD3<Float>(-16.0 / 255.0, -128.0 / 255.0, -128.0 / 255.0).buffer
 
-    private lazy var colorOffsetFullRangeMatrixBuffer: MTLBuffer? = {
-        var firstColumn = SIMD3<Float>(0, -128.0 / 255.0, -128.0 / 255.0)
-        let buffer = MetalRender.device.makeBuffer(bytes: &firstColumn, length: MemoryLayout<SIMD3<Float>>.size)
-        buffer?.label = "colorOffset"
-        return buffer
-    }()
+    private lazy var colorOffsetFullRangeMatrixBuffer: MTLBuffer? = SIMD3<Float>(0, -128.0 / 255.0, -128.0 / 255.0).buffer
 
     private lazy var leftShiftMatrixBuffer: MTLBuffer? = {
         var firstColumn = SIMD3<UInt8>(1, 1, 1)
@@ -107,7 +97,7 @@ public class MetalRender {
             return
         }
         encoder.pushDebugGroup("RenderFrame")
-        let state = display.pipeline(planeCount: pixelBuffer.planeCount, bitDepth: pixelBuffer.bitDepth)
+        let state = display.pipeline(pixelBuffer: pixelBuffer)
         encoder.setRenderPipelineState(state)
         encoder.setFragmentSamplerState(samplerState, index: 0)
         for (index, texture) in inputTextures.enumerated() {
@@ -238,9 +228,24 @@ extension vImage_YpCbCrToARGBMatrix {
     }
 
     var buffer: MTLBuffer? {
-        var matrix = simd_float3x3([Yp, Yp, Yp], [0.0, Cb_G, Cb_B], [Cr_R, Cr_G, 0.0])
+        simd_float3x3([Yp, Yp, Yp], [0.0, Cb_G, Cb_B], [Cr_R, Cr_G, 0.0]).buffer
+    }
+}
+
+extension simd_float3x3 {
+    var buffer: MTLBuffer? {
+        var matrix = self
         let buffer = MetalRender.device.makeBuffer(bytes: &matrix, length: MemoryLayout<simd_float3x3>.size)
         buffer?.label = "colorConversionMatrix"
+        return buffer
+    }
+}
+
+extension simd_float3 {
+    var buffer: MTLBuffer? {
+        var matrix = self
+        let buffer = MetalRender.device.makeBuffer(bytes: &matrix, length: MemoryLayout<simd_float3>.size)
+        buffer?.label = "colorOffset"
         return buffer
     }
 }
