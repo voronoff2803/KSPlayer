@@ -98,7 +98,7 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
             if stream.pointee.duration > 0, stream.pointee.nb_frames > 0, stream.pointee.nb_frames != stream.pointee.duration {
                 nominalFrameRate = Float(stream.pointee.nb_frames) * Float(timebase.den) / Float(stream.pointee.duration) * Float(timebase.num)
             } else if avgFrameRate.den > 0, avgFrameRate.num > 0 {
-                nominalFrameRate = Float(avgFrameRate.num) / Float(avgFrameRate.den)
+                nominalFrameRate = avgFrameRate.rational.float
             } else {
                 nominalFrameRate = 24
             }
