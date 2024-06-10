@@ -120,7 +120,12 @@ public final class MEPlayerItem: Sendable {
             if let ptr, let namePtr = av_default_item_name(ptr) {
                 let name = String(cString: namePtr)
                 let avclass = ptr.assumingMemoryBound(to: UnsafePointer<AVClass>.self).pointee
-                if name == "URLContext" {
+                // 因为context.interrupt_callback.opaque转为MEPlayerItem会crash，所以就只对特定的log才进行转化，看下还会不会crash
+                if name == "URLContext",
+                   ["Original list of addresses", "Starting connection attempt to", "Successfully connected to", "Will reconnect at"].first(where: { str in
+                       log.starts(with: str)
+                   }) != nil
+                {
                     let context = ptr.assumingMemoryBound(to: URLContext.self).pointee
                     if let opaque = context.interrupt_callback.opaque {
                         let playerItem = Unmanaged<MEPlayerItem>.fromOpaque(opaque).takeUnretainedValue()
