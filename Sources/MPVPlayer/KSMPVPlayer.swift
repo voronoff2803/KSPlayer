@@ -99,6 +99,10 @@ public class KSMPVPlayer: MPVHandle {
 }
 
 extension KSMPVPlayer: MediaPlayerProtocol {
+    public func startRecord(url _: URL) {}
+
+    public func stopRecord() {}
+
     public var view: UIView? {
         metalView
     }

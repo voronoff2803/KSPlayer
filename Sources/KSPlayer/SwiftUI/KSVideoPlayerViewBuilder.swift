@@ -82,6 +82,16 @@ public enum KSVideoPlayerViewBuilder {
         .keyboardShortcut("i", modifiers: [.command])
         #endif
     }
+
+    @MainActor
+    static func recordButton(config: KSVideoPlayer.Coordinator) -> some View {
+        Button {
+            config.isRecord.toggle()
+        } label: {
+            Image(systemName: "video.circle")
+                .foregroundColor(config.isRecord ? .red : .white)
+        }
+    }
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)

@@ -309,7 +309,7 @@ extension MEPlayerItem {
         }
     }
 
-    func startRecord(url: URL) {
+    public func startRecord(url: URL) {
         stopRecord()
         let filename = url.isFileURL ? url.path : url.absoluteString
         var ret = avformat_alloc_output_context2(&outputFormatCtx, nil, nil, filename)
@@ -765,9 +765,10 @@ extension MEPlayerItem: MediaPlayback {
         self.closeOperation = closeOperation
     }
 
-    func stopRecord() {
+    public func stopRecord() {
         if let outputFormatCtx {
             av_write_trailer(outputFormatCtx)
+            avformat_close_input(&self.outputFormatCtx)
         }
     }
 

@@ -292,22 +292,23 @@ struct VideoControllerView: View {
                 KSVideoPlayerViewBuilder.titleView(title: title, config: config)
                     .lineLimit(2)
                     .layoutPriority(3)
+                KSVideoPlayerViewBuilder.muteButton(config: config)
+                    .frame(width: 56)
+                if let audioTracks = config.playerLayer?.player.tracks(mediaType: .audio), !audioTracks.isEmpty {
+                    audioButton(audioTracks: audioTracks)
+                }
                 Spacer()
                     .layoutPriority(2)
                 HStack {
                     KSVideoPlayerViewBuilder.playButton(config: config)
                         .frame(width: 56)
-                    if let audioTracks = config.playerLayer?.player.tracks(mediaType: .audio), !audioTracks.isEmpty {
-                        audioButton(audioTracks: audioTracks)
-                    }
-                    KSVideoPlayerViewBuilder.muteButton(config: config)
-                        .frame(width: 56)
                     contentModeButton
                         .frame(width: 56)
-                    subtitleButton
                     playbackRateButton
+                    KSVideoPlayerViewBuilder.recordButton(config: config)
                     pipButton
                         .frame(width: 56)
+                    subtitleButton
                     infoButton
                         .frame(width: 56)
                 }
@@ -341,8 +342,9 @@ struct VideoControllerView: View {
                         .font(.largeTitle)
                     Spacer()
                     KSVideoPlayerViewBuilder.contentModeButton(config: config)
-                    KSVideoPlayerViewBuilder.subtitleButton(config: config)
                     KSVideoPlayerViewBuilder.playbackRateButton(playbackRate: $config.playbackRate)
+                    KSVideoPlayerViewBuilder.recordButton(config: config)
+                    KSVideoPlayerViewBuilder.subtitleButton(config: config)
                     KSVideoPlayerViewBuilder.infoButton(showVideoSetting: $showVideoSetting)
                 }
                 // 设置opacity为0，还是会去更新View。所以只能这样了
@@ -371,12 +373,14 @@ struct VideoControllerView: View {
                 #if os(xrOS)
                 .glassBackgroundEffect()
                 #endif
-                #if !os(tvOS) && !os(xrOS)
-                if config.playerLayer?.player.allowsExternalPlayback == true {
-                    AirPlayView().fixedSize()
-                }
+                KSVideoPlayerViewBuilder.muteButton(config: config)
+                volumeSlider
+                    .frame(maxWidth: 100)
+                    .tint(.white.opacity(0.8))
+                    .padding(.leading, 16)
+                #if os(xrOS)
+                    .glassBackgroundEffect()
                 #endif
-                Spacer()
                 if let audioTracks = config.playerLayer?.player.tracks(mediaType: .audio), !audioTracks.isEmpty {
                     audioButton(audioTracks: audioTracks)
                     #if os(xrOS)
@@ -384,17 +388,14 @@ struct VideoControllerView: View {
                         .glassBackgroundEffect()
                     #endif
                 }
-                KSVideoPlayerViewBuilder.muteButton(config: config)
-                volumeSlider
-                    .frame(width: 100)
-                    .tint(.white.opacity(0.8))
-                    .padding(.leading, 16)
-                #if os(xrOS)
-                    .glassBackgroundEffect()
+                Spacer()
+                #if !os(tvOS) && !os(xrOS)
+                if config.playerLayer?.player.allowsExternalPlayback == true {
+                    AirPlayView().fixedSize()
+                }
                 #endif
                 #if !os(xrOS)
                 contentModeButton
-                subtitleButton
                 #endif
             }
             Spacer()
@@ -414,6 +415,8 @@ struct VideoControllerView: View {
                 Spacer()
                 playbackRateButton
                 pipButton
+                KSVideoPlayerViewBuilder.recordButton(config: config)
+                subtitleButton
                 infoButton
             }
             if config.isMaskShow {

@@ -99,6 +99,24 @@ extension KSVideoPlayer: UIViewRepresentable {
         }
 
         @Published
+        public var isRecord = false {
+            didSet {
+                if isRecord != oldValue {
+                    if isRecord {
+                        if let url = KSOptions.recordDir {
+                            if !FileManager.default.fileExists(atPath: url.path) {
+                                try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+                            }
+                            playerLayer?.player.startRecord(url: url.appendingPathComponent("\(Date().description).mov"))
+                        }
+                    } else {
+                        playerLayer?.player.stopRecord()
+                    }
+                }
+            }
+        }
+
+        @Published
         public var playbackRate: Float = 1.0 {
             didSet {
                 playerLayer?.player.playbackRate = playbackRate

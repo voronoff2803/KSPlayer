@@ -336,6 +336,7 @@ open class KSOptions {
     public static var isPipPopViewController = false
     public static var canStartPictureInPictureAutomaticallyFromInline = true
     public static var preferredFrame = true
+    public static var recordDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("record")
     public var display = DisplayEnum.plane
     public var videoDelay = 0.0 // s
     public var autoDeInterlace = false

@@ -21,8 +21,10 @@ public protocol MediaPlayback: AnyObject {
     var currentPlaybackTime: TimeInterval { get }
     var playbackRate: Float { get set }
     func prepareToPlay()
-    func shutdown()
     func seek(time: TimeInterval, completion: @escaping ((Bool) -> Void))
+    func startRecord(url: URL)
+    func stopRecord()
+    func shutdown()
 }
 
 public class DynamicInfo: ObservableObject {

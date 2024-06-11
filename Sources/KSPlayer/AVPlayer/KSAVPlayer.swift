@@ -360,6 +360,10 @@ extension KSAVPlayer {
 }
 
 extension KSAVPlayer: MediaPlayerProtocol {
+    public func startRecord(url _: URL) {}
+
+    public func stopRecord() {}
+
     public var subtitleDataSouce: SubtitleDataSouce? { nil }
     public var isPlaying: Bool { player.rate > 0 ? true : playbackState == .playing }
     public var view: UIView? { playerView }

@@ -458,6 +458,14 @@ extension KSMEPlayer: MediaPlayerProtocol {
             audioOutput.flush()
         }
     }
+
+    public func startRecord(url: URL) {
+        playerItem.startRecord(url: url)
+    }
+
+    public func stopRecord() {
+        playerItem.stopRecord()
+    }
 }
 
 @available(tvOS 14.0, *)
@@ -552,15 +560,5 @@ extension KSMEPlayer: AVPlaybackCoordinatorPlaybackControlDelegate {
                 completionHandler()
             }
         }
-    }
-}
-
-public extension KSMEPlayer {
-    func startRecord(url: URL) {
-        playerItem.startRecord(url: url)
-    }
-
-    func stoptRecord() {
-        playerItem.stopRecord()
     }
 }
