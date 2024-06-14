@@ -34,7 +34,7 @@ let package = Package(
                 .product(name: "FFmpegKit", package: "FFmpegKit"),
                 "DisplayCriteria",
             ],
-            resources: [.process("Metal/*.metal")],
+            resources: [.process("Metal/Resources")],
             swiftSettings: [
                 .enableExperimentalFeature("StrictConcurrency"),
             ]
@@ -47,7 +47,8 @@ let package = Package(
             dependencies: ["KSPlayer"],
             resources: [.process("Resources")]
         ),
-    ]
+    ],
+    swiftLanguageVersions: [.v5]
 )
 
 var ffmpegKitPath = FileManager.default.currentDirectoryPath + "/FFmpegKit"
