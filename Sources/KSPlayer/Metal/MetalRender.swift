@@ -6,6 +6,7 @@
 //
 import Accelerate
 import CoreVideo
+import FFmpegKit
 import Foundation
 import Metal
 import QuartzCore
@@ -90,21 +91,21 @@ public class MetalRender {
     }
 
     @MainActor
-    func draw(pixelBuffer: PixelBufferProtocol, display: DisplayEnum = .plane, drawable: CAMetalDrawable) {
+    func draw(pixelBuffer: PixelBufferProtocol, display: DisplayEnum = .plane, drawable: CAMetalDrawable, doviData: dovi_metadata?) {
         let inputTextures = pixelBuffer.textures()
         renderPassDescriptor.colorAttachments[0].texture = drawable.texture
         guard !inputTextures.isEmpty, let commandBuffer = commandQueue?.makeCommandBuffer(), let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
             return
         }
         encoder.pushDebugGroup("RenderFrame")
-        let state = display.pipeline(pixelBuffer: pixelBuffer)
+        let state = display.pipeline(pixelBuffer: pixelBuffer, doviData: doviData)
         encoder.setRenderPipelineState(state)
         encoder.setFragmentSamplerState(samplerState, index: 0)
         for (index, texture) in inputTextures.enumerated() {
             texture.label = "texture\(index)"
             encoder.setFragmentTexture(texture, index: index)
         }
-        setFragmentBuffer(pixelBuffer: pixelBuffer, encoder: encoder)
+        setFragmentBuffer(pixelBuffer: pixelBuffer, encoder: encoder, doviData: doviData)
         display.set(encoder: encoder)
         encoder.popDebugGroup()
         encoder.endEncoding()
@@ -113,25 +114,33 @@ public class MetalRender {
         commandBuffer.waitUntilCompleted()
     }
 
-    private func setFragmentBuffer(pixelBuffer: PixelBufferProtocol, encoder: MTLRenderCommandEncoder) {
+    private func setFragmentBuffer(pixelBuffer: PixelBufferProtocol, encoder: MTLRenderCommandEncoder, doviData: dovi_metadata?) {
         if pixelBuffer.planeCount > 1 {
-            let buffer: MTLBuffer?
-            let yCbCrMatrix = pixelBuffer.yCbCrMatrix
             let isFullRangeVideo = pixelBuffer.isFullRangeVideo
-            if yCbCrMatrix == kCVImageBufferYCbCrMatrix_ITU_R_709_2 {
-                buffer = isFullRangeVideo ? colorConversion709FullRangeMatrixBuffer : colorConversion709VideoRangeMatrixBuffer
-            } else if yCbCrMatrix == kCVImageBufferYCbCrMatrix_SMPTE_240M_1995 {
-                buffer = isFullRangeVideo ? colorConversionSMPTE240MFullRangeMatrixBuffer : colorConversionSMPTE240MVideoRangeMatrixBuffer
-            } else if yCbCrMatrix == kCVImageBufferYCbCrMatrix_ITU_R_2020 {
-                buffer = isFullRangeVideo ? colorConversion2020FullRangeMatrixBuffer : colorConversion2020VideoRangeMatrixBuffer
-            } else {
-                buffer = isFullRangeVideo ? colorConversion601FullRangeMatrixBuffer : colorConversion601VideoRangeMatrixBuffer
-            }
-            encoder.setFragmentBuffer(buffer, offset: 0, index: 0)
-            let colorOffset = isFullRangeVideo ? colorOffsetFullRangeMatrixBuffer : colorOffsetVideoRangeMatrixBuffer
-            encoder.setFragmentBuffer(colorOffset, offset: 0, index: 1)
             let leftShift = pixelBuffer.leftShift == 0 ? leftShiftMatrixBuffer : leftShiftSixMatrixBuffer
-            encoder.setFragmentBuffer(leftShift, offset: 0, index: 2)
+            if var doviData {
+                doviData.linear = KSOptions.doviMatrix * doviData.linear
+                let buffer1 = MetalRender.device.makeBuffer(bytes: &doviData, length: MemoryLayout<dovi_metadata>.size)
+                buffer1?.label = "dovi"
+                encoder.setFragmentBuffer(buffer1, offset: 0, index: 0)
+                encoder.setFragmentBuffer(leftShift, offset: 0, index: 1)
+            } else {
+                let buffer1: MTLBuffer?
+                let yCbCrMatrix = pixelBuffer.yCbCrMatrix
+                if yCbCrMatrix == kCVImageBufferYCbCrMatrix_ITU_R_709_2 {
+                    buffer1 = isFullRangeVideo ? colorConversion709FullRangeMatrixBuffer : colorConversion709VideoRangeMatrixBuffer
+                } else if yCbCrMatrix == kCVImageBufferYCbCrMatrix_SMPTE_240M_1995 {
+                    buffer1 = isFullRangeVideo ? colorConversionSMPTE240MFullRangeMatrixBuffer : colorConversionSMPTE240MVideoRangeMatrixBuffer
+                } else if yCbCrMatrix == kCVImageBufferYCbCrMatrix_ITU_R_2020 {
+                    buffer1 = isFullRangeVideo ? colorConversion2020FullRangeMatrixBuffer : colorConversion2020VideoRangeMatrixBuffer
+                } else {
+                    buffer1 = isFullRangeVideo ? colorConversion601FullRangeMatrixBuffer : colorConversion601VideoRangeMatrixBuffer
+                }
+                let buffer2 = isFullRangeVideo ? colorOffsetFullRangeMatrixBuffer : colorOffsetVideoRangeMatrixBuffer
+                encoder.setFragmentBuffer(buffer1, offset: 0, index: 0)
+                encoder.setFragmentBuffer(buffer2, offset: 0, index: 1)
+                encoder.setFragmentBuffer(leftShift, offset: 0, index: 2)
+            }
         }
     }
 
@@ -227,8 +236,13 @@ extension vImage_YpCbCrToARGBMatrix {
         vImage_YpCbCrToARGBMatrix(Yp: 255 / 219 * Yp, Cr_R: 255 / 224 * Cr_R, Cr_G: 255 / 224 * Cr_G, Cb_G: 255 / 224 * Cb_G, Cb_B: 255 / 224 * Cb_B)
     }
 
+    var simd: simd_float3x3 {
+        // 初始化函数是用columns
+        simd_float3x3([Yp, Yp, Yp], [0.0, Cb_G, Cb_B], [Cr_R, Cr_G, 0.0])
+    }
+
     var buffer: MTLBuffer? {
-        simd_float3x3([Yp, Yp, Yp], [0.0, Cb_G, Cb_B], [Cr_R, Cr_G, 0.0]).buffer
+        simd.buffer
     }
 }
 

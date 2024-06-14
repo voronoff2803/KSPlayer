@@ -121,6 +121,9 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
     private var lastPacketSeconds = Double(-1)
     var bitrate = Double(0)
     fileprivate func doDecode(packet: Packet) {
+        guard let corePacket = packet.corePacket else {
+            return
+        }
         if packet.isKeyFrame, packet.assetTrack.mediaType != .subtitle {
             let seconds = packet.seconds
             let diff = seconds - lastPacketSeconds
@@ -136,7 +139,13 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         }
         lastPacketBytes += packet.size
         let decoder = decoderMap.value(for: packet.assetTrack.trackID, default: makeDecode(assetTrack: packet.assetTrack))
-//        var startTime = CACurrentMediaTime()
+        if corePacket.pointee.side_data_elems > 0 {
+            for i in 0 ..< Int(corePacket.pointee.side_data_elems) {
+                let sideData = corePacket.pointee.side_data[i]
+                if sideData.type == AV_PKT_DATA_A53_CC {}
+            }
+        }
+        //        var startTime = CACurrentMediaTime()
         decoder.decodeFrame(from: packet) { [weak self] result in
             guard let self else {
                 return

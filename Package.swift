@@ -34,7 +34,7 @@ let package = Package(
                 .product(name: "FFmpegKit", package: "FFmpegKit"),
                 "DisplayCriteria",
             ],
-            resources: [.process("Metal/Shaders.metal")],
+            resources: [.process("Metal/*.metal")],
             swiftSettings: [
                 .enableExperimentalFeature("StrictConcurrency"),
             ]

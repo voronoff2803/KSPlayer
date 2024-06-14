@@ -5,6 +5,7 @@
 //  Created by kintan on 2020/1/11.
 //
 
+import FFmpegKit
 import Foundation
 import Metal
 import simd
@@ -28,14 +29,14 @@ extension DisplayEnum {
         }
     }
 
-    func pipeline(pixelBuffer: PixelBufferProtocol) -> MTLRenderPipelineState {
+    func pipeline(pixelBuffer: PixelBufferProtocol, doviData: dovi_metadata?) -> MTLRenderPipelineState {
         switch self {
         case .plane:
-            return DisplayEnum.planeDisplay.pipeline(pixelBuffer: pixelBuffer)
+            return DisplayEnum.planeDisplay.pipeline(pixelBuffer: pixelBuffer, doviData: doviData)
         case .vr:
-            return DisplayEnum.vrDiaplay.pipeline(pixelBuffer: pixelBuffer)
+            return DisplayEnum.vrDiaplay.pipeline(pixelBuffer: pixelBuffer, doviData: doviData)
         case .vrBox:
-            return DisplayEnum.vrBoxDiaplay.pipeline(pixelBuffer: pixelBuffer)
+            return DisplayEnum.vrBoxDiaplay.pipeline(pixelBuffer: pixelBuffer, doviData: doviData)
         }
     }
 
@@ -54,8 +55,10 @@ extension DisplayEnum {
 private class PlaneDisplayModel {
     private lazy var yuv = MetalRender.makePipelineState(fragmentFunction: "displayYUVTexture")
     private lazy var yuvp010LE = MetalRender.makePipelineState(fragmentFunction: "displayYUVTexture", bitDepth: 10)
+    private lazy var iCtCp10LE = MetalRender.makePipelineState(fragmentFunction: "displayICtCpTexture", bitDepth: 10)
     private lazy var nv12 = MetalRender.makePipelineState(fragmentFunction: "displayNV12Texture")
     private lazy var p010LE = MetalRender.makePipelineState(fragmentFunction: "displayNV12Texture", bitDepth: 10)
+    private lazy var iCtCpBiPlanar10LE = MetalRender.makePipelineState(fragmentFunction: "displayICtCpBiPlanarTexture", bitDepth: 10)
     private lazy var bgra = MetalRender.makePipelineState(fragmentFunction: "displayTexture")
     let indexCount: Int
     let indexType = MTLIndexType.uint16
@@ -97,19 +100,19 @@ private class PlaneDisplayModel {
         encoder.drawIndexedPrimitives(type: primitiveType, indexCount: indexCount, indexType: indexType, indexBuffer: indexBuffer, indexBufferOffset: 0)
     }
 
-    func pipeline(pixelBuffer: PixelBufferProtocol) -> MTLRenderPipelineState {
+    func pipeline(pixelBuffer: PixelBufferProtocol, doviData: dovi_metadata?) -> MTLRenderPipelineState {
         let planeCount = pixelBuffer.planeCount
         let bitDepth = pixelBuffer.bitDepth
         switch planeCount {
         case 3:
             if bitDepth == 10 {
-                return yuvp010LE
+                return doviData == nil ? yuvp010LE : iCtCp10LE
             } else {
                 return yuv
             }
         case 2:
             if bitDepth == 10 {
-                return p010LE
+                return doviData == nil ? p010LE : iCtCpBiPlanar10LE
             } else {
                 return nv12
             }
@@ -228,7 +231,7 @@ private class SphereDisplayModel {
         return (indices, positions, uvs)
     }
 
-    func pipeline(pixelBuffer: PixelBufferProtocol) -> MTLRenderPipelineState {
+    func pipeline(pixelBuffer: PixelBufferProtocol, doviData _: dovi_metadata?) -> MTLRenderPipelineState {
         let planeCount = pixelBuffer.planeCount
         let bitDepth = pixelBuffer.bitDepth
         switch planeCount {

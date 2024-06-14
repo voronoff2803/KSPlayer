@@ -337,6 +337,7 @@ open class KSOptions {
     public static var canStartPictureInPictureAutomaticallyFromInline = true
     public static var preferredFrame = true
     public static var recordDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("record")
+    public static var doviMatrix = simd_float3x3(1)
     public var display = DisplayEnum.plane
     public var videoDelay = 0.0 // s
     public var autoDeInterlace = false

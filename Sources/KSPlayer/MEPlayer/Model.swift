@@ -7,6 +7,7 @@
 
 import AVFoundation
 import CoreMedia
+import FFmpegKit
 import Libavcodec
 #if canImport(UIKit)
 import UIKit
@@ -78,6 +79,9 @@ protocol MEFrame: ObjectQueueItem {
 
 // for MEPlayer
 public extension KSOptions {
+    /*
+     CGColorSpaceCreateICCBased
+     */
     static func colorSpace(ycbcrMatrix: CFString?, transferFunction: CFString?) -> CGColorSpace? {
         switch ycbcrMatrix {
         case kCVImageBufferYCbCrMatrix_ITU_R_709_2:
@@ -103,29 +107,6 @@ public extension KSOptions {
                 return CGColorSpace(name: CGColorSpace.itur_2020)
             }
 
-        default:
-            return CGColorSpace(name: CGColorSpace.sRGB)
-        }
-    }
-
-    static func colorSpace(colorPrimaries: CFString?) -> CGColorSpace? {
-        switch colorPrimaries {
-        case kCVImageBufferColorPrimaries_ITU_R_709_2:
-            return CGColorSpace(name: CGColorSpace.sRGB)
-        case kCVImageBufferColorPrimaries_DCI_P3:
-            if #available(macOS 10.15.4, iOS 13.4, tvOS 13.4, *) {
-                return CGColorSpace(name: CGColorSpace.displayP3_PQ)
-            } else {
-                return CGColorSpace(name: CGColorSpace.displayP3_PQ_EOTF)
-            }
-        case kCVImageBufferColorPrimaries_ITU_R_2020:
-            if #available(macOS 11.0, iOS 14.0, tvOS 14.0, *) {
-                return CGColorSpace(name: CGColorSpace.itur_2100_PQ)
-            } else if #available(macOS 10.15.4, iOS 13.4, tvOS 13.4, *) {
-                return CGColorSpace(name: CGColorSpace.itur_2020_PQ)
-            } else {
-                return CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF)
-            }
         default:
             return CGColorSpace(name: CGColorSpace.sRGB)
         }
@@ -420,6 +401,14 @@ public final class VideoVTBFrame: MEFrame {
     public let fps: Float
     public let isDovi: Bool
     public var edrMetaData: EDRMetaData? = nil
+    var doviData: dovi_metadata? = nil {
+        didSet {
+            if doviData != nil {
+                corePixelBuffer?.colorspace = CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF)
+            }
+        }
+    }
+
     var corePixelBuffer: PixelBufferProtocol?
     init(fps: Float, isDovi: Bool) {
         self.fps = fps

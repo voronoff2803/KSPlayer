@@ -6,6 +6,7 @@
 //
 
 import AVFoundation
+import FFmpegKit
 import Foundation
 import Libavcodec
 
@@ -61,6 +62,7 @@ class FFmpegDecode: DecodeProtocol {
                 var displayData: MasteringDisplayMetadata?
                 var contentData: ContentLightMetadata?
                 var ambientViewingEnvironment: AmbientViewingEnvironment?
+                var doviData: dovi_metadata? = nil
                 // filter之后，side_data信息会丢失，所以放在这里
                 if inputFrame.pointee.nb_side_data > 0 {
                     for i in 0 ..< inputFrame.pointee.nb_side_data {
@@ -122,6 +124,14 @@ class FFmpegDecode: DecodeProtocol {
                                     ambient_light_x: UInt16(truncatingIfNeeded: data.ambient_light_x.num),
                                     ambient_light_y: UInt16(truncatingIfNeeded: data.ambient_light_y.num)
                                 )
+                            } else if sideData.type == AV_FRAME_DATA_DOVI_RPU_BUFFER {
+                                let data = sideData.data.withMemoryRebound(to: [UInt8].self, capacity: 1) { $0 }
+                            } else if sideData.type == AV_FRAME_DATA_DOVI_METADATA {
+//                                if colorspace == nil {
+//                                    colorspace = CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF)
+//                                }
+                                let data = sideData.data.withMemoryRebound(to: AVDOVIMetadata.self, capacity: 1) { $0 }
+                                doviData = map_dovi_metadata(data).pointee
                             }
                         }
                     }
@@ -129,12 +139,13 @@ class FFmpegDecode: DecodeProtocol {
                 filter.filter(options: options, inputFrame: inputFrame) { avframe in
                     do {
                         var frame = try frameChange.change(avframe: avframe)
-                        if let videoFrame = frame as? VideoVTBFrame, let pixelBuffer = videoFrame.corePixelBuffer {
-                            if let pixelBuffer = pixelBuffer as? PixelBuffer {
-                                pixelBuffer.formatDescription = packet.assetTrack.formatDescription
-                            }
+                        if let videoFrame = frame as? VideoVTBFrame {
                             if displayData != nil || contentData != nil || ambientViewingEnvironment != nil {
                                 videoFrame.edrMetaData = EDRMetaData(displayData: displayData, contentData: contentData, ambientViewingEnvironment: ambientViewingEnvironment)
+                            }
+                            videoFrame.doviData = doviData
+                            if let pixelBuffer = videoFrame.corePixelBuffer as? PixelBuffer {
+                                pixelBuffer.formatDescription = packet.assetTrack.formatDescription
                             }
                         }
                         frame.timebase = filter.timebase
