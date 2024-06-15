@@ -127,9 +127,6 @@ class FFmpegDecode: DecodeProtocol {
                             } else if sideData.type == AV_FRAME_DATA_DOVI_RPU_BUFFER {
                                 let data = sideData.data.withMemoryRebound(to: [UInt8].self, capacity: 1) { $0 }
                             } else if sideData.type == AV_FRAME_DATA_DOVI_METADATA {
-//                                if colorspace == nil {
-//                                    colorspace = CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF)
-//                                }
                                 let data = sideData.data.withMemoryRebound(to: AVDOVIMetadata.self, capacity: 1) { $0 }
                                 doviData = map_dovi_metadata(data).pointee
                             }

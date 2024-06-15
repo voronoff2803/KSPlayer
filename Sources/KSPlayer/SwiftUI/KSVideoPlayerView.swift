@@ -424,10 +424,7 @@ struct VideoControllerView: View {
             #endif
         }
         .sheet(isPresented: $showVideoSetting) {
-            NavigationStack {
-                VideoSettingView(config: config, subtitleModel: config.subtitleModel, subtitleTitle: title)
-            }
-            .buttonStyle(.plain)
+            VideoSettingView(config: config, subtitleModel: config.subtitleModel, subtitleTitle: title)
         }
         #if os(xrOS)
         .ornament(visibility: config.isMaskShow ? .visible : .hidden, attachmentAnchor: .scene(.bottom)) {
@@ -748,9 +745,12 @@ public struct PlatformView<Content: View>: View {
     private let content: () -> Content
     public var body: some View {
         #if os(tvOS)
-        ScrollView {
-            content()
-                .padding()
+        // tvos需要加NavigationStack，不然无法出现下拉框。iOS不能加NavigationStack，不然会丢帧。
+        NavigationStack {
+            ScrollView {
+                content()
+                    .padding()
+            }
         }
         .pickerStyle(.navigationLink)
         #else

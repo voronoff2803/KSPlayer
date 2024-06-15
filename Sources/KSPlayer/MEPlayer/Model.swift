@@ -435,6 +435,9 @@ extension VideoVTBFrame {
         } else if corePixelBuffer?.transferFunction == kCVImageBufferTransferFunction_ITU_R_2100_HLG {
             return CAEDRMetadata.hlg
         }
+        if let doviData {
+            return CAEDRMetadata.hdr10(minLuminance: doviData.minLuminance, maxLuminance: doviData.maxLuminance, opticalOutputScale: 10000)
+        }
         return nil
     }
     #endif
