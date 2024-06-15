@@ -12,6 +12,7 @@ import SwiftUI
 @MainActor
 public struct KSVideoPlayerView: View {
     private let subtitleDataSouce: SubtitleDataSouce?
+    public let options: KSOptions
     @State
     private var title: String
     @StateObject
@@ -19,13 +20,7 @@ public struct KSVideoPlayerView: View {
     @Environment(\.dismiss)
     private var dismiss
     @FocusState
-    private var focusableField: FocusableField? {
-        willSet {
-            isDropdownShow = newValue == .info
-        }
-    }
-
-    public let options: KSOptions
+    private var focusableField: FocusableField?
     @State
     private var isDropdownShow = false
     @State
@@ -65,17 +60,26 @@ public struct KSVideoPlayerView: View {
                     .allowsHitTesting(false) // 禁止字幕视图交互，以免抢占视图的点击事件或其它手势事件
             }
             .overlay {
-                VideoControllerView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, title: $title, playerWidth: playerCoordinator.playerLayer?.player.view?.frame.width ?? 0, focusableField: $focusableField)
-                    .focused($focusableField, equals: .controller)
-                    .opacity(playerCoordinator.isMaskShow ? 1 : 0)
-                #if os(tvOS)
-                    .ignoresSafeArea()
-                #endif
+                controllerView
             }
             .preferredColorScheme(.dark)
             .tint(.white)
             .persistentSystemOverlays(.hidden)
             .toolbar(.hidden, for: .automatic)
+            .onChange(of: playerCoordinator.isMaskShow) { newValue in
+                if newValue {
+                    focusableField = .controller
+                } else {
+                    focusableField = .play
+                }
+            }
+            .onChange(of: isDropdownShow) { newValue in
+                if newValue {
+                    focusableField = .info
+                } else {
+                    focusableField = .play
+                }
+            }
         #if os(tvOS)
             .onPlayPauseCommand {
                 if playerCoordinator.state.isPlaying {
@@ -97,22 +101,23 @@ public struct KSVideoPlayerView: View {
                 }
             }
             .onMoveCommand { direction in
-                switch direction {
-                case .left:
-                    playerCoordinator.skip(interval: -15)
-                case .right:
-                    playerCoordinator.skip(interval: 15)
-                case .up:
-                    playerCoordinator.mask(show: true, autoHide: false)
-                case .down:
-                    focusableField = .info
-                @unknown default:
-                    break
+                if !playerCoordinator.isMaskShow {
+                    switch direction {
+                    case .left:
+                        playerCoordinator.skip(interval: -15)
+                    case .right:
+                        playerCoordinator.skip(interval: 15)
+                    case .up:
+                        playerCoordinator.mask(show: true, autoHide: false)
+                    case .down:
+                        isDropdownShow = true
+                    @unknown default:
+                        break
+                    }
                 }
             }
             .sheet(isPresented: $isDropdownShow) {
                 VideoSettingView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, subtitleTitle: title)
-                    .focused($focusableField, equals: .info)
             }
         #endif
     }
@@ -217,6 +222,15 @@ public struct KSVideoPlayerView: View {
         #endif
     }
 
+    private var controllerView: some View {
+        VideoControllerView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, title: $title, playerWidth: playerCoordinator.playerLayer?.player.view?.frame.width ?? 0, focusableField: $focusableField)
+            .focused($focusableField, equals: .controller)
+            .opacity(playerCoordinator.isMaskShow ? 1 : 0)
+        #if os(tvOS)
+            .ignoresSafeArea()
+        #endif
+    }
+
     fileprivate enum FocusableField {
         case play, controller, info
     }
@@ -316,12 +330,6 @@ struct VideoControllerView: View {
             }
             if config.isMaskShow {
                 VideoTimeShowView(config: config, model: config.timemodel, timeFont: .caption2)
-                    .onAppear {
-                        focusableField = .controller
-                    }
-                    .onDisappear {
-                        focusableField = .play
-                    }
             }
             #elseif os(macOS)
             Spacer()
@@ -350,12 +358,6 @@ struct VideoControllerView: View {
                 // 设置opacity为0，还是会去更新View。所以只能这样了
                 if config.isMaskShow {
                     VideoTimeShowView(config: config, model: config.timemodel, timeFont: .caption2)
-                        .onAppear {
-                            focusableField = .controller
-                        }
-                        .onDisappear {
-                            focusableField = .play
-                        }
                 }
             }
             .padding()
@@ -421,12 +423,6 @@ struct VideoControllerView: View {
             }
             if config.isMaskShow {
                 VideoTimeShowView(config: config, model: config.timemodel, timeFont: .caption2)
-                    .onAppear {
-                        focusableField = .controller
-                    }
-                    .onDisappear {
-                        focusableField = .play
-                    }
             }
             #endif
             #endif
@@ -464,12 +460,6 @@ struct VideoControllerView: View {
         #if os(tvOS)
         .padding(.horizontal, 80)
         .padding(.bottom, 80)
-        #else
-        .font(.title)
-        .buttonStyle(.borderless)
-        .padding()
-        #endif
-        #if os(tvOS)
         .background(LinearGradient(
             stops: [
                 Gradient.Stop(color: .black.opacity(0), location: 0.22),
@@ -478,6 +468,10 @@ struct VideoControllerView: View {
             startPoint: .top,
             endPoint: .bottom
         ))
+        #else
+            .font(.title)
+            .buttonStyle(.borderless)
+            .padding()
         #endif
     }
 

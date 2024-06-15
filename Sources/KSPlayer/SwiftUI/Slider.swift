@@ -48,6 +48,7 @@ public struct TVOSSlide: UIViewRepresentable {
             }
         } else {
             view.processView.tintColor = .white
+            view.cancle()
         }
         // 要加这个才会触发进度条更新
         let process = (value.wrappedValue - bounds.lowerBound) / (bounds.upperBound - bounds.lowerBound)
@@ -100,6 +101,12 @@ public class TVSlide: UIControl {
     @available(*, unavailable)
     required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    public func cancle() {
+        delayItem?.cancel()
+        delayItem = nil
+        timer.fireDate = Date.distantFuture
     }
 
     override open func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
