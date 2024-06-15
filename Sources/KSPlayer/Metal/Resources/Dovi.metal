@@ -4,28 +4,26 @@
 using namespace metal;
 #import "Utility.metal"
 
-struct dovi_reshape_data {
-    float4 coeffs[8];
-    float4 mmr[48];
-    float pivots[7];
-    float lo;
-    float hi;
-    uint8_t min_order;
-    uint8_t max_order;
-    uint8_t num_pivots;
-    bool has_poly;
-    bool has_mmr;
-    bool mmr_single;
-};
-
 struct dovi_metadata {
     // Colorspace transformation metadata
-    float3 nonlinear_offset;  // input offset ("ycc_to_rgb_offset")
-    float minLuminance;
-    float maxLuminance;
     float3x3 nonlinear;     // before PQ, also called "ycc_to_rgb"
     float3x3 linear;        // after PQ, also called "rgb_to_lms"
-    dovi_reshape_data comp[3];
+    simd_float3 nonlinear_offset;  // input offset ("ycc_to_rgb_offset")
+    float minLuminance;
+    float maxLuminance;
+    struct reshape_data {
+        float4 coeffs[8];
+        float4 mmr[8*6];
+        float pivots[7];
+        float lo;
+        float hi;
+        uint8_t min_order;
+        uint8_t max_order;
+        uint8_t num_pivots;
+        bool has_poly;
+        bool has_mmr;
+        bool mmr_single;
+    } comp[3];
 };
 
 float reshape_mmr(float3 sig, float4 coeffs, float4 mmr[48], bool single, int min_order, int max_order)
@@ -65,7 +63,7 @@ float reshape_poly(float s, float4 coeffs)
     return s;
 }
 
-float reshape(float3 sig, float s, dovi_reshape_data data) {
+float reshape(float3 sig, float s, dovi_metadata::reshape_data data) {
     float4 coeffs;
     if (data.num_pivots > 2) {
 #define test(i) s >= data.pivots[i] ? 1.0 : 0.0
@@ -82,23 +80,14 @@ float reshape(float3 sig, float s, dovi_reshape_data data) {
     } else {
         coeffs = data.coeffs[0];
     }
-    if (data.has_mmr && data.has_poly) {
-        if (coeffs.w == 0.0) {
-            s = reshape_poly(s, coeffs);
-        } else {
-            s = reshape_mmr(sig, coeffs, data.mmr, data.mmr_single, data.min_order, data.max_order);
-        }
-    } else if (data.has_poly) {
-        s = reshape_poly(s, coeffs);
-    } else {
-        s = reshape_mmr(sig, coeffs, data.mmr, data.mmr_single, data.min_order, data.max_order);
-    }
+    // 先默认用poly，不用mmr。 不然有逻辑判断会很卡。后续想下要怎么优化。
+    s = reshape_poly(s, coeffs);
     return clamp(s, data.lo, data.hi);
 }
 
-float3 reshape3(float3 rgb, constant dovi_reshape_data data[3]) {
+float3 reshape3(float3 rgb, constant dovi_metadata::reshape_data data[3]) {
     float3 sig = clamp(rgb, 0.0, 1.0);
-    return (reshape(sig, sig.r, data[0]), reshape(sig, sig.g, data[1]), reshape(sig, sig.b, data[2]));
+    return float3(reshape(sig, sig.r, data[0]), reshape(sig, sig.g, data[1]), reshape(sig, sig.b, data[2]));
 }
 
 fragment float4 displayICtCpTexture(VertexOut in [[ stage_in ]],
@@ -114,6 +103,7 @@ fragment float4 displayICtCpTexture(VertexOut in [[ stage_in ]],
     rgb.y = uTexture.sample(textureSampler, in.textureCoordinate).r;
     rgb.z = vTexture.sample(textureSampler, in.textureCoordinate).r;
     rgb = rgb*float3(leftShift);
+    rgb = reshape3(rgb, data.comp);
     rgb = data.nonlinear*(rgb + data.nonlinear_offset);
     rgb = pqEOTF(rgb);
     rgb = data.linear*rgb;
@@ -132,6 +122,7 @@ fragment float4 displayICtCpBiPlanarTexture(VertexOut in [[ stage_in ]],
     rgb.x = lumaTexture.sample(textureSampler, in.textureCoordinate).r;
     rgb.yz = float2(chromaTexture.sample(textureSampler, in.textureCoordinate).rg);
     rgb = rgb*float3(leftShift);
+    rgb = reshape3(rgb, data.comp);
     rgb = data.nonlinear*(rgb + data.nonlinear_offset);
     rgb = pqEOTF(rgb);
     rgb = data.linear*rgb;
