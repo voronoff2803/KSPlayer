@@ -28,6 +28,34 @@ public struct KSVideoPlayer {
     }
 }
 
+#if !os(tvOS)
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+@MainActor
+public struct PlayBackCommands: Commands {
+    @FocusedObject
+    private var config: KSVideoPlayer.Coordinator?
+    public init() {}
+
+    public var body: some Commands {
+        CommandMenu("PlayBack") {
+            if let config {
+                Button(config.state.isPlaying ? "Pause" : "Resume") {
+                    if config.state.isPlaying {
+                        config.playerLayer?.pause()
+                    } else {
+                        config.playerLayer?.play()
+                    }
+                }
+                .keyboardShortcut(.space, modifiers: .none)
+                Button(config.isMuted ? "Mute" : "Unmute") {
+                    config.isMuted.toggle()
+                }
+            }
+        }
+    }
+}
+#endif
+
 extension KSVideoPlayer: UIViewRepresentable {
     public func makeCoordinator() -> Coordinator {
         coordinator

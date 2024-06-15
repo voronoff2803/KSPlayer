@@ -16,11 +16,11 @@ public struct KSVideoPlayerView: View {
     @State
     private var title: String
     @StateObject
-    private var playerCoordinator: KSVideoPlayer.Coordinator
+    private var config: KSVideoPlayer.Coordinator
     @Environment(\.dismiss)
     private var dismiss
     @FocusState
-    private var focusableField: FocusableField?
+    private var focusableView: FocusableView?
     @State
     private var isDropdownShow = false
     @State
@@ -43,7 +43,7 @@ public struct KSVideoPlayerView: View {
 
     public init(coordinator: KSVideoPlayer.Coordinator, url: State<URL>, options: KSOptions, title: State<String>, subtitleDataSouce: SubtitleDataSouce?) {
         _url = url
-        _playerCoordinator = .init(wrappedValue: coordinator)
+        _config = .init(wrappedValue: coordinator)
         _title = title
         #if os(macOS)
         NSDocumentController.shared.noteNewRecentDocumentURL(url.wrappedValue)
@@ -55,7 +55,7 @@ public struct KSVideoPlayerView: View {
     public var body: some View {
         playView
             .overlay {
-                VideoSubtitleView(model: playerCoordinator.subtitleModel)
+                VideoSubtitleView(model: config.subtitleModel)
                     .ignoresSafeArea()
                     .allowsHitTesting(false) // 禁止字幕视图交互，以免抢占视图的点击事件或其它手势事件
             }
@@ -66,49 +66,50 @@ public struct KSVideoPlayerView: View {
             .tint(.white)
             .persistentSystemOverlays(.hidden)
             .toolbar(.hidden, for: .automatic)
-            .onChange(of: playerCoordinator.isMaskShow) { newValue in
+            .focusedObject(config)
+            .onChange(of: config.isMaskShow) { newValue in
                 if newValue {
-                    focusableField = .controller
+                    focusableView = .controller
                 } else {
-                    focusableField = .play
+                    focusableView = .play
                 }
             }
             .onChange(of: isDropdownShow) { newValue in
                 if newValue {
-                    focusableField = .info
+                    focusableView = .info
                 } else {
-                    focusableField = .play
+                    focusableView = .play
                 }
             }
         #if os(tvOS)
             .onPlayPauseCommand {
-                if playerCoordinator.state.isPlaying {
-                    playerCoordinator.playerLayer?.pause()
+                if config.state.isPlaying {
+                    config.playerLayer?.pause()
                 } else {
-                    playerCoordinator.playerLayer?.play()
+                    config.playerLayer?.play()
                 }
             }
             .onExitCommand {
-                if playerCoordinator.isMaskShow {
-                    playerCoordinator.isMaskShow = false
+                if config.isMaskShow {
+                    config.isMaskShow = false
                 } else {
-                    switch focusableField {
+                    switch focusableView {
                     case .play:
                         dismiss()
                     default:
-                        focusableField = .play
+                        focusableView = .play
                     }
                 }
             }
             .onMoveCommand { direction in
-                if !playerCoordinator.isMaskShow {
+                if !config.isMaskShow {
                     switch direction {
                     case .left:
-                        playerCoordinator.skip(interval: -15)
+                        config.skip(interval: -15)
                     case .right:
-                        playerCoordinator.skip(interval: 15)
+                        config.skip(interval: 15)
                     case .up:
-                        playerCoordinator.mask(show: true, autoHide: false)
+                        config.mask(show: true, autoHide: false)
                     case .down:
                         isDropdownShow = true
                     @unknown default:
@@ -117,13 +118,13 @@ public struct KSVideoPlayerView: View {
                 }
             }
             .sheet(isPresented: $isDropdownShow) {
-                VideoSettingView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, subtitleTitle: title)
+                VideoSettingView(config: config, subtitleModel: config.subtitleModel, subtitleTitle: title)
             }
         #endif
     }
 
     private var playView: some View {
-        KSVideoPlayer(coordinator: playerCoordinator, url: url, options: options)
+        KSVideoPlayer(coordinator: config, url: url, options: options)
             .onStateChanged { playerLayer, state in
                 if state == .readyToPlay {
                     if let movieTitle = playerLayer.player.dynamicInfo?.metadata["title"] {
@@ -136,16 +137,16 @@ public struct KSVideoPlayerView: View {
             }
         #if canImport(UIKit)
             .onSwipe { _ in
-                playerCoordinator.isMaskShow = true
+                config.isMaskShow = true
             }
         #endif
             .ignoresSafeArea()
             .onAppear {
-                focusableField = .play
+                focusableView = .play
                 if let subtitleDataSouce {
-                    playerCoordinator.subtitleModel.addSubtitle(dataSouce: subtitleDataSouce)
+                    config.subtitleModel.addSubtitle(dataSouce: subtitleDataSouce)
                 }
-                // 不要加这个，不然playerCoordinator无法释放，也可以在onDisappear调用removeMonitor释放
+                // 不要加这个，不然config无法释放，也可以在onDisappear调用removeMonitor释放
                 //                    #if os(macOS)
                 //                    NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) {
                 //                        isMaskShow = overView
@@ -158,28 +159,28 @@ public struct KSVideoPlayerView: View {
             .navigationBarTitleDisplayMode(.inline)
         #endif
         #if !os(iOS)
-            .focusable(!playerCoordinator.isMaskShow)
-        .focused($focusableField, equals: .play)
+            .focusable(!config.isMaskShow)
+        .focused($focusableView, equals: .play)
         #endif
         #if !os(xrOS)
             .onKeyPressLeftArrow {
-            playerCoordinator.skip(interval: -15)
+            config.skip(interval: -15)
         }
         .onKeyPressRightArrow {
-            playerCoordinator.skip(interval: 15)
+            config.skip(interval: 15)
         }
         .onKeyPressSapce {
-            if playerCoordinator.state.isPlaying {
-                playerCoordinator.playerLayer?.pause()
+            if config.state.isPlaying {
+                config.playerLayer?.pause()
             } else {
-                playerCoordinator.playerLayer?.play()
+                config.playerLayer?.play()
             }
         }
         #endif
         #if os(macOS)
             .navigationTitle(title)
         .onTapGesture(count: 2) {
-            guard let view = playerCoordinator.playerLayer?.player.view else {
+            guard let view = config.playerLayer?.player.view else {
                 return
             }
             view.window?.toggleFullScreen(nil)
@@ -187,29 +188,29 @@ public struct KSVideoPlayerView: View {
             view.layoutSubtreeIfNeeded()
         }
         .onExitCommand {
-            playerCoordinator.playerLayer?.player.view?.exitFullScreenMode()
+            config.playerLayer?.player.view?.exitFullScreenMode()
         }
         .onMoveCommand { direction in
             switch direction {
             case .left:
-                playerCoordinator.skip(interval: -15)
+                config.skip(interval: -15)
             case .right:
-                playerCoordinator.skip(interval: 15)
+                config.skip(interval: 15)
             case .up:
-                playerCoordinator.playerLayer?.player.playbackVolume += 0.2
+                config.playerLayer?.player.playbackVolume += 0.2
             case .down:
-                playerCoordinator.playerLayer?.player.playbackVolume -= 0.2
+                config.playerLayer?.player.playbackVolume -= 0.2
             @unknown default:
                 break
             }
         }
         #endif
         .onTapGesture {
-            playerCoordinator.isMaskShow.toggle()
+            config.isMaskShow.toggle()
         }
         #if !os(tvOS)
         .onHover { _ in
-            playerCoordinator.isMaskShow = true
+            config.isMaskShow = true
         }
         .onDrop(of: ["public.file-url"], isTargeted: nil) { providers -> Bool in
             providers.first?.loadDataRepresentation(forTypeIdentifier: "public.file-url") { data, _ in
@@ -223,15 +224,15 @@ public struct KSVideoPlayerView: View {
     }
 
     private var controllerView: some View {
-        VideoControllerView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, title: $title, playerWidth: playerCoordinator.playerLayer?.player.view?.frame.width ?? 0, focusableField: $focusableField)
-            .focused($focusableField, equals: .controller)
-            .opacity(playerCoordinator.isMaskShow ? 1 : 0)
+        VideoControllerView(config: config, subtitleModel: config.subtitleModel, title: $title, playerWidth: config.playerLayer?.player.view?.frame.width ?? 0, focusableView: $focusableView)
+            .focused($focusableView, equals: .controller)
+            .opacity(config.isMaskShow ? 1 : 0)
         #if os(tvOS)
             .ignoresSafeArea()
         #endif
     }
 
-    fileprivate enum FocusableField {
+    fileprivate enum FocusableView {
         case play, controller, info
     }
 
@@ -242,7 +243,7 @@ public struct KSVideoPlayerView: View {
                 title = url.lastPathComponent
             } else {
                 let info = URLSubtitleInfo(url: url)
-                playerCoordinator.subtitleModel.selectedSubtitleInfo = info
+                config.subtitleModel.selectedSubtitleInfo = info
             }
         }
     }
@@ -293,7 +294,7 @@ struct VideoControllerView: View {
     fileprivate var title: String
     fileprivate let playerWidth: CGFloat
     @FocusState.Binding
-    fileprivate var focusableField: KSVideoPlayerView.FocusableField?
+    fileprivate var focusableView: KSVideoPlayerView.FocusableView?
     @State
     private var showVideoSetting = false
     @Environment(\.dismiss)
@@ -302,29 +303,24 @@ struct VideoControllerView: View {
         VStack {
             #if os(tvOS)
             Spacer()
-            HStack {
+            HStack(spacing: 10) {
                 KSVideoPlayerViewBuilder.titleView(title: title, config: config)
                     .lineLimit(2)
-                    .layoutPriority(3)
+                    .layoutPriority(100)
                 KSVideoPlayerViewBuilder.muteButton(config: config)
-                    .frame(width: 56)
                 if let audioTracks = config.playerLayer?.player.tracks(mediaType: .audio), !audioTracks.isEmpty {
                     audioButton(audioTracks: audioTracks)
                 }
                 Spacer()
                     .layoutPriority(2)
-                HStack {
+                HStack(spacing: 10) {
                     KSVideoPlayerViewBuilder.playButton(config: config)
-                        .frame(width: 56)
                     contentModeButton
-                        .frame(width: 56)
                     playbackRateButton
                     KSVideoPlayerViewBuilder.recordButton(config: config)
                     pipButton
-                        .frame(width: 56)
                     subtitleButton
                     infoButton
-                        .frame(width: 56)
                 }
                 .font(.caption)
             }

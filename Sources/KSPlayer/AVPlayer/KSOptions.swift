@@ -186,6 +186,7 @@ open class KSOptions {
     // MARK: network options
 
     public static var useSystemHTTPProxy = true
+    // 没事不要设置probesize，不然会导致fps判断不准确。除非是很为了秒开或是其他原因才进行设置。
     public var probesize: Int64?
     public var maxAnalyzeDuration: Int64?
     public var referer: String? {
