@@ -481,8 +481,8 @@ extension dovi_metadata {
         rgb.x = yTexture.sample(textureSampler, in.textureCoordinate).r;
         rgb.y = uTexture.sample(textureSampler, in.textureCoordinate).r;
         rgb.z = vTexture.sample(textureSampler, in.textureCoordinate).r;
-        rgb = reshape3(rgb, data.comp);
         rgb = rgb*float3(leftShift);
+        rgb = reshape3(rgb, data.comp);
         rgb = data.nonlinear*(rgb + data.nonlinear_offset);
         rgb = pqEOTF(rgb);
         rgb = data.linear*rgb;
@@ -500,8 +500,8 @@ extension dovi_metadata {
         float3 rgb;
         rgb.x = lumaTexture.sample(textureSampler, in.textureCoordinate).r;
         rgb.yz = float2(chromaTexture.sample(textureSampler, in.textureCoordinate).rg);
-        rgb = reshape3(rgb, data.comp);
         rgb = rgb*float3(leftShift);
+        rgb = reshape3(rgb, data.comp);
         rgb = data.nonlinear*(rgb + data.nonlinear_offset);
         rgb = pqEOTF(rgb);
         rgb = data.linear*rgb;
