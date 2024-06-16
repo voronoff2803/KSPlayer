@@ -58,6 +58,7 @@ class PlaneDisplayModel: DisplayEnum {
     func touchesMoved(touch _: UITouch) {}
 }
 
+@MainActor
 public class SphereDisplayModel: DisplayEnum {
     public let isSphere: Bool = true
     private var fingerRotationX = Float(0)
