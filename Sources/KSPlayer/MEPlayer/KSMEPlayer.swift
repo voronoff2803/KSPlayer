@@ -304,7 +304,7 @@ extension KSMEPlayer: MediaPlayerProtocol {
 
     @MainActor
     public var naturalSize: CGSize {
-        options.display == .plane ? playerItem.naturalSize : KSOptions.sceneSize
+        options.display.isSphere ? KSOptions.sceneSize : playerItem.naturalSize
     }
 
     public var view: UIView? { videoOutput }

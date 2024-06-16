@@ -339,7 +339,12 @@ open class KSOptions {
     public static var preferredFrame = true
     public static var recordDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("record")
     public static var doviMatrix = simd_float3x3(1)
-    public var display = DisplayEnum.plane
+    public static let displayEnumPlane: DisplayEnum = PlaneDisplayModel()
+    // swiftlint:disable identifier_name
+    public static let displayEnumVR: DisplayEnum = VRDisplayModel()
+    // swiftlint:enable identifier_name
+    public static let displayEnumVRBox: DisplayEnum = VRBoxDisplayModel()
+    public var display: DisplayEnum = displayEnumPlane
     public var videoDelay = 0.0 // s
     public var autoDeInterlace = false
     public var autoRotate = true
@@ -380,7 +385,7 @@ open class KSOptions {
 
     // 虽然只有iOS才支持PIP。但是因为AVSampleBufferDisplayLayer能够支持HDR10+。所以默认还是推荐用AVSampleBufferDisplayLayer
     open func isUseDisplayLayer() -> Bool {
-        display == .plane
+        !display.isSphere
     }
 
     open func availableDynamicRange(_ cotentRange: DynamicRange?) -> DynamicRange? {

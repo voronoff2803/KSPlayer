@@ -13,53 +13,8 @@ import simd
 import UIKit
 #endif
 
-extension DisplayEnum {
-    private static var planeDisplay = PlaneDisplayModel()
-    private static var vrDiaplay = VRDisplayModel()
-    private static var vrBoxDiaplay = VRBoxDisplayModel()
-
-    func set(encoder: MTLRenderCommandEncoder) {
-        switch self {
-        case .plane:
-            DisplayEnum.planeDisplay.set(encoder: encoder)
-        case .vr:
-            DisplayEnum.vrDiaplay.set(encoder: encoder)
-        case .vrBox:
-            DisplayEnum.vrBoxDiaplay.set(encoder: encoder)
-        }
-    }
-
-    func pipeline(pixelBuffer: PixelBufferProtocol, doviData: dovi_metadata?) -> MTLRenderPipelineState {
-        switch self {
-        case .plane:
-            return DisplayEnum.planeDisplay.pipeline(pixelBuffer: pixelBuffer, doviData: doviData)
-        case .vr:
-            return DisplayEnum.vrDiaplay.pipeline(pixelBuffer: pixelBuffer, doviData: doviData)
-        case .vrBox:
-            return DisplayEnum.vrBoxDiaplay.pipeline(pixelBuffer: pixelBuffer, doviData: doviData)
-        }
-    }
-
-    func touchesMoved(touch: UITouch) {
-        switch self {
-        case .vr:
-            DisplayEnum.vrDiaplay.touchesMoved(touch: touch)
-        case .vrBox:
-            DisplayEnum.vrBoxDiaplay.touchesMoved(touch: touch)
-        default:
-            break
-        }
-    }
-}
-
-private class PlaneDisplayModel {
-    private lazy var yuv = MetalRender.makePipelineState(fragmentFunction: "displayYUVTexture")
-    private lazy var yuvp010LE = MetalRender.makePipelineState(fragmentFunction: "displayYUVTexture", bitDepth: 10)
-    private lazy var iCtCp10LE = MetalRender.makePipelineState(fragmentFunction: "displayICtCpTexture", bitDepth: 10)
-    private lazy var nv12 = MetalRender.makePipelineState(fragmentFunction: "displayNV12Texture")
-    private lazy var p010LE = MetalRender.makePipelineState(fragmentFunction: "displayNV12Texture", bitDepth: 10)
-    private lazy var iCtCpBiPlanar10LE = MetalRender.makePipelineState(fragmentFunction: "displayICtCpBiPlanarTexture", bitDepth: 10)
-    private lazy var bgra = MetalRender.makePipelineState(fragmentFunction: "displayTexture")
+class PlaneDisplayModel: DisplayEnum {
+    let isSphere: Bool = false
     let indexCount: Int
     let indexType = MTLIndexType.uint16
     let primitiveType = MTLPrimitiveType.triangleStrip
@@ -67,7 +22,7 @@ private class PlaneDisplayModel {
     let posBuffer: MTLBuffer?
     let uvBuffer: MTLBuffer?
 
-    fileprivate init() {
+    init() {
         let (indices, positions, uvs) = PlaneDisplayModel.genSphere()
         let device = MetalRender.device
         indexCount = indices.count
@@ -100,37 +55,12 @@ private class PlaneDisplayModel {
         encoder.drawIndexedPrimitives(type: primitiveType, indexCount: indexCount, indexType: indexType, indexBuffer: indexBuffer, indexBufferOffset: 0)
     }
 
-    func pipeline(pixelBuffer: PixelBufferProtocol, doviData: dovi_metadata?) -> MTLRenderPipelineState {
-        let planeCount = pixelBuffer.planeCount
-        let bitDepth = pixelBuffer.bitDepth
-        switch planeCount {
-        case 3:
-            if bitDepth == 10 {
-                return doviData == nil ? yuvp010LE : iCtCp10LE
-            } else {
-                return yuv
-            }
-        case 2:
-            if bitDepth == 10 {
-                return doviData == nil ? p010LE : iCtCpBiPlanar10LE
-            } else {
-                return nv12
-            }
-        case 1:
-            return bgra
-        default:
-            return bgra
-        }
-    }
+    func touchesMoved(touch _: UITouch) {}
 }
 
 @MainActor
-private class SphereDisplayModel {
-    private lazy var yuv = MetalRender.makePipelineState(fragmentFunction: "displayYUVTexture", isSphere: true)
-    private lazy var yuvp010LE = MetalRender.makePipelineState(fragmentFunction: "displayYUVTexture", isSphere: true, bitDepth: 10)
-    private lazy var nv12 = MetalRender.makePipelineState(fragmentFunction: "displayNV12Texture", isSphere: true)
-    private lazy var p010LE = MetalRender.makePipelineState(fragmentFunction: "displayNV12Texture", isSphere: true, bitDepth: 10)
-    private lazy var bgra = MetalRender.makePipelineState(fragmentFunction: "displayTexture", isSphere: true)
+public class SphereDisplayModel: DisplayEnum {
+    public let isSphere: Bool = true
     private var fingerRotationX = Float(0)
     private var fingerRotationY = Float(0)
     fileprivate var modelViewMatrix = matrix_identity_float4x4
@@ -141,7 +71,7 @@ private class SphereDisplayModel {
     let posBuffer: MTLBuffer?
     let uvBuffer: MTLBuffer?
     @MainActor
-    fileprivate init() {
+    init() {
         let (indices, positions, uvs) = SphereDisplayModel.genSphere()
         let device = MetalRender.device
         indexCount = indices.count
@@ -155,7 +85,7 @@ private class SphereDisplayModel {
         #endif
     }
 
-    func set(encoder: MTLRenderCommandEncoder) {
+    public func set(encoder: MTLRenderCommandEncoder) {
         encoder.setFrontFacing(.clockwise)
         encoder.setVertexBuffer(posBuffer, offset: 0, index: 0)
         encoder.setVertexBuffer(uvBuffer, offset: 0, index: 1)
@@ -167,7 +97,7 @@ private class SphereDisplayModel {
     }
 
     @MainActor
-    func touchesMoved(touch: UITouch) {
+    public func touchesMoved(touch: UITouch) {
         #if canImport(UIKit)
         let view = touch.view
         #else
@@ -230,32 +160,9 @@ private class SphereDisplayModel {
         }
         return (indices, positions, uvs)
     }
-
-    func pipeline(pixelBuffer: PixelBufferProtocol, doviData _: dovi_metadata?) -> MTLRenderPipelineState {
-        let planeCount = pixelBuffer.planeCount
-        let bitDepth = pixelBuffer.bitDepth
-        switch planeCount {
-        case 3:
-            if bitDepth == 10 {
-                return yuvp010LE
-            } else {
-                return yuv
-            }
-        case 2:
-            if bitDepth == 10 {
-                return p010LE
-            } else {
-                return nv12
-            }
-        case 1:
-            return bgra
-        default:
-            return bgra
-        }
-    }
 }
 
-private class VRDisplayModel: SphereDisplayModel {
+class VRDisplayModel: SphereDisplayModel {
     private let modelViewProjectionMatrix: simd_float4x4
 
     override required init() {
@@ -276,7 +183,7 @@ private class VRDisplayModel: SphereDisplayModel {
     }
 }
 
-private class VRBoxDisplayModel: SphereDisplayModel {
+class VRBoxDisplayModel: SphereDisplayModel {
     private let modelViewProjectionMatrixLeft: simd_float4x4
     private let modelViewProjectionMatrixRight: simd_float4x4
     override required init() {

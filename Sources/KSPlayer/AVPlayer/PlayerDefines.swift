@@ -8,8 +8,8 @@
 import AVFoundation
 import CoreMedia
 import CoreServices
+import FFmpegKit
 import OSLog
-
 #if canImport(UIKit)
 import UIKit
 
@@ -144,13 +144,10 @@ extension DynamicRange {
     }
 }
 
-@MainActor
-public enum DisplayEnum {
-    case plane
-    // swiftlint:disable identifier_name
-    case vr
-    // swiftlint:enable identifier_name
-    case vrBox
+public protocol DisplayEnum: AnyObject {
+    var isSphere: Bool { get }
+    func set(encoder: MTLRenderCommandEncoder)
+    func touchesMoved(touch: UITouch)
 }
 
 public struct VideoAdaptationState {

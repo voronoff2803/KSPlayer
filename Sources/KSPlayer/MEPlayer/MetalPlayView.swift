@@ -125,10 +125,10 @@ public final class MetalPlayView: UIView, VideoOutput {
     }
     #else
     override public func touchesMoved(with event: NSEvent) {
-        if options.display == .plane {
-            super.touchesMoved(with: event)
-        } else {
+        if options.display.isSphere {
             options.display.touchesMoved(touch: event.allTouches().first!)
+        } else {
+            super.touchesMoved(with: event)
         }
     }
     #endif
@@ -193,14 +193,14 @@ extension MetalPlayView {
                     displayView.displayLayer.flushAndRemoveImage()
                 }
                 let size: CGSize
-                if options.display == .plane {
+                if options.display.isSphere {
+                    size = KSOptions.sceneSize
+                } else {
                     if let dar = options.customizeDar(sar: sar, par: par) {
                         size = CGSize(width: par.width, height: par.width * dar.height / dar.width)
                     } else {
                         size = CGSize(width: par.width, height: par.height * sar.height / sar.width)
                     }
-                } else {
-                    size = KSOptions.sceneSize
                 }
                 checkFormatDescription(pixelBuffer: pixelBuffer)
                 #if !os(tvOS)
