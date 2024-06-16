@@ -58,7 +58,6 @@ class PlaneDisplayModel: DisplayEnum {
     func touchesMoved(touch _: UITouch) {}
 }
 
-@MainActor
 public class SphereDisplayModel: DisplayEnum {
     public let isSphere: Bool = true
     private var fingerRotationX = Float(0)
@@ -70,7 +69,6 @@ public class SphereDisplayModel: DisplayEnum {
     let indexBuffer: MTLBuffer
     let posBuffer: MTLBuffer?
     let uvBuffer: MTLBuffer?
-    @MainActor
     init() {
         let (indices, positions, uvs) = SphereDisplayModel.genSphere()
         let device = MetalRender.device

@@ -14,7 +14,7 @@
 				27CA6147696A1A2C9AC337EADD495950 /* [CP] Copy XCFrameworks */,
 			);
 			dependencies = (
-				0347AFC7AB3A7BEFA6E71AE71BDF7182 /* PBXTargetDependency */,
+				7185EAF5B14A6787D43B0DAAE51B505E /* PBXTargetDependency */,
 			);
 			name = "Libmpv-macOS";
 		};
@@ -25,7 +25,7 @@
 				E32B2BB5E23D56546AB3E04D77C27C78 /* [CP] Copy XCFrameworks */,
 			);
 			dependencies = (
-				839A3627806A5AD68A2A3E914995E740 /* PBXTargetDependency */,
+				D0711FDF2670336754A7AA1D757A4C36 /* PBXTargetDependency */,
 			);
 			name = "Libmpv-tvOS";
 		};
@@ -36,33 +36,33 @@
 				CB77FDEF98238E852072EF976E5BB79D /* [CP] Copy XCFrameworks */,
 			);
 			dependencies = (
-				A8EAA357D277625440B195F95EF2E6DE /* PBXTargetDependency */,
+				2979043F68C5C98627CAC794CB0BC375 /* PBXTargetDependency */,
 			);
 			name = "Libmpv-iOS";
 		};
 /* End PBXAggregateTarget section */
 
 /* Begin PBXContainerItemProxy section */
-		51EBE012D0A57A6DD6E745AEE2953FE2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 8A12154B81A23B8A2F0DA07D13A7C37B /* FFmpegKit.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 5CA2D7972914D935704D989071619B4C;
-			remoteInfo = "FFmpegKit-tvOS";
-		};
-		A637B4B9ABB355934D1B72BE4386FDBA /* PBXContainerItemProxy */ = {
+		1237B62DF63FA5A91CC153E2038E14C3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 8A12154B81A23B8A2F0DA07D13A7C37B /* FFmpegKit.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = CB51993EC5E6E907C0B253DFDF9ED7BF;
 			remoteInfo = "FFmpegKit-macOS";
 		};
-		D6AEB52DBD9B247765036DCF6933BB80 /* PBXContainerItemProxy */ = {
+		851228B8BC1E87A4018306580ED3A2D5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 8A12154B81A23B8A2F0DA07D13A7C37B /* FFmpegKit.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = 8637F33F67B2687DF06EA4DB96BB25C7;
 			remoteInfo = "FFmpegKit-iOS";
+		};
+		CCA4BF1D3A194B8F6817AA7056640C9B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8A12154B81A23B8A2F0DA07D13A7C37B /* FFmpegKit.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5CA2D7972914D935704D989071619B4C;
+			remoteInfo = "FFmpegKit-tvOS";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -255,20 +255,20 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		0347AFC7AB3A7BEFA6E71AE71BDF7182 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "FFmpegKit-macOS";
-			targetProxy = A637B4B9ABB355934D1B72BE4386FDBA /* PBXContainerItemProxy */;
-		};
-		839A3627806A5AD68A2A3E914995E740 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "FFmpegKit-tvOS";
-			targetProxy = 51EBE012D0A57A6DD6E745AEE2953FE2 /* PBXContainerItemProxy */;
-		};
-		A8EAA357D277625440B195F95EF2E6DE /* PBXTargetDependency */ = {
+		2979043F68C5C98627CAC794CB0BC375 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "FFmpegKit-iOS";
-			targetProxy = D6AEB52DBD9B247765036DCF6933BB80 /* PBXContainerItemProxy */;
+			targetProxy = 851228B8BC1E87A4018306580ED3A2D5 /* PBXContainerItemProxy */;
+		};
+		7185EAF5B14A6787D43B0DAAE51B505E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "FFmpegKit-macOS";
+			targetProxy = 1237B62DF63FA5A91CC153E2038E14C3 /* PBXContainerItemProxy */;
+		};
+		D0711FDF2670336754A7AA1D757A4C36 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "FFmpegKit-tvOS";
+			targetProxy = CCA4BF1D3A194B8F6817AA7056640C9B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

@@ -19,7 +19,10 @@
   },
   "default_subspecs": "FFmpegKit",
   "static_framework": true,
-  "source_files": "Sources/FFmpegKit/**/*.{h,c,m}",
+  "source_files": [
+    "Sources/FFmpegKit/*.c",
+    "Sources/FFmpegKit/include*/*.h"
+  ],
   "resource_bundles": {
     "FFmpegKit_FFmpegKit": [
       "Sources/FFmpegKit/Resources/PrivacyInfo.xcprivacy"
@@ -71,6 +74,10 @@
         "Libass": [
 
         ]
+      },
+      "public_header_files": "Sources/FFmpegKit/include/*.h",
+      "xcconfig": {
+        "HEADER_SEARCH_PATHS": "$(PODS_TARGET_SRCROOT)/Sources/FFmpegKit/private/**"
       }
     }
   ]

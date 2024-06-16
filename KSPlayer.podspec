@@ -24,7 +24,7 @@ Pod::Spec.new do |s|
     s.subspec 'Metal' do |ss|
         ss.source_files = 'Sources/KSPlayer/Metal/*.{swift,metal}'
         ss.resource_bundles = {
-            'KSPlayer_KSPlayer' => ['Sources/KSPlayer/Metal/*.metal']
+            'KSPlayer_KSPlayer' => ['Sources/KSPlayer/Metal/Resources/*.metal']
         } 
         ss.weak_framework = 'MetalKit'
     end

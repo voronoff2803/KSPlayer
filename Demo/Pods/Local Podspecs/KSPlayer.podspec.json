@@ -37,7 +37,7 @@
       "source_files": "Sources/KSPlayer/Metal/*.{swift,metal}",
       "resource_bundles": {
         "KSPlayer_KSPlayer": [
-          "Sources/KSPlayer/Metal/*.metal"
+          "Sources/KSPlayer/Metal/Resources/*.metal"
         ]
       },
       "weak_frameworks": "MetalKit"
