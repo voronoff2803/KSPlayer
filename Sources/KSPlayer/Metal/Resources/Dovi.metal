@@ -62,21 +62,18 @@ float reshape_poly(float s, float4 coeffs)
     s = (coeffs.z * s + coeffs.y) * s + coeffs.x;
     return s;
 }
-
+#define pivot(i) float4(bool4(s >= data.pivots[i]))
+#define coef(i) data.coeffs[i]
 float reshape(float3 sig, float s, dovi_metadata::reshape_data data) {
     float4 coeffs;
     if (data.num_pivots > 2) {
-#define test(i) s >= data.pivots[i] ? 1.0 : 0.0
-#define coef(i) data.coeffs[i]
-        coeffs = mix(mix(mix(coef(0), coef(1), test(0)),
-                         mix(coef(2), coef(3), test(2)),
-                         test(1)),
-                     mix(mix(coef(4), coef(5), test(4)),
-                         mix(coef(6), coef(7), test(6)),
-                         test(5)),
-                     test(3));
-#undef test
-#undef coef
+        coeffs = mix(mix(mix(coef(0), coef(1), pivot(0)),
+                         mix(coef(2), coef(3), pivot(2)),
+                         pivot(1)),
+                     mix(mix(coef(4), coef(5), pivot(4)),
+                         mix(coef(6), coef(7), pivot(6)),
+                         pivot(5)),
+                     pivot(3));
     } else {
         coeffs = data.coeffs[0];
     }
@@ -102,8 +99,8 @@ fragment float4 displayICtCpTexture(VertexOut in [[ stage_in ]],
     rgb.x = yTexture.sample(textureSampler, in.textureCoordinate).r;
     rgb.y = uTexture.sample(textureSampler, in.textureCoordinate).r;
     rgb.z = vTexture.sample(textureSampler, in.textureCoordinate).r;
-    rgb = rgb*float3(leftShift);
     rgb = reshape3(rgb, data.comp);
+    rgb = rgb*float3(leftShift);
     rgb = data.nonlinear*(rgb + data.nonlinear_offset);
     rgb = pqEOTF(rgb);
     rgb = data.linear*rgb;
@@ -121,8 +118,8 @@ fragment float4 displayICtCpBiPlanarTexture(VertexOut in [[ stage_in ]],
     float3 rgb;
     rgb.x = lumaTexture.sample(textureSampler, in.textureCoordinate).r;
     rgb.yz = float2(chromaTexture.sample(textureSampler, in.textureCoordinate).rg);
-    rgb = rgb*float3(leftShift);
     rgb = reshape3(rgb, data.comp);
+    rgb = rgb*float3(leftShift);
     rgb = data.nonlinear*(rgb + data.nonlinear_offset);
     rgb = pqEOTF(rgb);
     rgb = data.linear*rgb;
