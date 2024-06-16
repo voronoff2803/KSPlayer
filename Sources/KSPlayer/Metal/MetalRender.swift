@@ -469,7 +469,7 @@ extension dovi_metadata {
 
         """
         str += """
-            fragment float4 displayICtCpTexture(VertexOut in [[ stage_in ]],
+        fragment float4 displayICtCpTexture(VertexOut in [[ stage_in ]],
                                     texture2d<half> yTexture [[ texture(0) ]],
                                     texture2d<half> uTexture [[ texture(1) ]],
                                     texture2d<half> vTexture [[ texture(2) ]],

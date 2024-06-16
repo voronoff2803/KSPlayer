@@ -120,7 +120,7 @@ var testObjects: [KSPlayerResource] = {
                 options.outputURL = moviesDirectory?.appendingPathComponent("recording.mov")
                 #endif
             } else if url.lastPathComponent == "vr.mp4" {
-                options.display = .vr
+                options.display = KSOptions.displayEnumVR
             } else if url.lastPathComponent == "mjpeg.flac" {
                 options.videoDisable = true
                 options.syncDecodeAudio = true

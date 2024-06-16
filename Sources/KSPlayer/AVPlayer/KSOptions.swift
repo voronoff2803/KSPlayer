@@ -337,7 +337,12 @@ open class KSOptions {
     public static var isPipPopViewController = false
     public static var canStartPictureInPictureAutomaticallyFromInline = true
     public static var preferredFrame = true
+    #if os(tvOS)
+    // tvos 只能在tmp上创建文件
+    public static var recordDir: URL? = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("record")
+    #else
     public static var recordDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("record")
+    #endif
     public static var doviMatrix = simd_float3x3(1)
     public static let displayEnumPlane: DisplayEnum = PlaneDisplayModel()
     @MainActor

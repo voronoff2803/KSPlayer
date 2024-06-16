@@ -135,7 +135,9 @@ extension KSVideoPlayer: UIViewRepresentable {
                             if !FileManager.default.fileExists(atPath: url.path) {
                                 try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
                             }
-                            playerLayer?.player.startRecord(url: url.appendingPathComponent("\(Date().description).mov"))
+                            if FileManager.default.fileExists(atPath: url.path) {
+                                playerLayer?.player.startRecord(url: url.appendingPathComponent("\(Date().description).mov"))
+                            }
                         }
                     } else {
                         playerLayer?.player.stopRecord()
