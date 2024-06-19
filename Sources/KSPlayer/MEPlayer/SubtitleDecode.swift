@@ -137,7 +137,7 @@ class SubtitleDecode: DecodeProtocol {
                 if let image = scale.transfer(format: AV_PIX_FMT_PAL8, width: rect.w, height: rect.h, data: Array(tuple: rect.data), linesize: Array(tuple: rect.linesize))?.cgImage()?.image() {
                     let imageRect = CGRect(x: Int(rect.x), y: Int(rect.y), width: Int(rect.w), height: Int(rect.h))
                     // 有些图片字幕不会带屏幕宽高，所以就取字幕自身的宽高。
-                    let info = SubtitleImageInfo(rect: imageRect, image: image, displaySize: displaySize ?? CGSize(width: imageRect.maxX, height: imageRect.maxY))
+                    let info = SubtitleImageInfo(rect: imageRect, image: image, displaySize: displaySize ?? CGSize(width: imageRect.maxX + imageRect.minX, height: imageRect.maxY))
                     let part = SubtitlePart(start, end, image: info)
                     parts.append(part)
                 }

@@ -19,14 +19,13 @@ extension FFmpegAssetTrack: KSSubtitleProtocol {
         if let sutitleRender {
             return await sutitleRender.search(for: time, size: size)
         }
-        let array = subtitle?.outputRenderQueue.search { item -> Bool in
+        return subtitle?.outputRenderQueue.search { item -> Bool in
             item.part.isEqual(time: time)
         }.map(\.part) ?? []
-        return array
     }
 }
 
-extension KSMEPlayer: SubtitleDataSouce {
+extension KSMEPlayer: EmbedSubtitleDataSouce {
     public var infos: [any SubtitleInfo] {
         tracks(mediaType: .subtitle).compactMap { $0 as? (any SubtitleInfo) }
     }

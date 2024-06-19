@@ -84,7 +84,7 @@ public protocol MediaPlayerProtocol: MediaPlayback {
     var isExternalPlaybackActive: Bool { get }
     var playbackVolume: Float { get set }
     var contentMode: UIViewContentMode { get set }
-    var subtitleDataSouce: SubtitleDataSouce? { get }
+    var subtitleDataSouce: EmbedSubtitleDataSouce? { get }
     @available(macOS 12.0, iOS 15.0, tvOS 15.0, *)
     var playbackCoordinator: AVPlaybackCoordinator { get }
     @available(tvOS 14.0, *)

@@ -55,9 +55,11 @@ public struct KSVideoPlayerView: View {
     public var body: some View {
         playView
             .overlay {
-                VideoSubtitleView(model: config.subtitleModel)
-                    .ignoresSafeArea()
-                    .allowsHitTesting(false) // 禁止字幕视图交互，以免抢占视图的点击事件或其它手势事件
+                if let subtitleModel = config.playerLayer?.subtitleModel {
+                    VideoSubtitleView(model: subtitleModel)
+                        .ignoresSafeArea()
+                        .allowsHitTesting(false) // 禁止字幕视图交互，以免抢占视图的点击事件或其它手势事件
+                }
             }
             .overlay {
                 controllerView
@@ -118,7 +120,7 @@ public struct KSVideoPlayerView: View {
                 }
             }
             .sheet(isPresented: $isDropdownShow) {
-                VideoSettingView(config: config, subtitleModel: config.subtitleModel, subtitleTitle: title)
+                VideoSettingView(config: config, subtitleTitle: title)
             }
         #endif
     }
@@ -144,7 +146,7 @@ public struct KSVideoPlayerView: View {
             .onAppear {
                 focusableView = .play
                 if let subtitleDataSouce {
-                    config.subtitleModel.addSubtitle(dataSouce: subtitleDataSouce)
+                    config.playerLayer?.subtitleModel.addSubtitle(dataSouce: subtitleDataSouce)
                 }
                 // 不要加这个，不然config无法释放，也可以在onDisappear调用removeMonitor释放
                 //                    #if os(macOS)
@@ -224,7 +226,7 @@ public struct KSVideoPlayerView: View {
     }
 
     private var controllerView: some View {
-        VideoControllerView(config: config, subtitleModel: config.subtitleModel, title: $title, playerWidth: config.playerLayer?.player.view?.frame.width ?? 0, focusableView: $focusableView)
+        VideoControllerView(config: config, title: $title, playerWidth: config.playerLayer?.player.view?.frame.width ?? 0, focusableView: $focusableView)
             .focused($focusableView, equals: .controller)
             .opacity(config.isMaskShow ? 1 : 0)
         #if os(tvOS)
@@ -243,7 +245,7 @@ public struct KSVideoPlayerView: View {
                 title = url.lastPathComponent
             } else {
                 let info = URLSubtitleInfo(url: url)
-                config.subtitleModel.selectedSubtitleInfo = info
+                config.playerLayer?.subtitleModel.selectedSubtitleInfo = info
             }
         }
     }
@@ -288,8 +290,6 @@ extension View {
 struct VideoControllerView: View {
     @ObservedObject
     fileprivate var config: KSVideoPlayer.Coordinator
-    @ObservedObject
-    fileprivate var subtitleModel: SubtitleModel
     @Binding
     fileprivate var title: String
     fileprivate let playerWidth: CGFloat
@@ -424,7 +424,7 @@ struct VideoControllerView: View {
             #endif
         }
         .sheet(isPresented: $showVideoSetting) {
-            VideoSettingView(config: config, subtitleModel: config.subtitleModel, subtitleTitle: title)
+            VideoSettingView(config: config, subtitleTitle: title)
         }
         #if os(xrOS)
         .ornament(visibility: config.isMaskShow ? .visible : .hidden, attachmentAnchor: .scene(.bottom)) {
@@ -676,8 +676,6 @@ private extension SubtitlePart {
 struct VideoSettingView: View {
     @ObservedObject
     fileprivate var config: KSVideoPlayer.Coordinator
-    @ObservedObject
-    fileprivate var subtitleModel: SubtitleModel
     @State
     fileprivate var subtitleTitle: String
     @Environment(\.dismiss)
@@ -702,11 +700,19 @@ struct VideoSettingView: View {
                 }
                 LabeledContent("Video Type", value: (videoTracks.first { $0.isEnabled }?.dynamicRange ?? .sdr).description)
             }
-            TextField("Sutitle delay", value: $subtitleModel.subtitleDelay, format: .number)
-            TextField("Title", text: $subtitleTitle)
-            Button("Search Sutitle") {
-                subtitleModel.searchSubtitle(query: subtitleTitle, languages: ["zh-cn"])
+
+            if let playerLayer = config.playerLayer {
+                TextField("Sutitle delay", value: Binding {
+                    playerLayer.subtitleModel.subtitleDelay
+                } set: { value in
+                    playerLayer.subtitleModel.subtitleDelay = value
+                }, format: .number)
+                TextField("Title", text: $subtitleTitle)
+                Button("Search Sutitle") {
+                    playerLayer.subtitleModel.searchSubtitle(query: subtitleTitle, languages: ["zh-cn"])
+                }
             }
+
             LabeledContent("Stream Type", value: (videoTracks?.first { $0.isEnabled }?.fieldOrder ?? .progressive).description)
             if let dynamicInfo = config.playerLayer?.player.dynamicInfo {
                 DynamicInfoView(dynamicInfo: dynamicInfo)

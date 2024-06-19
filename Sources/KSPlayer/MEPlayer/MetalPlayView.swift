@@ -15,6 +15,7 @@ import MetalKit
 
 public protocol VideoOutput: FrameOutput {
     var options: KSOptions { get set }
+//    AVSampleBufferDisplayLayer和CAMetalLayer无法使用截图方法 render(in ctx: CGContext)，所以要保存pixelBuffer来进行视频截图。
     var displayLayer: AVSampleBufferDisplayLayer { get }
     var pixelBuffer: PixelBufferProtocol? { get }
     init(options: KSOptions)

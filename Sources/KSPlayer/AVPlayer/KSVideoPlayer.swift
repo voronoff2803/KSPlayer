@@ -163,7 +163,6 @@ extension KSVideoPlayer: UIViewRepresentable {
             }
         }
 
-        public var subtitleModel = SubtitleModel()
         public var timemodel = ControllerTimeModel()
         // 在SplitView模式下，第二次进入会先调用makeUIView。然后在调用之前的dismantleUIView.所以如果进入的是同一个View的话，就会导致playerLayer被清空了。最准确的方式是在onDisappear清空playerLayer
         public var playerLayer: KSPlayerLayer? {
@@ -190,11 +189,6 @@ extension KSVideoPlayer: UIViewRepresentable {
         public init() {}
 
         public func makeView(url: URL, options: KSOptions) -> UIView {
-            defer {
-                DispatchQueue.main.async { [weak self] in
-                    self?.subtitleModel.url = url
-                }
-            }
             if let playerLayer {
                 if playerLayer.url == url {
                     return playerLayer.player.view ?? UIView()
@@ -221,7 +215,6 @@ extension KSVideoPlayer: UIViewRepresentable {
             playerLayer = nil
             delayHide?.cancel()
             delayHide = nil
-            subtitleModel.selectedSubtitleInfo?.isEnabled = false
         }
 
         public func skip(interval: Int) {
@@ -273,16 +266,6 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
         onStateChanged?(layer, state)
         if state == .readyToPlay {
             playbackRate = layer.player.playbackRate
-            if let subtitleDataSouce = layer.player.subtitleDataSouce {
-                // 要延后增加内嵌字幕。因为有些内嵌字幕是放在视频流的。所以会比readyToPlay回调晚。有些视频1s可能不够，所以改成2s
-                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 2) { [weak self] in
-                    guard let self else { return }
-                    self.subtitleModel.addSubtitle(dataSouce: subtitleDataSouce)
-                    if self.subtitleModel.selectedSubtitleInfo == nil, layer.options.autoSelectEmbedSubtitle {
-                        self.subtitleModel.selectedSubtitleInfo = subtitleDataSouce.infos.first
-                    }
-                }
-            }
         } else if state == .bufferFinished {
             isMaskShow = false
         } else {
@@ -306,7 +289,7 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
         }
     }
 
-    public func player(layer: KSPlayerLayer, currentTime: TimeInterval, totalTime: TimeInterval) {
+    public func player(layer _: KSPlayerLayer, currentTime: TimeInterval, totalTime: TimeInterval) {
         onPlay?(currentTime, totalTime)
         guard var current = Int(exactly: ceil(currentTime)), var total = Int(exactly: ceil(totalTime)) else {
             return
@@ -323,8 +306,6 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
                 timemodel.totalTime = total
             }
         }
-
-        subtitleModel.subtitle(currentTime: currentTime, size: layer.player.naturalSize.within(size: layer.player.view?.frame.size))
     }
 
     public func player(layer: KSPlayerLayer, finish error: Error?) {

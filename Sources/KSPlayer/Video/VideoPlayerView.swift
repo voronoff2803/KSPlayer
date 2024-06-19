@@ -57,7 +57,7 @@ open class VideoPlayerView: PlayerView {
         didSet {
             if let resource, oldValue != resource {
                 if let subtitleDataSouce = resource.subtitleDataSouce {
-                    srtControl.addSubtitle(dataSouce: subtitleDataSouce)
+                    playerLayer?.subtitleModel.addSubtitle(dataSouce: subtitleDataSouce)
                 }
                 subtitleBackView.isHidden = true
                 subtitleBackView.image = nil
@@ -251,7 +251,6 @@ open class VideoPlayerView: PlayerView {
     override open func player(layer: KSPlayerLayer, currentTime: TimeInterval, totalTime: TimeInterval) {
         guard !isSliderSliding else { return }
         super.player(layer: layer, currentTime: currentTime, totalTime: totalTime)
-        srtControl.subtitle(currentTime: currentTime, size: layer.player.naturalSize.within(size: layer.player.view?.frame.size))
     }
 
     override open func player(layer: KSPlayerLayer, state: KSPlayerState) {
@@ -261,6 +260,25 @@ open class VideoPlayerView: PlayerView {
             toolBar.timeSlider.isPlayable = true
             toolBar.videoSwitchButton.isHidden = layer.player.tracks(mediaType: .video).count < 2
             toolBar.audioSwitchButton.isHidden = layer.player.tracks(mediaType: .audio).count < 2
+            let cancellable = layer.subtitleModel.$parts.sink { [weak self] parts in
+                guard let self else {
+                    return
+                }
+                if let part = parts.first {
+                    subtitleBackView.image = part.render.left?.image
+                    if KSOptions.stripSutitleStyle, let text = part.render.right?.string {
+                        subtitleLabel.text = text
+                    } else {
+                        subtitleLabel.attributedText = part.render.right
+                    }
+                    subtitleBackView.isHidden = false
+                } else {
+                    subtitleBackView.image = nil
+                    subtitleLabel.attributedText = nil
+                    subtitleBackView.isHidden = true
+                }
+            }
+            cancellables.append(cancellable)
         case .buffering:
             isPlayed = true
             replayButton.isHidden = true
@@ -442,27 +460,27 @@ public extension VideoPlayerView {
     }
 
     private func changeSrt(button _: UIButton) {
+        guard let srtControl = playerLayer?.subtitleModel else {
+            return
+        }
         let availableSubtitles = srtControl.subtitleInfos
         guard !availableSubtitles.isEmpty else { return }
-
         let alertController = UIAlertController(title: NSLocalizedString("subtitle", comment: ""),
                                                 message: nil,
                                                 preferredStyle: preferredStyle())
 
         let currentSub = srtControl.selectedSubtitleInfo
-
         let disableAction = UIAlertAction(title: NSLocalizedString("Disabled", comment: ""), style: .default) { [weak self] _ in
-            self?.srtControl.selectedSubtitleInfo = nil
+            self?.playerLayer?.subtitleModel.selectedSubtitleInfo = nil
         }
         alertController.addAction(disableAction)
         if currentSub == nil {
             alertController.preferredAction = disableAction
             disableAction.setValue(true, forKey: "checked")
         }
-
         for (_, srt) in availableSubtitles.enumerated() {
             let action = UIAlertAction(title: srt.name, style: .default) { [weak self] _ in
-                self?.srtControl.selectedSubtitleInfo = srt
+                self?.playerLayer?.subtitleModel.selectedSubtitleInfo = srt
             }
             alertController.addAction(action)
             if currentSub?.subtitleID == srt.subtitleID {
@@ -470,7 +488,6 @@ public extension VideoPlayerView {
                 action.setValue(true, forKey: "checked")
             }
         }
-
         alertController.addAction(UIAlertAction(title: NSLocalizedString("cancel", comment: ""), style: .cancel, handler: nil))
         viewController?.present(alertController, animated: true, completion: nil)
     }
@@ -577,25 +594,6 @@ extension VideoPlayerView {
             subtitleLabel.topAnchor.constraint(equalTo: subtitleBackView.topAnchor, constant: 2),
             subtitleLabel.bottomAnchor.constraint(equalTo: subtitleBackView.bottomAnchor, constant: -2),
         ])
-        let cancellable = srtControl.$parts.sink { [weak self] parts in
-            guard let self else {
-                return
-            }
-            if let part = parts.first {
-                subtitleBackView.image = part.render.left?.image
-                if KSOptions.stripSutitleStyle, let text = part.render.right?.string {
-                    subtitleLabel.text = text
-                } else {
-                    subtitleLabel.attributedText = part.render.right
-                }
-                subtitleBackView.isHidden = false
-            } else {
-                subtitleBackView.image = nil
-                subtitleLabel.attributedText = nil
-                subtitleBackView.isHidden = true
-            }
-        }
-        cancellables.append(cancellable)
     }
 
     /**

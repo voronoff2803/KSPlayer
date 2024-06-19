@@ -124,6 +124,7 @@ open class KSPlayerLayer: NSObject {
 
     public private(set) var url: URL {
         didSet {
+            subtitleModel.url = url
             let firstPlayerType: MediaPlayerProtocol.Type
             if isWirelessRouteActive {
                 // airplay的话，默认使用KSAVPlayer
@@ -183,7 +184,9 @@ open class KSPlayerLayer: NSObject {
         guard let self, self.player.isReadyToPlay else {
             return
         }
-        self.delegate?.player(layer: self, currentTime: self.player.currentPlaybackTime, totalTime: self.player.duration)
+        let currentTime = self.player.currentPlaybackTime
+        self.subtitleModel.subtitle(currentTime: currentTime, size: player.naturalSize.within(size: player.view?.frame.size))
+        self.delegate?.player(layer: self, currentTime: currentTime, totalTime: self.player.duration)
         if self.player.playbackState == .playing, self.player.loadState == .playable, self.state == .buffering {
             // 一个兜底保护，正常不能走到这里
             self.state = .bufferFinished
@@ -199,6 +202,7 @@ open class KSPlayerLayer: NSObject {
     private var bufferedCount = 0
     private var shouldSeekTo: TimeInterval = 0
     private var startTime: TimeInterval = 0
+    public let subtitleModel: SubtitleModel
     public init(url: URL, isAutoPlay: Bool = KSOptions.isAutoPlay, options: KSOptions, delegate: KSPlayerLayerDelegate? = nil) {
         self.url = url
         self.options = options
@@ -214,6 +218,7 @@ open class KSPlayerLayer: NSObject {
         }
         player = firstPlayerType.init(url: url, options: options)
         self.isAutoPlay = isAutoPlay
+        subtitleModel = SubtitleModel(url: url)
         super.init()
         player.playbackRate = options.startPlayRate
         if options.registerRemoteControll {
@@ -362,6 +367,19 @@ open class KSPlayerLayer: NSObject {
 extension KSPlayerLayer: MediaPlayerDelegate {
     public func readyToPlay(player: some MediaPlayerProtocol) {
         state = .readyToPlay
+        if let subtitleDataSouce = player.subtitleDataSouce {
+            subtitleModel.addSubtitle(dataSouce: subtitleDataSouce)
+            if subtitleModel.selectedSubtitleInfo == nil, options.autoSelectEmbedSubtitle {
+                subtitleModel.selectedSubtitleInfo = subtitleDataSouce.infos.first
+            }
+            // 要延后增加内嵌字幕。因为有些内嵌字幕是放在视频流的。所以会比readyToPlay回调晚。有些视频1s可能不够，所以改成2s
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 2) { [weak self] in
+                guard let self else { return }
+                if self.subtitleModel.selectedSubtitleInfo == nil, options.autoSelectEmbedSubtitle {
+                    self.subtitleModel.selectedSubtitleInfo = subtitleDataSouce.infos.first
+                }
+            }
+        }
         #if os(macOS)
         runOnMainThread { [weak self] in
             guard let self else { return }

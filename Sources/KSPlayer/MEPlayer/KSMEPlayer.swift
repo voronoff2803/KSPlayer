@@ -292,7 +292,7 @@ extension KSMEPlayer: MediaPlayerProtocol {
         playerItem.chapters
     }
 
-    public var subtitleDataSouce: SubtitleDataSouce? { self }
+    public var subtitleDataSouce: EmbedSubtitleDataSouce? { self }
     public var playbackVolume: Float {
         get {
             audioOutput.volume

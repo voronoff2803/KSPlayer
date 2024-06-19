@@ -138,7 +138,7 @@ extension KSMPVPlayer: MediaPlayerProtocol {
         }
     }
 
-    public var subtitleDataSouce: (any KSPlayer.SubtitleDataSouce)? {
+    public var subtitleDataSouce: (any KSPlayer.EmbedSubtitleDataSouce)? {
         nil
     }
 
