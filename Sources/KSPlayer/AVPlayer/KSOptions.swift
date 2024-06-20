@@ -351,7 +351,6 @@ open class KSOptions {
     public static let displayEnumVRBox: DisplayEnum = VRBoxDisplayModel()
     public var display: DisplayEnum = displayEnumPlane
     public var videoDelay = 0.0 // s
-    public var autoDeInterlace = false
     public var autoRotate = true
     public var destinationDynamicRange: DynamicRange?
     public var videoAdaptable = true
@@ -362,8 +361,6 @@ open class KSOptions {
     public var videoDisable = false
     public var canStartPictureInPictureAutomaticallyFromInline = KSOptions.canStartPictureInPictureAutomaticallyFromInline
     public var automaticWindowResize = true
-    @Published
-    public var videoInterlacingType: VideoInterlacingType?
     ///  wanted video stream index, or nil for automatic selection
     /// - Parameter : video track
     /// - Returns: The index of the track
@@ -492,37 +489,7 @@ open class KSOptions {
         }
     }
 
-    private var idetTypeMap = [VideoInterlacingType: UInt]()
     open func filter(log: String) {
-        if log.starts(with: "Repeated Field:"), autoDeInterlace {
-            for str in log.split(separator: ",") {
-                let map = str.split(separator: ":")
-                if map.count >= 2 {
-                    if String(map[0].trimmingCharacters(in: .whitespaces)) == "Multi frame" {
-                        if let type = VideoInterlacingType(rawValue: map[1].trimmingCharacters(in: .whitespacesAndNewlines)) {
-                            idetTypeMap[type] = (idetTypeMap[type] ?? 0) + 1
-                            let tff = idetTypeMap[.tff] ?? 0
-                            let bff = idetTypeMap[.bff] ?? 0
-                            let progressive = idetTypeMap[.progressive] ?? 0
-                            let undetermined = idetTypeMap[.undetermined] ?? 0
-                            if progressive - tff - bff > 100 {
-                                videoInterlacingType = .progressive
-                                autoDeInterlace = false
-                            } else if bff - progressive > 100 {
-                                videoInterlacingType = .bff
-                                autoDeInterlace = false
-                            } else if tff - progressive > 100 {
-                                videoInterlacingType = .tff
-                                autoDeInterlace = false
-                            } else if undetermined - progressive - tff - bff > 100 {
-                                videoInterlacingType = .undetermined
-                                autoDeInterlace = false
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     open func sei(string: String) {

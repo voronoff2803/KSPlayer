@@ -382,13 +382,6 @@ open class AbstractAVIOContext {
     deinit {}
 }
 
-public enum VideoInterlacingType: String {
-    case tff
-    case bff
-    case progressive
-    case undetermined
-}
-
 public enum LogLevel: Int32, CustomStringConvertible {
     case panic = 0
     case fatal = 8
