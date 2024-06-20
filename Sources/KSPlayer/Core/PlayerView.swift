@@ -40,7 +40,7 @@ public protocol PlayerControllerDelegate: AnyObject {
 
 open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
     public typealias ControllerDelegate = PlayerControllerDelegate
-    public var playerLayer: KSPlayerLayer? {
+    public var playerLayer: KSComplexPlayerLayer? {
         didSet {
             playerLayer?.delegate = self
         }
@@ -149,7 +149,7 @@ open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
     open func set(url: URL, options: KSOptions) {
         toolBar.currentTime = 0
         totalTime = 0
-        playerLayer = KSPlayerLayer(url: url, options: options)
+        playerLayer = KSComplexPlayerLayer(url: url, options: options)
     }
 
     // MARK: - KSSliderDelegate

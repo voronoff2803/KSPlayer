@@ -376,7 +376,7 @@ open class SubtitleModel: ObservableObject {
                     KSLog(error)
                 }
             }
-        } else if let dataSouce = dataSouce as? EmbedSubtitleDataSouce {
+        } else if let dataSouce = dataSouce as? (any EmbedSubtitleDataSouce) {
             subtitleInfos.append(contentsOf: dataSouce.infos)
         }
     }

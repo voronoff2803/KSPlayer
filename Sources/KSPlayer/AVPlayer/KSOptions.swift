@@ -489,8 +489,7 @@ open class KSOptions {
         }
     }
 
-    open func filter(log: String) {
-    }
+    open func filter(log _: String) {}
 
     open func sei(string: String) {
         KSLog("sei \(string)")

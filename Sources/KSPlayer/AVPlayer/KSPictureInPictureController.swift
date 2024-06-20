@@ -10,7 +10,7 @@ import AVKit
 @available(tvOS 14.0, *)
 public class KSPictureInPictureController: AVPictureInPictureController {
     private static var pipController: KSPictureInPictureController?
-    private var layer: KSPlayerLayer?
+    private var layer: KSComplexPlayerLayer?
     private weak var originalViewController: UIViewController?
     private weak var viewController: UIViewController?
     private weak var presentingViewController: UIViewController?
@@ -18,7 +18,7 @@ public class KSPictureInPictureController: AVPictureInPictureController {
     private weak var navigationController: UINavigationController?
     #endif
     @MainActor
-    func start(layer: KSPlayerLayer) {
+    func start(layer: KSComplexPlayerLayer) {
         startPictureInPicture()
         self.layer = layer
         guard KSOptions.isPipPopViewController else {
@@ -93,6 +93,7 @@ public class KSPictureInPictureController: AVPictureInPictureController {
         layer = nil
     }
 
+    @MainActor
     static func mute() {
         pipController?.layer?.player.isMuted = true
     }

@@ -63,16 +63,17 @@ public class URLSubtitleInfo: KSSubtitle, SubtitleInfo {
 public protocol SubtitleDataSouce: AnyObject {}
 
 public protocol EmbedSubtitleDataSouce: SubtitleDataSouce {
-    var infos: [any SubtitleInfo] { get }
+    associatedtype Subtitle: SubtitleInfo
+    var infos: [Subtitle] { get }
 }
 
 public protocol URLSubtitleDataSouce: SubtitleDataSouce {
-    func searchSubtitle(fileURL: URL) async throws -> [any SubtitleInfo]
+    func searchSubtitle(fileURL: URL) async throws -> [URLSubtitleInfo]
 }
 
 public protocol SearchSubtitleDataSouce: SubtitleDataSouce {
-    var infos: [any SubtitleInfo] { get }
-    func searchSubtitle(query: String, languages: [String]) async throws -> [any SubtitleInfo]
+    var infos: [URLSubtitleInfo] { get }
+    func searchSubtitle(query: String, languages: [String]) async throws -> [URLSubtitleInfo]
 }
 
 public protocol CacheSubtitleDataSouce: URLSubtitleDataSouce {
@@ -103,15 +104,15 @@ public class PlistCacheSubtitleDataSouce: CacheSubtitleDataSouce {
         }
     }
 
-    public func searchSubtitle(fileURL: URL) async throws -> [any SubtitleInfo] {
-        srtInfoCaches[fileURL.absoluteString]?.compactMap { downloadURL -> (any SubtitleInfo)? in
+    public func searchSubtitle(fileURL: URL) async throws -> [URLSubtitleInfo] {
+        srtInfoCaches[fileURL.absoluteString]?.compactMap { downloadURL -> URLSubtitleInfo? in
             guard let url = URL(string: downloadURL) else {
                 return nil
             }
             let info = URLSubtitleInfo(url: url)
             info.comment = "local"
             return info
-        } ?? [any SubtitleInfo]()
+        } ?? [URLSubtitleInfo]()
     }
 
     public func addCache(fileURL: URL, downloadURL: URL) {
@@ -132,23 +133,21 @@ public class PlistCacheSubtitleDataSouce: CacheSubtitleDataSouce {
 }
 
 public class ConstantURLSubtitleDataSouce: URLSubtitleDataSouce {
-    public let infos: [any SubtitleInfo]
+    public let infos: [URLSubtitleInfo]
     public let url: URL
     public init(url: URL, subtitleURLs: [URL]) {
         self.url = url
         infos = subtitleURLs.map { URLSubtitleInfo(url: $0) }
     }
 
-    public func searchSubtitle(fileURL: URL) async throws -> [any SubtitleInfo] {
+    public func searchSubtitle(fileURL: URL) async throws -> [URLSubtitleInfo] {
         url == fileURL ? infos : []
     }
 }
 
 public class DirectorySubtitleDataSouce: URLSubtitleDataSouce {
-    public var infos = [any SubtitleInfo]()
     public init() {}
-
-    public func searchSubtitle(fileURL: URL) async throws -> [any SubtitleInfo] {
+    public func searchSubtitle(fileURL: URL) async throws -> [URLSubtitleInfo] {
         if fileURL.isFileURL {
             let subtitleURLs: [URL] = (try? FileManager.default.contentsOfDirectory(at: fileURL.deletingLastPathComponent(), includingPropertiesForKeys: nil).filter(\.isSubtitle)) ?? []
             return subtitleURLs.map { URLSubtitleInfo(url: $0) }.sorted { left, right in
@@ -160,10 +159,9 @@ public class DirectorySubtitleDataSouce: URLSubtitleDataSouce {
     }
 }
 
-public class ShooterSubtitleDataSouce: SubtitleDataSouce {
-    public var infos = [any SubtitleInfo]()
+public class ShooterSubtitleDataSouce: URLSubtitleDataSouce {
     public init() {}
-    public func searchSubtitle(fileURL: URL) async throws -> [any SubtitleInfo] {
+    public func searchSubtitle(fileURL: URL) async throws -> [URLSubtitleInfo] {
         guard fileURL.isFileURL, let searchApi = URL(string: "https://www.shooter.cn/api/subapi.php")?
             .add(queryItems: ["format": "json", "pathinfo": fileURL.path, "filehash": fileURL.shooterFilehash])
         else {
@@ -193,12 +191,12 @@ public class ShooterSubtitleDataSouce: SubtitleDataSouce {
 
 public class AssrtSubtitleDataSouce: SearchSubtitleDataSouce {
     private let token: String
-    public private(set) var infos = [any SubtitleInfo]()
+    public private(set) var infos = [URLSubtitleInfo]()
     public init(token: String) {
         self.token = token
     }
 
-    public func searchSubtitle(query: String, languages _: [String] = ["zh-cn"]) async throws -> [any SubtitleInfo] {
+    public func searchSubtitle(query: String, languages _: [String] = ["zh-cn"]) async throws -> [URLSubtitleInfo] {
         guard let searchApi = URL(string: "https://api.assrt.net/v1/sub/search")?.add(queryItems: ["q": query]) else {
             return []
         }
@@ -263,18 +261,18 @@ public class OpenSubtitleDataSouce: SearchSubtitleDataSouce {
     private let username: String?
     private let password: String?
     private let apiKey: String
-    public private(set) var infos = [any SubtitleInfo]()
+    public private(set) var infos = [URLSubtitleInfo]()
     public init(apiKey: String, username: String? = nil, password: String? = nil) {
         self.apiKey = apiKey
         self.username = username
         self.password = password
     }
 
-    public func searchSubtitle(query: String, languages: [String] = ["zh-cn"]) async throws -> [any SubtitleInfo] {
+    public func searchSubtitle(query: String, languages: [String] = ["zh-cn"]) async throws -> [URLSubtitleInfo] {
         try await searchSubtitle(query: query, imdbID: 0, tmdbID: 0, languages: languages)
     }
 
-    public func searchSubtitle(query: String, imdbID: Int, tmdbID: Int, languages: [String] = ["zh-cn"]) async throws -> [any SubtitleInfo] {
+    public func searchSubtitle(query: String, imdbID: Int, tmdbID: Int, languages: [String] = ["zh-cn"]) async throws -> [URLSubtitleInfo] {
         var queryItems = [String: String]()
         queryItems["query"] = query
         if imdbID != 0 {
@@ -288,7 +286,7 @@ public class OpenSubtitleDataSouce: SearchSubtitleDataSouce {
     }
 
     // https://opensubtitles.stoplight.io/docs/opensubtitles-api/a172317bd5ccc-search-for-subtitles
-    public func searchSubtitle(queryItems: [String: String]) async throws -> [any SubtitleInfo] {
+    public func searchSubtitle(queryItems: [String: String]) async throws -> [URLSubtitleInfo] {
         infos = []
         if queryItems.isEmpty {
             return []

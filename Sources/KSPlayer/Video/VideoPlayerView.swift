@@ -117,7 +117,7 @@ open class VideoPlayerView: PlayerView {
         }
     }
 
-    override public var playerLayer: KSPlayerLayer? {
+    override public var playerLayer: KSComplexPlayerLayer? {
         didSet {
             oldValue?.player.view?.removeFromSuperview()
             if let view = playerLayer?.player.view {
