@@ -401,16 +401,17 @@ public final class VideoVTBFrame: MEFrame {
     public let fps: Float
     public let isDovi: Bool
     public var edrMetaData: EDRMetaData? = nil
-    var doviData: dovi_metadata? = nil {
+    public var pixelBuffer: PixelBufferProtocol
+    public var doviData: dovi_metadata? = nil {
         didSet {
             if doviData != nil {
-                corePixelBuffer?.colorspace = CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF)
+                pixelBuffer.colorspace = CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF)
             }
         }
     }
 
-    var corePixelBuffer: PixelBufferProtocol?
-    init(fps: Float, isDovi: Bool) {
+    public init(pixelBuffer: PixelBufferProtocol, fps: Float, isDovi: Bool) {
+        self.pixelBuffer = pixelBuffer
         self.fps = fps
         self.isDovi = isDovi
     }
@@ -430,9 +431,9 @@ extension VideoVTBFrame {
                 return CAEDRMetadata.hlg
             }
         }
-        if corePixelBuffer?.transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ {
+        if pixelBuffer.transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ {
             return CAEDRMetadata.hdr10(minLuminance: 0.1, maxLuminance: 1000, opticalOutputScale: 10000)
-        } else if corePixelBuffer?.transferFunction == kCVImageBufferTransferFunction_ITU_R_2100_HLG {
+        } else if pixelBuffer.transferFunction == kCVImageBufferTransferFunction_ITU_R_2100_HLG {
             return CAEDRMetadata.hlg
         }
         if let doviData {

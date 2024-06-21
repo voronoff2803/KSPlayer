@@ -146,7 +146,7 @@ extension DynamicRange {
 
 public protocol DisplayEnum: AnyObject {
     var isSphere: Bool { get }
-    func set(encoder: MTLRenderCommandEncoder)
+    func set(frame: VideoVTBFrame, encoder: MTLRenderCommandEncoder)
     func touchesMoved(touch: UITouch)
 }
 
@@ -221,6 +221,7 @@ public enum KSPlayerErrorCode: Int {
     case codecVideoReceiveFrame
     case codecAudioReceiveFrame
     case auidoSwrInit
+    case pixelBufferPoolCreate
     case codecSubtitleSendPacket
     case videoTracksUnplayable
     case subtitleUnEncoding
@@ -266,6 +267,8 @@ extension KSPlayerErrorCode: CustomStringConvertible {
             return "Subtitle Params is empty"
         case .auidoSwrInit:
             return "swr_init swrContext fail"
+        case .pixelBufferPoolCreate:
+            return "pixelBufferPool Create fail"
         default:
             return "unknown"
         }

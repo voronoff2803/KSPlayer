@@ -141,7 +141,7 @@ class FFmpegDecode: DecodeProtocol {
                                 videoFrame.edrMetaData = EDRMetaData(displayData: displayData, contentData: contentData, ambientViewingEnvironment: ambientViewingEnvironment)
                             }
                             videoFrame.doviData = doviData
-                            if let pixelBuffer = videoFrame.corePixelBuffer as? PixelBuffer {
+                            if let pixelBuffer = videoFrame.pixelBuffer as? PixelBuffer {
                                 pixelBuffer.formatDescription = packet.assetTrack.formatDescription
                             }
                         }

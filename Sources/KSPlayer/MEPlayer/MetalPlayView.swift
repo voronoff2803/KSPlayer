@@ -166,7 +166,7 @@ extension MetalPlayView {
             guard let frame = renderSource?.getVideoOutputRender(force: force) else {
                 return
             }
-            pixelBuffer = frame.corePixelBuffer
+            pixelBuffer = frame.pixelBuffer
             guard let pixelBuffer else {
                 return
             }
@@ -175,8 +175,11 @@ extension MetalPlayView {
             let cmtime = frame.cmtime
             let par = pixelBuffer.size
             let sar = pixelBuffer.aspectRatio
-            let doviData = frame.doviData
-            if let pixelBuffer = pixelBuffer.cvPixelBuffer, options.isUseDisplayLayer(), doviData == nil {
+            // 没有想到更好的处理方式，所以就先放在这里判断dovi
+            if frame.doviData != nil, options.display === KSOptions.displayEnumPlane {
+                options.display = KSOptions.displayEnumDovi
+            }
+            if let pixelBuffer = pixelBuffer.cvPixelBuffer, options.isUseDisplayLayer() {
                 if displayView.isHidden {
                     displayView.isHidden = false
                     metalView.isHidden = true
@@ -210,7 +213,7 @@ extension MetalPlayView {
                     metalView.metalLayer.edrMetadata = frame.edrMetadata
                 }
                 #endif
-                metalView.draw(pixelBuffer: pixelBuffer, display: options.display, size: size, doviData: doviData)
+                metalView.draw(frame: frame, display: options.display, size: size)
             }
             renderSource?.setVideo(time: cmtime, position: frame.position)
         }
@@ -238,7 +241,6 @@ extension MetalPlayView {
 }
 
 public class MetalView: UIView {
-    private let render = MetalRender()
     #if canImport(UIKit)
     override public class var layerClass: AnyClass { CAMetalLayer.self }
     #endif
@@ -270,14 +272,14 @@ public class MetalView: UIView {
         }
         #endif
         if let drawable = metalLayer.nextDrawable() {
-            render.clear(drawable: drawable)
+            MetalRender.clear(drawable: drawable)
         }
     }
 
-    func draw(pixelBuffer: PixelBufferProtocol, display: DisplayEnum, size: CGSize, doviData: dovi_metadata?) {
+    func draw(frame: VideoVTBFrame, display: DisplayEnum, size: CGSize) {
         metalLayer.drawableSize = size
-        metalLayer.pixelFormat = KSOptions.colorPixelFormat(bitDepth: pixelBuffer.bitDepth)
-        let colorspace = pixelBuffer.colorspace
+        metalLayer.pixelFormat = KSOptions.colorPixelFormat(bitDepth: frame.pixelBuffer.bitDepth)
+        let colorspace = frame.pixelBuffer.colorspace
         if colorspace != nil, metalLayer.colorspace != colorspace {
             metalLayer.colorspace = colorspace
             KSLog("[video] CAMetalLayer colorspace \(String(describing: colorspace))")
@@ -300,7 +302,7 @@ public class MetalView: UIView {
             KSLog("[video] CAMetalLayer not readyForMoreMediaData")
             return
         }
-        render.draw(pixelBuffer: pixelBuffer, display: display, drawable: drawable, doviData: doviData)
+        MetalRender.draw(frame: frame, display: display, drawable: drawable)
     }
 }
 

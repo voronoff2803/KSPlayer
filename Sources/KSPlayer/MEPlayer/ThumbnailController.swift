@@ -112,7 +112,7 @@ public class ThumbnailController {
                             break
                         }
                     }
-                    let image = reScale.transfer(frame: frame.pointee)?.cgImage().map {
+                    let image = try reScale.transfer(frame: frame.pointee).cgImage().map {
                         UIImage(cgImage: $0)
                     }
                     let currentTimeStamp = frame.pointee.best_effort_timestamp

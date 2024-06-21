@@ -48,7 +48,7 @@ class VideoToolboxDecode: DecodeProtocol {
             let duration = corePacket.duration
             let size = corePacket.size
             let status = VTDecompressionSessionDecodeFrame(session.decompressionSession, sampleBuffer: sampleBuffer, flags: flags, infoFlagsOut: &flagOut) { [weak self] status, infoFlags, imageBuffer, _, _ in
-                guard let self, !infoFlags.contains(.frameDropped) else {
+                guard let self, let imageBuffer, !infoFlags.contains(.frameDropped) else {
                     return
                 }
                 guard status == noErr else {
@@ -62,8 +62,7 @@ class VideoToolboxDecode: DecodeProtocol {
                     }
                     return
                 }
-                let frame = VideoVTBFrame(fps: session.assetTrack.nominalFrameRate, isDovi: session.assetTrack.dovi != nil)
-                frame.corePixelBuffer = imageBuffer
+                let frame = VideoVTBFrame(pixelBuffer: imageBuffer, fps: session.assetTrack.nominalFrameRate, isDovi: session.assetTrack.dovi != nil)
                 frame.timebase = session.assetTrack.timebase
                 if packet.isKeyFrame, packetFlags & AV_PKT_FLAG_DISCARD != 0, self.lastPosition > 0 {
                     self.startTime = self.lastPosition - timestamp

@@ -345,6 +345,7 @@ open class KSOptions {
     #endif
     public static var doviMatrix = simd_float3x3(1)
     public static let displayEnumPlane: DisplayEnum = PlaneDisplayModel()
+    static let displayEnumDovi: DisplayEnum = DoviDisplayModel()
     @MainActor
     public static let displayEnumVR: DisplayEnum = VRDisplayModel()
     @MainActor
@@ -387,7 +388,7 @@ open class KSOptions {
 
     // 虽然只有iOS才支持PIP。但是因为AVSampleBufferDisplayLayer能够支持HDR10+。所以默认还是推荐用AVSampleBufferDisplayLayer
     open func isUseDisplayLayer() -> Bool {
-        !display.isSphere
+        display === KSOptions.displayEnumPlane
     }
 
     open func availableDynamicRange(_ cotentRange: DynamicRange?) -> DynamicRange? {
