@@ -123,6 +123,11 @@ public struct KSVideoPlayerView: View {
                 VideoSettingView(config: config, subtitleTitle: title)
             }
         #endif
+        #if !os(tvOS)
+            .onHover { new in
+            config.isMaskShow = new
+        }
+        #endif
     }
 
     private var playView: some View {
@@ -211,9 +216,6 @@ public struct KSVideoPlayerView: View {
             config.isMaskShow.toggle()
         }
         #if !os(tvOS)
-        .onHover { _ in
-            config.isMaskShow = true
-        }
         .onDrop(of: ["public.file-url"], isTargeted: nil) { providers -> Bool in
             providers.first?.loadDataRepresentation(forTypeIdentifier: "public.file-url") { data, _ in
                 if let data, let path = NSString(data: data, encoding: 4), let url = URL(string: path as String) {

@@ -233,8 +233,7 @@ extension KSVideoPlayer: UIViewRepresentable {
             if show {
                 delayHide?.cancel()
                 // 播放的时候才自动隐藏
-                guard state == .bufferFinished else { return }
-                if autoHide {
+                if state == .bufferFinished, autoHide {
                     delayHide = DispatchWorkItem { [weak self] in
                         guard let self else { return }
                         if self.state == .bufferFinished {
