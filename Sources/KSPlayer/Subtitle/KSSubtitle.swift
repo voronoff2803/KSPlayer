@@ -368,6 +368,7 @@ open class SubtitleModel: ObservableObject {
     }
 
     public func addSubtitle(dataSouce: SubtitleDataSouce) {
+        subtitleDataSouces.append(dataSouce)
         if let dataSouce = dataSouce as? URLSubtitleDataSouce {
             Task { @MainActor in
                 do {
