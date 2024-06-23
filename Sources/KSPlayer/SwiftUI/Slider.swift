@@ -60,13 +60,12 @@ public struct TVOSSlide: UIViewRepresentable {
 
 public class TVSlide: UIControl {
     fileprivate let processView = UIProgressView()
-    private var beganValue = Float(0.0)
+    private var beganValue: Float
     private let onEditingChanged: (Bool) -> Void
     fileprivate var value: Binding<Float>
     fileprivate let ranges: ClosedRange<Float>
     private var moveDirection: UISwipeGestureRecognizer.Direction?
     private var pressTime = CACurrentMediaTime()
-    private var delayItem: DispatchWorkItem?
 
     private lazy var timer: Timer = .scheduledTimer(withTimeInterval: 0.15, repeats: true) { [weak self] _ in
         guard let self, let moveDirection = self.moveDirection else {
@@ -77,11 +76,11 @@ public class TVSlide: UIControl {
         if wrappedValue >= self.ranges.lowerBound, wrappedValue <= self.ranges.upperBound {
             self.value.wrappedValue = wrappedValue
         }
-        self.onEditingChanged(true)
     }
 
     public init(value: Binding<Float>, bounds: ClosedRange<Float>, onEditingChanged: @escaping (Bool) -> Void) {
         self.value = value
+        beganValue = value.wrappedValue
         ranges = bounds
         self.onEditingChanged = onEditingChanged
         super.init(frame: .zero)
@@ -104,8 +103,6 @@ public class TVSlide: UIControl {
     }
 
     public func cancle() {
-        delayItem?.cancel()
-        delayItem = nil
         timer.fireDate = Date.distantFuture
     }
 
@@ -113,35 +110,22 @@ public class TVSlide: UIControl {
         guard let presse = presses.first else {
             return
         }
-        delayItem?.cancel()
-        delayItem = nil
         switch presse.type {
         case .leftArrow:
             moveDirection = .left
             pressTime = CACurrentMediaTime()
+            onEditingChanged(true)
             timer.fireDate = Date.distantPast
         case .rightArrow:
             moveDirection = .right
             pressTime = CACurrentMediaTime()
+            onEditingChanged(true)
             timer.fireDate = Date.distantPast
         case .select:
             timer.fireDate = Date.distantFuture
             onEditingChanged(false)
         default: super.pressesBegan(presses, with: event)
         }
-    }
-
-    override open func pressesEnded(_ presses: Set<UIPress>, with _: UIPressesEvent?) {
-        timer.fireDate = Date.distantFuture
-        guard let presse = presses.first, presse.type == .leftArrow || presse.type == .rightArrow else {
-            return
-        }
-        delayItem = DispatchWorkItem { [weak self] in
-            guard let self else { return }
-            self.onEditingChanged(false)
-        }
-        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1.5,
-                                      execute: delayItem!)
     }
 
     @objc private func actionPanGesture(sender: UIPanGestureRecognizer) {
@@ -151,22 +135,17 @@ public class TVSlide: UIControl {
         }
         switch sender.state {
         case .began, .possible:
-            delayItem?.cancel()
-            delayItem = nil
+            timer.fireDate = Date.distantFuture
             beganValue = value.wrappedValue
+            onEditingChanged(true)
         case .changed:
             let wrappedValue = beganValue + Float(translation.x) / Float(frame.size.width) * (ranges.upperBound - ranges.lowerBound) / 5
             if wrappedValue <= ranges.upperBound, wrappedValue >= ranges.lowerBound {
                 value.wrappedValue = wrappedValue
-                onEditingChanged(true)
             }
         case .ended:
-            delayItem = DispatchWorkItem { [weak self] in
-                guard let self else { return }
-                self.onEditingChanged(false)
-            }
-            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1.5,
-                                          execute: delayItem!)
+            beganValue = value.wrappedValue
+            onEditingChanged(false)
         case .cancelled, .failed:
 //            value.wrappedValue = beganValue
             break
