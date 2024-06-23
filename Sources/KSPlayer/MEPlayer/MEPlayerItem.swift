@@ -125,12 +125,14 @@ public final class MEPlayerItem: Sendable {
                     // 做下保护防止crash，Setting default whitelist的时候flags还是1.所以专门过滤掉
                     if context.prot != nil, context.flags == 3, let opaque = context.interrupt_callback.opaque {
                         let playerItem = Unmanaged<MEPlayerItem>.fromOpaque(opaque).takeUnretainedValue()
-                        // 不能在这边判断playerItem.formatCtx。不然会报错Simultaneous accesses
-                        playerItem.options.urlIO(log: String(log))
-                        if log.starts(with: "Will reconnect at") {
-                            let seconds = playerItem.mainClock().time.seconds
-                            playerItem.videoTrack?.seekTime = seconds
-                            playerItem.audioTrack?.seekTime = seconds
+                        if playerItem.state != .closed {
+                            // 不能在这边判断playerItem.formatCtx。不然会报错Simultaneous accesses
+                            playerItem.options.urlIO(log: String(log))
+                            if log.starts(with: "Will reconnect at") {
+                                let seconds = playerItem.mainClock().time.seconds
+                                playerItem.videoTrack?.seekTime = seconds
+                                playerItem.audioTrack?.seekTime = seconds
+                            }
                         }
                     }
                 } else if avclass == avfilter_get_class() {
