@@ -124,7 +124,10 @@ public class TVSlide: UIControl {
         case .select:
             timer.fireDate = Date.distantFuture
             onEditingChanged(false)
-        default: super.pressesBegan(presses, with: event)
+        default:
+            timer.fireDate = Date.distantFuture
+            onEditingChanged(false)
+            super.pressesBegan(presses, with: event)
         }
     }
 
