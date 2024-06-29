@@ -175,10 +175,6 @@ extension MetalPlayView {
             let cmtime = frame.cmtime
             let par = pixelBuffer.size
             let sar = pixelBuffer.aspectRatio
-            // 没有想到更好的处理方式，所以就先放在这里判断dovi
-            if frame.doviData != nil, options.display === KSOptions.displayEnumPlane {
-                options.display = KSOptions.displayEnumDovi
-            }
             if let pixelBuffer = pixelBuffer.cvPixelBuffer, options.isUseDisplayLayer() {
                 if displayView.isHidden {
                     displayView.isHidden = false

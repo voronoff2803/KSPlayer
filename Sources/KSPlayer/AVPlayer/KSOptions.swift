@@ -345,7 +345,7 @@ open class KSOptions {
     #endif
     public static var doviMatrix = simd_float3x3(1)
     public static let displayEnumPlane: DisplayEnum = PlaneDisplayModel()
-    static let displayEnumDovi: DisplayEnum = DoviDisplayModel()
+    public static let displayEnumDovi: DisplayEnum = DoviDisplayModel()
     @MainActor
     public static let displayEnumVR: DisplayEnum = VRDisplayModel()
     @MainActor

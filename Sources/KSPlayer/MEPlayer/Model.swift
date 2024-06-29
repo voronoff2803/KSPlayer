@@ -405,7 +405,7 @@ public final class VideoVTBFrame: MEFrame {
     public var doviData: dovi_metadata? = nil {
         didSet {
             if doviData != nil {
-                pixelBuffer.colorspace = CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF)
+                pixelBuffer.cvPixelBuffer?.colorspace = CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF)
             }
         }
     }
