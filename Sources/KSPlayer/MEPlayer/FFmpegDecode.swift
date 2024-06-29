@@ -37,6 +37,14 @@ class FFmpegDecode: DecodeProtocol {
 
     func decodeFrame(from packet: Packet, completionHandler: @escaping (Result<MEFrame, Error>) -> Void) {
         guard let codecContext, avcodec_send_packet(codecContext, packet.corePacket) == 0 else {
+            /**
+              有些视频(.m2ts)seek完之后,就无法硬解了。一直报错，所以只能转为软解。
+              发现在seek的时候不要调用avcodec_flush_buffers就能解决这个问题。
+             **/
+            if options.hardwareDecode {
+                options.hardwareDecode = false
+                codecContext = try? packet.assetTrack.createContext(options: options)
+            }
             return
         }
         // 需要avcodec_send_packet之后，properties的值才会变成FF_CODEC_PROPERTY_CLOSED_CAPTIONS
@@ -187,7 +195,7 @@ class FFmpegDecode: DecodeProtocol {
 
     func doFlushCodec() {
         bestEffortTimestamp = Int64(0)
-        // seek之后要清空下，不然解码可能还会有缓存，导致返回的数据是之前seek的。
+        // seek之后要清空下，不然解码可能还会有缓存，导致返回的数据是之前seek的。并且ts格式会导致画面花屏一小会儿。
         if codecContext != nil {
             avcodec_flush_buffers(codecContext)
         }

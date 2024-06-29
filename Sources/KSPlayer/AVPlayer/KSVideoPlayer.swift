@@ -246,14 +246,20 @@ extension KSVideoPlayer: UIViewRepresentable {
             }
             #if os(macOS)
             show ? NSCursor.unhide() : NSCursor.setHiddenUntilMouseMoves(true)
-            if let window = playerLayer?.player.view?.window {
-                if !window.styleMask.contains(.fullScreen) {
-                    window.standardWindowButton(.closeButton)?.superview?.superview?.isHidden = !show
-                    //                    window.standardWindowButton(.zoomButton)?.isHidden = !show
-                    //                    window.standardWindowButton(.closeButton)?.isHidden = !show
-                    //                    window.standardWindowButton(.miniaturizeButton)?.isHidden = !show
-                    //                    window.titleVisibility = show ? .visible : .hidden
+            if let view = playerLayer?.player.view, let window = view.window, !window.styleMask.contains(.fullScreen) {
+                if show {
+                    window.standardWindowButton(.closeButton)?.superview?.superview?.isHidden = false
+                } else {
+                    // 因为光标处于状态栏的时候，onHover就会返回false了，所以要自己计算
+                    let point = window.convertPoint(fromScreen: NSEvent.mouseLocation)
+                    if !view.frame.contains(point) {
+                        window.standardWindowButton(.closeButton)?.superview?.superview?.isHidden = true
+                    }
                 }
+                //                    window.standardWindowButton(.zoomButton)?.isHidden = !show
+                //                    window.standardWindowButton(.closeButton)?.isHidden = !show
+                //                    window.standardWindowButton(.miniaturizeButton)?.isHidden = !show
+                //                    window.titleVisibility = show ? .visible : .hidden
             }
             #endif
         }

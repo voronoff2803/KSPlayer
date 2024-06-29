@@ -83,6 +83,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
                     #else
                     superview.addSubview(view, positioned: .below, relativeTo: oldView)
                     #endif
+                    view.frame = oldView.frame
                     view.translatesAutoresizingMaskIntoConstraints = false
                     NSLayoutConstraint.activate([
                         view.topAnchor.constraint(equalTo: superview.topAnchor),
