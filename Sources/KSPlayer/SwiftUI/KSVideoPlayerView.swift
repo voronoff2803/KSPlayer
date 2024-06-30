@@ -624,6 +624,7 @@ struct VideoSubtitleView: View {
         #endif
     }
 }
+
 extension View {
     func allowedDynamicRange() -> some View {
         if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
@@ -633,6 +634,7 @@ extension View {
         }
     }
 }
+
 private extension SubtitlePart {
     @available(iOS 16, tvOS 16, macOS 13, *)
     @MainActor

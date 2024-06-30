@@ -87,8 +87,6 @@ class VideoSwresample: FrameChange {
         let pixelBuffer: PixelBufferProtocol
         if avframe.pointee.format == AV_PIX_FMT_VIDEOTOOLBOX.rawValue {
             pixelBuffer = unsafeBitCast(avframe.pointee.data.3, to: CVPixelBuffer.self)
-            // ffmpeg硬解码出来的colorspace不对，所以要自己设置下。我自己实现的硬解是对的，所以不用在设置了。
-            pixelBuffer.colorspace = KSOptions.colorSpace(ycbcrMatrix: pixelBuffer.yCbCrMatrix, transferFunction: pixelBuffer.transferFunction)
         } else {
             pixelBuffer = try transfer(frame: avframe.pointee)
         }
@@ -141,7 +139,6 @@ class VideoSwresample: FrameChange {
             if let chroma = frame.chroma_location.chroma {
                 CVBufferSetAttachment(pbuf, kCVImageBufferChromaLocationTopFieldKey, chroma, .shouldPropagate)
             }
-            pbuf.colorspace = KSOptions.colorSpace(ycbcrMatrix: pbuf.yCbCrMatrix, transferFunction: pbuf.transferFunction)
             return pbuf
         } else {
             throw NSError(errorCode: .pixelBufferPoolCreate, userInfo: ["format": format, "width": width, "height": height])

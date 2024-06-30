@@ -324,6 +324,7 @@ open class KSOptions {
     public static var audioRecognizes = [any AudioRecognize]()
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
     public static var sutitleDynamicRange = Image.DynamicRange.high
+
     // MARK: video options
 
     /// 开启VR模式的陀飞轮

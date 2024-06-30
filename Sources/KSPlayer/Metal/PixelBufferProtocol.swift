@@ -39,6 +39,9 @@ public protocol PixelBufferProtocol: AnyObject {
 
 extension PixelBufferProtocol {
     var size: CGSize { CGSize(width: width, height: height) }
+    func updateColorspace() {
+        colorspace = KSOptions.colorSpace(ycbcrMatrix: yCbCrMatrix, transferFunction: transferFunction)
+    }
 }
 
 extension CVPixelBuffer: PixelBufferProtocol {
@@ -187,7 +190,6 @@ class PixelBuffer: PixelBufferProtocol {
         yCbCrMatrix = frame.colorspace.ycbcrMatrix
         colorPrimaries = frame.color_primaries.colorPrimaries
         transferFunction = frame.color_trc.transferFunction
-        colorspace = KSOptions.colorSpace(ycbcrMatrix: yCbCrMatrix, transferFunction: transferFunction)
         width = Int(frame.width)
         height = Int(frame.height)
         isFullRangeVideo = frame.color_range == AVCOL_RANGE_JPEG
