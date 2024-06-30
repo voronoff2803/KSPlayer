@@ -724,6 +724,7 @@ struct VideoSettingView: View {
                 Button("Search Sutitle") {
                     playerLayer.subtitleModel.searchSubtitle(query: subtitleTitle, languages: ["zh-cn"])
                 }
+                .buttonStyle(.bordered)
             }
 
             LabeledContent("Stream Type", value: (videoTracks?.first { $0.isEnabled }?.fieldOrder ?? .progressive).description)
@@ -759,7 +760,7 @@ public struct DynamicInfoView: View {
     }
 }
 
-@available(iOS 15, tvOS 16, macOS 12, *)
+@available(iOS 16, tvOS 16, macOS 13, *)
 public struct PlatformView<Content: View>: View {
     private let content: () -> Content
     public var body: some View {
@@ -776,9 +777,7 @@ public struct PlatformView<Content: View>: View {
         Form {
             content()
         }
-        #if os(macOS)
-        .padding()
-        #endif
+        .formStyle(.grouped)
         #endif
     }
 
