@@ -624,7 +624,15 @@ struct VideoSubtitleView: View {
         #endif
     }
 }
-
+extension View {
+    func allowedDynamicRange() -> some View {
+        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
+            return self.allowedDynamicRange(KSOptions.sutitleDynamicRange)
+        } else {
+            return self
+        }
+    }
+}
 private extension SubtitlePart {
     @available(iOS 16, tvOS 16, macOS 13, *)
     @MainActor
@@ -636,6 +644,7 @@ private extension SubtitlePart {
                     // 不能加scaledToFit。不然的话图片的缩放比率会有问题。
                     let rect = info.displaySize.convert(rect: info.rect, toSize: geometry.size)
                     VideoSubtitleView.imageView(info.image)
+                        .allowedDynamicRange()
                         .offset(CGSize(width: rect.origin.x, height: rect.origin.y))
                         .frame(width: rect.width, height: rect.height)
                 }

@@ -71,7 +71,7 @@ public final class AccelerateImagePipeline: ImagePipelineType {
         vImage_CGImageFormat(
             bitsPerComponent: 8,
             bitsPerPixel: 8 * 4,
-            colorSpace: CGColorSpaceCreateDeviceRGB(),
+            colorSpace: CGColorSpace(name: CGColorSpace.itur_2100_PQ) ?? CGColorSpaceCreateDeviceRGB(),
             bitmapInfo: CGBitmapInfo(rawValue: alphaInfo.rawValue)
         ).flatMap { format in
             buffer.makeCGImage(cgImageFormat: format)

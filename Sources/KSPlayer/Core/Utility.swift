@@ -819,7 +819,7 @@ extension CGImage {
         // RGBA(的bytes) * bitsPerComponent *width
         let bytesPerRow = 4 * 8 * bitsPerComponent * Int(boundingRect.width)
         let image: CGImage? = autoreleasepool {
-            let context = CGContext(data: nil, width: Int(boundingRect.width), height: Int(boundingRect.height), bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+            let context = CGContext(data: nil, width: Int(boundingRect.width), height: Int(boundingRect.height), bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF) ?? CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
             guard let context else {
                 return nil
             }
@@ -860,7 +860,7 @@ extension CGImage {
     }
 
     static func make(rgbData: UnsafePointer<UInt8>, linesize: Int, width: Int, height: Int, isAlpha: Bool = false) -> CGImage? {
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let colorSpace = CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF) ?? CGColorSpaceCreateDeviceRGB()
         let bitmapInfo: CGBitmapInfo = isAlpha ? CGBitmapInfo(rawValue: CGImageAlphaInfo.last.rawValue) : CGBitmapInfo.byteOrderMask
         guard let data = CFDataCreate(kCFAllocatorDefault, rgbData, linesize * height), let provider = CGDataProvider(data: data) else {
             return nil
