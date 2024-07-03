@@ -38,7 +38,11 @@ class VideoToolboxDecode: DecodeProtocol {
             return
         }
         do {
-            let sampleBuffer = try session.formatDescription.getSampleBuffer(isConvertNALSize: session.assetTrack.isConvertNALSize, data: data, size: Int(corePacket.size))
+            var tuple = (data, Int(corePacket.size))
+            if let bitStreamFilter = session.assetTrack.bitStreamFilter {
+                tuple = try bitStreamFilter.filter(tuple)
+            }
+            let sampleBuffer = try session.formatDescription.createSampleBuffer(tuple: tuple)
             let flags: VTDecodeFrameFlags = [
                 ._EnableAsynchronousDecompression,
             ]
@@ -158,34 +162,97 @@ class DecompressionSession {
 }
 #endif
 
-extension CMFormatDescription {
-    fileprivate func getSampleBuffer(isConvertNALSize: Bool, data: UnsafeMutablePointer<UInt8>, size: Int) throws -> CMSampleBuffer {
-        if isConvertNALSize {
-            var ioContext: UnsafeMutablePointer<AVIOContext>?
-            let status = avio_open_dyn_buf(&ioContext)
-            if status == 0 {
-                var nalSize: UInt32 = 0
-                let end = data + size
-                var nalStart = data
-                while nalStart < end {
-                    nalSize = UInt32(nalStart[0]) << 16 | UInt32(nalStart[1]) << 8 | UInt32(nalStart[2])
-                    avio_wb32(ioContext, nalSize)
-                    nalStart += 3
-                    avio_write(ioContext, nalStart, Int32(nalSize))
-                    nalStart += Int(nalSize)
-                }
-                var demuxBuffer: UnsafeMutablePointer<UInt8>?
-                let demuxSze = avio_close_dyn_buf(ioContext, &demuxBuffer)
-                return try createSampleBuffer(data: demuxBuffer, size: Int(demuxSze))
+protocol BitStreamFilter {
+    static func filter(_ tuple: (UnsafeMutablePointer<UInt8>, Int)) throws -> (UnsafeMutablePointer<UInt8>, Int)
+}
+
+enum Nal3ToNal4BitStreamFilter: BitStreamFilter {
+    static func filter(_ tuple: (UnsafeMutablePointer<UInt8>, Int)) throws -> (UnsafeMutablePointer<UInt8>, Int) {
+        let (data, size) = tuple
+        var ioContext: UnsafeMutablePointer<AVIOContext>?
+        let status = avio_open_dyn_buf(&ioContext)
+        if status == 0 {
+            var nalSize: UInt32 = 0
+            let end = data + size
+            var nalStart = data
+            while nalStart < end {
+                nalSize = UInt32(nalStart[0]) << 16 | UInt32(nalStart[1]) << 8 | UInt32(nalStart[2])
+                avio_wb32(ioContext, nalSize)
+                nalStart += 3
+                avio_write(ioContext, nalStart, Int32(nalSize))
+                nalStart += Int(nalSize)
+            }
+            var demuxBuffer: UnsafeMutablePointer<UInt8>?
+            let demuxSze = avio_close_dyn_buf(ioContext, &demuxBuffer)
+            if let demuxBuffer {
+                return (demuxBuffer, Int(demuxSze))
             } else {
                 throw NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
             }
         } else {
-            return try createSampleBuffer(data: data, size: size)
+            throw NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
         }
     }
+}
 
-    private func createSampleBuffer(data: UnsafeMutablePointer<UInt8>?, size: Int) throws -> CMSampleBuffer {
+enum AnnexbToCCBitStreamFilter: BitStreamFilter {
+    static func filter(_ tuple: (UnsafeMutablePointer<UInt8>, Int)) throws -> (UnsafeMutablePointer<UInt8>, Int) {
+        let (data, size) = tuple
+        var ioContext: UnsafeMutablePointer<AVIOContext>?
+        let status = avio_open_dyn_buf(&ioContext)
+        if status == 0 {
+            var nalStart = data
+            var i = 0
+            var start = 0
+            while i < size {
+                if i + 2 < size, data[i] == 0x00, data[i + 1] == 0x00, data[i + 2] == 0x01 {
+                    if start == 0 {
+                        start = 3
+                        nalStart += 3
+                    } else {
+                        let len = i - start
+                        avio_wb32(ioContext, UInt32(len))
+                        avio_write(ioContext, nalStart, Int32(len))
+                        start = i + 3
+                        nalStart += len + 3
+                    }
+                    i += 3
+                } else if i + 3 < size, data[i] == 0x00, data[i + 1] == 0x00, data[i + 2] == 0x00, data[i + 3] == 0x01 {
+                    if start == 0 {
+                        start = 4
+                        nalStart += 4
+
+                    } else {
+                        let len = i - start
+                        avio_wb32(ioContext, UInt32(len))
+                        avio_write(ioContext, nalStart, Int32(len))
+                        start = i + 4
+                        nalStart += len + 4
+                    }
+                    i += 4
+                } else {
+                    i += 1
+                }
+            }
+            let len = size - start
+            avio_wb32(ioContext, UInt32(len))
+            avio_write(ioContext, nalStart, Int32(len))
+            var demuxBuffer: UnsafeMutablePointer<UInt8>?
+            let demuxSze = avio_close_dyn_buf(ioContext, &demuxBuffer)
+            if let demuxBuffer {
+                return (demuxBuffer, Int(demuxSze))
+            } else {
+                throw NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
+            }
+        } else {
+            throw NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
+        }
+    }
+}
+
+private extension CMFormatDescription {
+    func createSampleBuffer(tuple: (UnsafeMutablePointer<UInt8>, Int)) throws -> CMSampleBuffer {
+        let (data, size) = tuple
         var blockBuffer: CMBlockBuffer?
         var sampleBuffer: CMSampleBuffer?
         // swiftlint:disable line_length

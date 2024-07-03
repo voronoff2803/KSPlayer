@@ -38,12 +38,12 @@ class FFmpegDecode: DecodeProtocol {
     func decodeFrame(from packet: Packet, completionHandler: @escaping (Result<MEFrame, Error>) -> Void) {
         guard let codecContext, avcodec_send_packet(codecContext, packet.corePacket) == 0 else {
             /**
-              有些视频(.m2ts)seek完之后,就无法硬解了。一直报错，所以只能转为软解。
+              有些视频(.m2ts)seek完之后, 就会一直报错，重新createContext，也是会报错一段时间。只能转为软解。
               发现在seek的时候不要调用avcodec_flush_buffers就能解决这个问题。
              **/
             if options.hardwareDecode {
                 options.hardwareDecode = false
-                codecContext = try? packet.assetTrack.createContext(options: options)
+                self.codecContext = try? packet.assetTrack.createContext(options: options)
             }
             return
         }

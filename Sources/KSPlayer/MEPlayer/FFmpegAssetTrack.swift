@@ -39,7 +39,7 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
     public let fieldOrder: FFmpegFieldOrder
     public let formatDescription: CMFormatDescription?
     var closedCaptionsTrack: FFmpegAssetTrack?
-    let isConvertNALSize: Bool
+    var bitStreamFilter: BitStreamFilter.Type?
     var seekByBytes = false
     public var description: String {
         var description = codecName
@@ -145,7 +145,6 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
         if codecpar.codec_type == AVMEDIA_TYPE_AUDIO {
             mediaType = .audio
             audioDescriptor = AudioDescriptor(codecpar: codecpar)
-            isConvertNALSize = false
             bitDepth = 0
             let layout = codecpar.ch_layout
             let channelsPerFrame = UInt32(layout.nb_channels)
@@ -179,13 +178,35 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
             let atomsData: Data?
             if let extradata {
                 extradataSize = codecpar.extradata_size
-                if extradataSize >= 5, extradata[4] == 0xFE {
-                    extradata[4] = 0xFF
-                    isConvertNALSize = true
+                if extradata[0] == 1 {
+                    atomsData = Data(bytes: extradata, count: Int(extradataSize))
+                    if extradataSize >= 5, extradata[4] == 0xFE {
+                        extradata[4] = 0xFF
+                        bitStreamFilter = Nal3ToNal4BitStreamFilter.self
+                    }
                 } else {
-                    isConvertNALSize = false
+                    // 支持Annex-B硬解
+                    var ioContext: UnsafeMutablePointer<AVIOContext>?
+                    guard avio_open_dyn_buf(&ioContext) == 0 else {
+                        return nil
+                    }
+                    var extra = codecpar.extradata
+                    if codecpar.codec_id == AV_CODEC_ID_HEVC {
+                        ff_isom_write_hvcc(ioContext, extra, extradataSize, 0)
+                    } else if codecpar.codec_id == AV_CODEC_ID_AV1 {
+                        ff_isom_write_av1c(ioContext, extra, extradataSize, 1)
+                    } else if codecpar.codec_id == AV_CODEC_ID_VP9 {
+                        ff_isom_write_vpcc(nil, ioContext, extra, extradataSize, &self.codecpar)
+                    } else {
+                        ff_isom_write_avcc(ioContext, extra, extradataSize)
+                    }
+                    extradataSize = avio_close_dyn_buf(ioContext, &extra)
+                    guard let extradata = extra else {
+                        return nil
+                    }
+                    atomsData = Data(bytes: extradata, count: Int(extradataSize))
+                    bitStreamFilter = AnnexbToCCBitStreamFilter.self
                 }
-                atomsData = Data(bytes: extradata, count: Int(extradataSize))
             } else {
                 if codecType.rawValue == kCMVideoCodecType_VP9 {
                     // ff_videotoolbox_vpcc_extradata_create
@@ -206,7 +227,6 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
                 } else {
                     atomsData = nil
                 }
-                isConvertNALSize = false
             }
             let format = AVPixelFormat(rawValue: codecpar.format)
             bitDepth = format.bitDepth
@@ -240,7 +260,6 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
             audioDescriptor = nil
             formatName = nil
             bitDepth = 0
-            isConvertNALSize = false
             let dic: NSMutableDictionary = [
                 kCVImageBufferDisplayWidthKey: codecpar.width,
                 kCVImageBufferDisplayHeightKey: codecpar.height,

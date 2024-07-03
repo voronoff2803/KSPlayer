@@ -334,7 +334,8 @@ open class KSOptions {
     public static var yadifMode = 1
     public static var deInterlaceAddIdet = false
     public static var hardwareDecode = true
-    // 默认不用自研的硬解，因为有些视频的AVPacket的pts顺序是不对的，只有解码后的AVFrame里面的pts是对的。
+    /// 默认不用自研的硬解，因为有些视频的AVPacket的pts顺序是不对的，只有解码后的AVFrame里面的pts是对的。
+    /// 但是ts格式的视频seek完之后，FFmpeg的硬解会失败，需要切换到硬解才可以。自研的硬解不会失败，但是会有一小段的花屏。
     public static var asynchronousDecompression = false
     public static var isPipPopViewController = false
     public static var canStartPictureInPictureAutomaticallyFromInline = true
