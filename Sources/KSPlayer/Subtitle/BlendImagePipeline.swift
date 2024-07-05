@@ -50,8 +50,8 @@ public final class BlendImagePipeline: ImagePipelineType {
         loop(iterations: bufferCapacity) { index in
             let alpha = buffer[index].w
             if alpha >= 1 / 255.0 {
-                result[index] = SIMD4<UInt8>(max(buffer[index] / alpha, Float(255)))
-                result[index].w = UInt8(max(alpha * 255.0, 255))
+                result[index] = SIMD4<UInt8>(min(buffer[index] / alpha, Float(255)))
+                result[index].w = UInt8(min(alpha * 255.0, 255))
             }
         }
         buffer.deallocate()
