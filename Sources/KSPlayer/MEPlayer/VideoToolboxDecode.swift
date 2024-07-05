@@ -13,13 +13,16 @@ import VideoToolbox
 class VideoToolboxDecode: DecodeProtocol {
     private var session: DecompressionSession {
         didSet {
+            VTDecompressionSessionInvalidate(oldValue.decompressionSession)
             lastPosition = 0
             startTime = 0
         }
     }
+
     private let options: KSOptions
     private var startTime = Int64(0)
     private var lastPosition = Int64(0)
+    private var needReconfig = false
 
     init(options: KSOptions, session: DecompressionSession) {
         self.options = options
@@ -27,6 +30,11 @@ class VideoToolboxDecode: DecodeProtocol {
     }
 
     func decodeFrame(from packet: Packet, completionHandler: @escaping (Result<MEFrame, Error>) -> Void) {
+        if needReconfig {
+            // 解决从后台切换到前台，解码失败的问题
+            session = DecompressionSession(assetTrack: session.assetTrack, options: options)!
+            needReconfig = false
+        }
         guard let corePacket = packet.corePacket?.pointee, let data = corePacket.data else {
             return
         }
@@ -37,29 +45,25 @@ class VideoToolboxDecode: DecodeProtocol {
             }
             let sampleBuffer = try session.formatDescription.createSampleBuffer(tuple: tuple)
             let flags: VTDecodeFrameFlags = [
-                ._EnableAsynchronousDecompression,
+                //                ._EnableAsynchronousDecompression,
             ]
             var flagOut = VTDecodeInfoFlags(rawValue: 0)
             let timestamp = packet.timestamp
             let packetFlags = corePacket.flags
             let duration = corePacket.duration
             let size = corePacket.size
-            let status = VTDecompressionSessionDecodeFrame(session.decompressionSession, sampleBuffer: sampleBuffer, flags: flags, infoFlagsOut: &flagOut) { [weak self] status, infoFlags, imageBuffer, _, _ in
+            _ = VTDecompressionSessionDecodeFrame(session.decompressionSession, sampleBuffer: sampleBuffer, flags: flags, infoFlagsOut: &flagOut) { [weak self] status, infoFlags, imageBuffer, _, _ in
                 guard let self, !infoFlags.contains(.frameDropped) else {
                     return
                 }
                 guard status == noErr else {
                     if status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr || status == kVTVideoDecoderBadDataErr {
-                        let decompressionSession = self.session.decompressionSession
+                        // 在回调里面直接掉用VTDecompressionSessionInvalidate，会卡住。
                         if packet.isKeyFrame {
                             completionHandler(.failure(NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)))
                         } else {
-                            // 解决从后台切换到前台，解码失败的问题
-                            self.session = DecompressionSession(assetTrack: session.assetTrack, options: options)!
-                        }
-                        // 在回调里面直接掉用VTDecompressionSessionInvalidate，会卡住，所以需要异步
-                        DispatchQueue.global().async {
-                            VTDecompressionSessionInvalidate(decompressionSession)
+                            // 这个地方同步解码只会调用一次，但是异步解码，会调用多次。所以用状态来判断。
+                            self.needReconfig = true
                         }
                     }
                     return
@@ -79,19 +83,6 @@ class VideoToolboxDecode: DecodeProtocol {
                 frame.size = size
                 self.lastPosition += frame.duration
                 completionHandler(.success(frame))
-            }
-            if status == noErr {
-                if !flags.contains(._EnableAsynchronousDecompression) {
-                    VTDecompressionSessionWaitForAsynchronousFrames(session.decompressionSession)
-                }
-            } else if status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr || status == kVTVideoDecoderBadDataErr {
-                VTDecompressionSessionInvalidate(session.decompressionSession)
-                if packet.isKeyFrame {
-                    throw NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
-                } else {
-                    // 解决从后台切换到前台，解码失败的问题
-                    session = DecompressionSession(assetTrack: session.assetTrack, options: options)!
-                }
             }
         } catch {
             completionHandler(.failure(error))

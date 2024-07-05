@@ -146,7 +146,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
             }
         }
         //        var startTime = CACurrentMediaTime()
-        decoder.decodeFrame(from: packet) { [weak self] result in
+        decoder.decodeFrame(from: packet) { [weak self, weak decoder] result in
             guard let self else {
                 return
             }
@@ -175,6 +175,10 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
             } catch {
                 KSLog("Decoder did Failed : \(error)")
                 if decoder is VideoToolboxDecode {
+                    // 在回调里面直接掉用VTDecompressionSessionInvalidate，会卡住,所以要异步。
+                    DispatchQueue.global().async {
+                        decoder?.shutdown()
+                    }
                     self.decoderMap[packet.assetTrack.trackID] = FFmpegDecode(assetTrack: packet.assetTrack, options: self.options)
                     KSLog("VideoCodec switch to software decompression")
                     self.doDecode(packet: packet)
@@ -324,7 +328,7 @@ public extension Dictionary {
     }
 }
 
-protocol DecodeProtocol {
+protocol DecodeProtocol: AnyObject {
     func decode()
     func decodeFrame(from packet: Packet, completionHandler: @escaping (Result<MEFrame, Error>) -> Void)
     func doFlushCodec()
