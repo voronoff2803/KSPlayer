@@ -66,6 +66,9 @@ extension AVCodecParameters {
             avcodec_free_context(&codecContextOption)
             throw NSError(errorCode: .codecContextFindDecoder, avErrorCode: result)
         }
+        if KSOptions.logLevel == .debug {
+            codecContext.pointee.debug |= FF_DEBUG_PICT_INFO
+        }
         codecContext.pointee.codec_id = codec.pointee.id
         codecContext.pointee.flags2 |= AV_CODEC_FLAG2_FAST
         if options?.codecLowDelay == true {

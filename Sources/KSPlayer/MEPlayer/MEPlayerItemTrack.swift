@@ -175,7 +175,6 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
             } catch {
                 KSLog("Decoder did Failed : \(error)")
                 if decoder is VideoToolboxDecode {
-                    decoder.shutdown()
                     self.decoderMap[packet.assetTrack.trackID] = FFmpegDecode(assetTrack: packet.assetTrack, options: self.options)
                     KSLog("VideoCodec switch to software decompression")
                     self.doDecode(packet: packet)

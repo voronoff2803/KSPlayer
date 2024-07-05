@@ -13,14 +13,13 @@ import VideoToolbox
 class VideoToolboxDecode: DecodeProtocol {
     private var session: DecompressionSession {
         didSet {
-            VTDecompressionSessionInvalidate(oldValue.decompressionSession)
+            lastPosition = 0
+            startTime = 0
         }
     }
-
     private let options: KSOptions
     private var startTime = Int64(0)
     private var lastPosition = Int64(0)
-    private var needReconfig = false
 
     init(options: KSOptions, session: DecompressionSession) {
         self.options = options
@@ -28,12 +27,6 @@ class VideoToolboxDecode: DecodeProtocol {
     }
 
     func decodeFrame(from packet: Packet, completionHandler: @escaping (Result<MEFrame, Error>) -> Void) {
-        if needReconfig {
-            // 解决从后台切换到前台，解码失败的问题
-            session = DecompressionSession(assetTrack: session.assetTrack, options: options)!
-            doFlushCodec()
-            needReconfig = false
-        }
         guard let corePacket = packet.corePacket?.pointee, let data = corePacket.data else {
             return
         }
@@ -46,24 +39,32 @@ class VideoToolboxDecode: DecodeProtocol {
             let flags: VTDecodeFrameFlags = [
                 ._EnableAsynchronousDecompression,
             ]
-            var flagOut = VTDecodeInfoFlags.frameDropped
+            var flagOut = VTDecodeInfoFlags(rawValue: 0)
             let timestamp = packet.timestamp
             let packetFlags = corePacket.flags
             let duration = corePacket.duration
             let size = corePacket.size
             let status = VTDecompressionSessionDecodeFrame(session.decompressionSession, sampleBuffer: sampleBuffer, flags: flags, infoFlagsOut: &flagOut) { [weak self] status, infoFlags, imageBuffer, _, _ in
-                guard let self, let imageBuffer, !infoFlags.contains(.frameDropped) else {
+                guard let self, !infoFlags.contains(.frameDropped) else {
                     return
                 }
                 guard status == noErr else {
                     if status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr || status == kVTVideoDecoderBadDataErr {
+                        let decompressionSession = self.session.decompressionSession
                         if packet.isKeyFrame {
                             completionHandler(.failure(NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)))
                         } else {
                             // 解决从后台切换到前台，解码失败的问题
-                            self.needReconfig = true
+                            self.session = DecompressionSession(assetTrack: session.assetTrack, options: options)!
+                        }
+                        // 在回调里面直接掉用VTDecompressionSessionInvalidate，会卡住，所以需要异步
+                        DispatchQueue.global().async {
+                            VTDecompressionSessionInvalidate(decompressionSession)
                         }
                     }
+                    return
+                }
+                guard let imageBuffer else {
                     return
                 }
                 let frame = VideoVTBFrame(pixelBuffer: imageBuffer, fps: session.assetTrack.nominalFrameRate, isDovi: session.assetTrack.dovi != nil)
@@ -84,11 +85,12 @@ class VideoToolboxDecode: DecodeProtocol {
                     VTDecompressionSessionWaitForAsynchronousFrames(session.decompressionSession)
                 }
             } else if status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr || status == kVTVideoDecoderBadDataErr {
+                VTDecompressionSessionInvalidate(session.decompressionSession)
                 if packet.isKeyFrame {
                     throw NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
                 } else {
                     // 解决从后台切换到前台，解码失败的问题
-                    needReconfig = true
+                    session = DecompressionSession(assetTrack: session.assetTrack, options: options)!
                 }
             }
         } catch {
@@ -221,7 +223,6 @@ enum AnnexbToCCBitStreamFilter: BitStreamFilter {
                     if start == 0 {
                         start = 4
                         nalStart += 4
-
                     } else {
                         let len = i - start
                         avio_wb32(ioContext, UInt32(len))
