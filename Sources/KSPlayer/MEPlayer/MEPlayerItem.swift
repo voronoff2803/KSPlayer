@@ -657,7 +657,7 @@ extension MEPlayerItem {
                 }
             }
         } else {
-            if readResult == AVError.eof.code || avio_feof(formatCtx?.pointee.pb) > 0 {
+            if readResult == AVError.tryAgain.code || readResult == AVError.eof.code || avio_feof(formatCtx?.pointee.pb) > 0 {
                 if options.isLoopPlay, allPlayerItemTracks.allSatisfy({ !$0.isLoopModel }) {
                     allPlayerItemTracks.forEach { $0.isLoopModel = true }
                     _ = av_seek_frame(formatCtx, -1, startTime.value, AVSEEK_FLAG_BACKWARD)
