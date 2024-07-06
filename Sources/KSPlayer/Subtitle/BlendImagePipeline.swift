@@ -1,4 +1,3 @@
-import Accelerate
 import CoreGraphics
 import libass
 import simd
@@ -21,11 +20,6 @@ public final class BlendImagePipeline: ImagePipelineType {
         buffer.initialize(repeating: SIMD4<Float>.zero, count: bufferCapacity)
         loop(iterations: images.count) { i in
             let image = images[i]
-            /// 因为对于复杂的ass字幕的话，耗时会很高。超过0.1的话，就会感受到字幕延迟，体验不好。
-            /// 所以先过滤掉一部分的ass特效。如果这个算法后续可以优化的话，那可以放开这个特殊的过滤逻辑
-//            if images.count > 5000, image.w <= 50, image.h <= 50 {
-//                return
-//            }
             let stride = Int(image.stride)
             let red = Float((image.color >> 24) & 0xFF)
             let green = Float((image.color >> 16) & 0xFF)
@@ -51,7 +45,7 @@ public final class BlendImagePipeline: ImagePipelineType {
         loop(iterations: bufferCapacity) { index in
             let alpha = buffer[index].w
             if alpha >= 1 / 255.0 {
-                result[index] = SIMD4<UInt8>(min(buffer[index] / SIMD4<Float>(alpha, alpha, alpha, 1 / 255.0), Float(255)))
+                result[index] = SIMD4<UInt8>(min(buffer[index] / SIMD4<Float>(alpha, alpha, alpha, 1 / 255.0), 255.0))
             }
         }
         buffer.deallocate()
@@ -60,17 +54,4 @@ public final class BlendImagePipeline: ImagePipelineType {
         }
         return (pointer, width * 4)
     }
-
-//    @inlinable
-//    public static func clamp(_ value: Float) -> UInt8 {
-//        if value >= 1 / 255.0 {
-//            if value < 1 {
-//                return UInt8(value * 255.0)
-//            } else {
-//                return 255
-//            }
-//        } else {
-//            return 0
-//        }
-//    }
 }
