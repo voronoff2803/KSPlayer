@@ -30,13 +30,14 @@ public final class AccelerateImagePipeline: ImagePipelineType {
         let red = UInt8((image.color >> 24) & 0xFF)
         let green = UInt8((image.color >> 16) & 0xFF)
         let blue = UInt8((image.color >> 8) & 0xFF)
+        let normalizedAlpha = Float(255 - UInt8(image.color & 0xFF)) / 255.0
         var bitmapPosition = 0
         let rowBytes = destinationBuffer.rowStride * destinationBuffer.byteCountPerPixel
         var vImagePosition = Int(relativeRect.minY) * rowBytes
         destinationBuffer.withUnsafeMutableBufferPointer { bufferPtr in
             loop(iterations: height) { _ in
                 loop(iterations: width) { x in
-                    let alpha = image.bitmap[bitmapPosition + x]
+                    let alpha = UInt8(Float(image.bitmap[bitmapPosition + x]) * normalizedAlpha)
                     if alpha == 0 {
                         return
                     }
