@@ -9,11 +9,11 @@ import FFmpegKit
 import Foundation
 import Metal
 
-class DoviDisplayModel: PlaneDisplayModel {
+public class DoviDisplayModel: PlaneDisplayModel {
     private lazy var iCtCp10LE = MetalRender.makePipelineState(fragmentFunction: "displayICtCpTexture", bitDepth: 10)
     private lazy var iCtCpBiPlanar10LE = MetalRender.makePipelineState(fragmentFunction: "displayICtCpBiPlanarTexture", bitDepth: 10)
     private var pipelineMap = [String: MTLRenderPipelineState]()
-    override func set(frame: VideoVTBFrame, encoder: MTLRenderCommandEncoder) {
+    override public func set(frame: VideoVTBFrame, encoder: MTLRenderCommandEncoder) {
         if var doviData = frame.doviData {
             let state: MTLRenderPipelineState
             let planeCount = frame.pixelBuffer.planeCount

@@ -37,6 +37,7 @@ let package = Package(
             resources: [.process("Metal/Resources")],
             swiftSettings: [
                 .enableExperimentalFeature("StrictConcurrency"),
+                .enableUpcomingFeature("StrictConcurrency"),
             ]
         ),
         .target(

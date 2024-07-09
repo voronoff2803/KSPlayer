@@ -12,13 +12,13 @@ import simd
 import UIKit
 #endif
 
-class PlaneDisplayModel: DisplayEnum {
+open class PlaneDisplayModel: DisplayEnum {
     private lazy var yuv = MetalRender.makePipelineState(fragmentFunction: "displayYUVTexture", isSphere: false)
     private lazy var yuvp010LE = MetalRender.makePipelineState(fragmentFunction: "displayYUVTexture", isSphere: false, bitDepth: 10)
     private lazy var nv12 = MetalRender.makePipelineState(fragmentFunction: "displayNV12Texture", isSphere: false)
     private lazy var p010LE = MetalRender.makePipelineState(fragmentFunction: "displayNV12Texture", isSphere: false, bitDepth: 10)
     private lazy var bgra = MetalRender.makePipelineState(fragmentFunction: "displayTexture", isSphere: false)
-    let isSphere: Bool = false
+    public let isSphere: Bool = false
     let indexCount: Int
     let indexType = MTLIndexType.uint16
     let primitiveType = MTLPrimitiveType.triangleStrip
@@ -73,7 +73,7 @@ class PlaneDisplayModel: DisplayEnum {
         }
     }
 
-    func set(frame: VideoVTBFrame, encoder: MTLRenderCommandEncoder) {
+    public func set(frame: VideoVTBFrame, encoder: MTLRenderCommandEncoder) {
         let state = pipeline(pixelBuffer: frame.pixelBuffer)
         encoder.setRenderPipelineState(state)
         MetalRender.setFragmentBuffer(encoder: encoder, pixelBuffer: frame.pixelBuffer)
@@ -83,5 +83,5 @@ class PlaneDisplayModel: DisplayEnum {
         encoder.drawIndexedPrimitives(type: primitiveType, indexCount: indexCount, indexType: indexType, indexBuffer: indexBuffer, indexBufferOffset: 0)
     }
 
-    func touchesMoved(touch _: UITouch) {}
+    public func touchesMoved(touch _: UITouch) {}
 }

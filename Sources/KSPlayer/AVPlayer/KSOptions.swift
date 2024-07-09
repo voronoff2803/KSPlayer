@@ -347,12 +347,12 @@ open class KSOptions {
     public static var recordDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("record")
     #endif
     public static var doviMatrix = simd_float3x3(1)
-    public static let displayEnumPlane: DisplayEnum = PlaneDisplayModel()
-    public static let displayEnumDovi: DisplayEnum = DoviDisplayModel()
+    public static let displayEnumPlane = PlaneDisplayModel()
+    public static let displayEnumDovi = DoviDisplayModel()
     @MainActor
-    public static let displayEnumVR: DisplayEnum = VRDisplayModel()
+    public static let displayEnumVR = VRDisplayModel()
     @MainActor
-    public static let displayEnumVRBox: DisplayEnum = VRBoxDisplayModel()
+    public static let displayEnumVRBox = VRBoxDisplayModel()
     public var display: DisplayEnum = displayEnumPlane
     public var videoDelay = 0.0 // s
     public var autoRotate = true

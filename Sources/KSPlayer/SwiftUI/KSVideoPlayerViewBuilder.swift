@@ -177,3 +177,48 @@ public extension KSVideoPlayerViewBuilder {
         #endif
     }
 }
+
+extension View {
+    func onKeyPressLeftArrow(action: @escaping () -> Void) -> some View {
+        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
+            return onKeyPress(.leftArrow) {
+                action()
+                return .handled
+            }
+        } else {
+            return self
+        }
+    }
+
+    func onKeyPressRightArrow(action: @escaping () -> Void) -> some View {
+        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
+            return onKeyPress(.rightArrow) {
+                action()
+                return .handled
+            }
+        } else {
+            return self
+        }
+    }
+
+    func onKeyPressSapce(action: @escaping () -> Void) -> some View {
+        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
+            return onKeyPress(.space) {
+                action()
+                return .handled
+            }
+        } else {
+            return self
+        }
+    }
+}
+
+extension View {
+    func allowedDynamicRange() -> some View {
+        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
+            return self.allowedDynamicRange(KSOptions.sutitleDynamicRange)
+        } else {
+            return self
+        }
+    }
+}
