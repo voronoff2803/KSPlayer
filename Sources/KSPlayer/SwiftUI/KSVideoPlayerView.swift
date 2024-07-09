@@ -46,7 +46,7 @@ public struct KSVideoPlayerView: View {
     }
 
     public var body: some View {
-        KSCorePlayerView(config: config, url: _url, options: options, title: title, subtitleDataSouce: subtitleDataSouce)
+        KSCorePlayerView(config: config, url: _url, options: options, title: _title, subtitleDataSouce: subtitleDataSouce)
             .onAppear {
                 focusableView = .play
                 // 不要加这个，不然config无法释放，也可以在onDisappear调用removeMonitor释放
@@ -167,11 +167,11 @@ public struct KSCorePlayerView: View {
     @State
     private var title: String
     private let subtitleDataSouce: SubtitleDataSouce?
-    public init(config: KSVideoPlayer.Coordinator, url: State<URL>, options: KSOptions, title: String, subtitleDataSouce: SubtitleDataSouce?) {
+    public init(config: KSVideoPlayer.Coordinator, url: State<URL>, options: KSOptions, title: State<String>, subtitleDataSouce: SubtitleDataSouce?) {
         _config = .init(wrappedValue: config)
         _url = url
         self.options = options
-        self.title = title
+        _title = title
         self.subtitleDataSouce = subtitleDataSouce
     }
 
