@@ -346,7 +346,7 @@ public extension CGSize {
     }
 
     func convert(rect: CGRect, toSize: CGSize) -> CGRect {
-        guard height != 0, width != 0 else {
+        guard height != 0, width != 0, toSize.width != 0, toSize.height != 0 else {
             return rect
         }
         let hZoom = toSize.width / width

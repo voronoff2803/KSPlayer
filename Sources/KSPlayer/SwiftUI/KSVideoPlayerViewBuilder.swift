@@ -211,12 +211,36 @@ extension View {
             return self
         }
     }
-}
 
-extension View {
     func allowedDynamicRange() -> some View {
         if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
             return self.allowedDynamicRange(KSOptions.sutitleDynamicRange)
+        } else {
+            return self
+        }
+    }
+
+    #if !os(tvOS)
+    func textSelection() -> some View {
+        if #available(iOS 15.0, macOS 12.0, *) {
+            return self.textSelection(.enabled)
+        } else {
+            return self
+        }
+    }
+    #endif
+
+    func italic(value: Bool) -> some View {
+        if #available(iOS 16.0, macOS 13.0, tvOS 16.0, *) {
+            return self.italic(value)
+        } else {
+            return self
+        }
+    }
+
+    func ksIgnoresSafeArea() -> some View {
+        if #available(iOS 14.0, macOS 11.0, tvOS 14.0, *) {
+            return self.ignoresSafeArea()
         } else {
             return self
         }

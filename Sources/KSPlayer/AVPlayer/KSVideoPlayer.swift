@@ -13,6 +13,7 @@ import UIKit
 #else
 import AppKit
 
+public typealias UIHostingController = NSHostingController
 public typealias UIViewRepresentable = NSViewRepresentable
 #endif
 

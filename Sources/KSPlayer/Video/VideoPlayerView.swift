@@ -59,9 +59,6 @@ open class VideoPlayerView: PlayerView {
                 if let subtitleDataSouce = resource.subtitleDataSouce {
                     playerLayer?.subtitleModel.addSubtitle(dataSouce: subtitleDataSouce)
                 }
-                subtitleBackView.isHidden = true
-                subtitleBackView.image = nil
-                subtitleLabel.attributedText = nil
                 titleLabel.text = resource.name
                 toolBar.definitionButton.isHidden = resource.definitions.count < 2
                 if #available(iOS 14.0, tvOS 15.0, *) {
@@ -90,8 +87,6 @@ open class VideoPlayerView: PlayerView {
     public let controllerView = UIView()
     public var navigationBar = UIStackView()
     public var titleLabel = UILabel()
-    public var subtitleLabel = UILabel()
-    public var subtitleBackView = UIImageView()
     /// Activty Indector for loading
     public var loadingIndector: UIView & LoadingIndector = UIActivityIndicatorView(frame: CGRect(x: 0, y: 0, width: 30, height: 30))
     public var seekToView: UIView & SeekViewProtocol = SeekView()
@@ -227,7 +222,6 @@ open class VideoPlayerView: PlayerView {
         controllerView.addSubview(bottomMaskView)
         addConstraint()
         customizeUIComponents()
-        setupSrtControl()
         layoutIfNeeded()
     }
 
@@ -260,25 +254,6 @@ open class VideoPlayerView: PlayerView {
             toolBar.timeSlider.isPlayable = true
             toolBar.videoSwitchButton.isHidden = layer.player.tracks(mediaType: .video).count < 2
             toolBar.audioSwitchButton.isHidden = layer.player.tracks(mediaType: .audio).count < 2
-            let cancellable = layer.subtitleModel.$parts.sink { [weak self] parts in
-                guard let self else {
-                    return
-                }
-                if let part = parts.first {
-                    subtitleBackView.image = part.render.left?.image
-                    if KSOptions.stripSutitleStyle, let text = part.render.right?.string {
-                        subtitleLabel.text = text
-                    } else {
-                        subtitleLabel.attributedText = part.render.right
-                    }
-                    subtitleBackView.isHidden = false
-                } else {
-                    subtitleBackView.image = nil
-                    subtitleLabel.attributedText = nil
-                    subtitleBackView.isHidden = true
-                }
-            }
-            cancellables.append(cancellable)
         case .buffering:
             isPlayed = true
             replayButton.isHidden = true
@@ -558,42 +533,6 @@ extension VideoPlayerView {
         default:
             break
         }
-    }
-
-    /// change during playback
-    public func updateSrt() {
-        subtitleLabel.font = KSOptions.textFont
-        if #available(macOS 11.0, iOS 14, tvOS 14, *) {
-            subtitleLabel.textColor = UIColor(KSOptions.textColor)
-            subtitleBackView.backgroundColor = UIColor(KSOptions.textBackgroundColor)
-        }
-    }
-
-    private func setupSrtControl() {
-        subtitleLabel.numberOfLines = 0
-        subtitleLabel.textAlignment = .center
-        subtitleLabel.backingLayer?.shadowColor = UIColor.black.cgColor
-        subtitleLabel.backingLayer?.shadowOffset = CGSize(width: 1.0, height: 1.0)
-        subtitleLabel.backingLayer?.shadowOpacity = 0.9
-        subtitleLabel.backingLayer?.shadowRadius = 1.0
-        subtitleLabel.backingLayer?.shouldRasterize = true
-        updateSrt()
-        subtitleBackView.contentMode = .scaleAspectFit
-        subtitleBackView.cornerRadius = 2
-        subtitleBackView.addSubview(subtitleLabel)
-        subtitleBackView.isHidden = true
-        addSubview(subtitleBackView)
-        subtitleBackView.translatesAutoresizingMaskIntoConstraints = false
-        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            subtitleBackView.bottomAnchor.constraint(equalTo: safeBottomAnchor, constant: -5),
-            subtitleBackView.centerXAnchor.constraint(equalTo: centerXAnchor),
-            subtitleBackView.widthAnchor.constraint(lessThanOrEqualTo: widthAnchor, constant: -10),
-            subtitleLabel.leadingAnchor.constraint(equalTo: subtitleBackView.leadingAnchor, constant: 10),
-            subtitleLabel.trailingAnchor.constraint(equalTo: subtitleBackView.trailingAnchor, constant: -10),
-            subtitleLabel.topAnchor.constraint(equalTo: subtitleBackView.topAnchor, constant: 2),
-            subtitleLabel.bottomAnchor.constraint(equalTo: subtitleBackView.bottomAnchor, constant: -2),
-        ])
     }
 
     /**

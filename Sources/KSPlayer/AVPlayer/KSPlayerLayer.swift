@@ -8,6 +8,7 @@
 import AVFoundation
 import AVKit
 import MediaPlayer
+import SwiftUI
 #if canImport(UIKit)
 import UIKit
 #else
@@ -71,6 +72,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     @Published
     public var loopCount: Int = 0
     public private(set) var options: KSOptions
+    public let subtitleVC: UIHostingController<VideoSubtitleView>
     public var player: MediaPlayerProtocol {
         didSet {
             KSLog("player is \(player)")
@@ -177,6 +179,10 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         player = firstPlayerType.init(url: url, options: options)
         self.isAutoPlay = isAutoPlay
         subtitleModel = SubtitleModel(url: url)
+        subtitleVC = UIHostingController(rootView: VideoSubtitleView(model: subtitleModel))
+        subtitleVC.loadView()
+        subtitleVC.view.backgroundColor = .clear
+        subtitleVC.view.translatesAutoresizingMaskIntoConstraints = false
         super.init()
         player.playbackRate = options.startPlayRate
         player.delegate = self
@@ -307,6 +313,9 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
 
     public func readyToPlay(player: some MediaPlayerProtocol) {
         state = .readyToPlay
+        if let view = player.view {
+            addSubtitle(to: view)
+        }
         if let subtitleDataSouce = player.subtitleDataSouce {
             subtitleModel.addSubtitle(dataSouce: subtitleDataSouce)
             if subtitleModel.selectedSubtitleInfo == nil, options.autoSelectEmbedSubtitle {
@@ -457,6 +466,27 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         }
     }
     #endif
+    fileprivate func addSubtitle(to view: UIView) {
+        if subtitleVC.view.superview != view {
+            view.addSubview(subtitleVC.view)
+            let constraints = [
+                subtitleVC.view.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                subtitleVC.view.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+                subtitleVC.view.widthAnchor.constraint(equalTo: view.widthAnchor),
+                subtitleVC.view.heightAnchor.constraint(equalTo: view.heightAnchor),
+            ]
+            #if os(macOS)
+            if #available(macOS 13.0, *) {
+                subtitleVC.sizingOptions = .maxSize
+            }
+            for constraint in constraints {
+                constraint.priority = .defaultLow
+            }
+            #endif
+
+            NSLayoutConstraint.activate(constraints)
+        }
+    }
 }
 
 open class KSComplexPlayerLayer: KSPlayerLayer {
@@ -590,11 +620,15 @@ extension KSComplexPlayerLayer: AVPictureInPictureControllerDelegate {
             UIControl().sendAction(#selector(URLSessionTask.suspend), to: UIApplication.shared, for: nil)
             #endif
         }
+        pipAddSubtitle()
     }
 
     @MainActor
     public func pictureInPictureControllerDidStopPictureInPicture(_: AVPictureInPictureController) {
         player.pipController?.stop(restoreUserInterface: false)
+        if let view = player.view {
+            addSubtitle(to: view)
+        }
     }
 
     @MainActor
@@ -758,6 +792,7 @@ extension KSComplexPlayerLayer {
             return
         }
         if #available(tvOS 14.0, *), player.pipController?.isPictureInPictureActive == true {
+            pipAddSubtitle()
             return
         }
 
@@ -771,6 +806,13 @@ extension KSComplexPlayerLayer {
     @objc private func enterForeground() {
         if KSOptions.canBackgroundPlay {
             player.enterForeground()
+        }
+    }
+
+    @available(tvOS 14.0, *)
+    private func pipAddSubtitle() {
+        if let pipVC = player.pipController?.value(forKey: "pictureInPictureViewController") as? UIViewController {
+            addSubtitle(to: pipVC.view)
         }
     }
 }

@@ -66,8 +66,8 @@ public final class MetalPlayView: UIView, VideoOutput {
     public init(options: KSOptions) {
         self.options = options
         super.init(frame: .zero)
-        addSubview(displayView)
-        addSubview(metalView)
+        addSub(view: displayView)
+        addSub(view: metalView)
         metalView.isHidden = true
         //        displayLink = CADisplayLink(block: renderFrame)
         displayLink = CADisplayLink(target: self, selector: #selector(renderFrame))
@@ -87,17 +87,6 @@ public final class MetalPlayView: UIView, VideoOutput {
     @available(*, unavailable)
     required init(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    override public func didAddSubview(_ subview: UIView) {
-        super.didAddSubview(subview)
-        subview.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            subview.leftAnchor.constraint(equalTo: leftAnchor),
-            subview.topAnchor.constraint(equalTo: topAnchor),
-            subview.bottomAnchor.constraint(equalTo: bottomAnchor),
-            subview.rightAnchor.constraint(equalTo: rightAnchor),
-        ])
     }
 
     override public var contentMode: UIViewContentMode {
@@ -149,6 +138,17 @@ public final class MetalPlayView: UIView, VideoOutput {
 
     public func readNextFrame() {
         draw(force: true)
+    }
+
+    private func addSub(view: UIView) {
+        addSubview(view)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            view.leftAnchor.constraint(equalTo: leftAnchor),
+            view.topAnchor.constraint(equalTo: topAnchor),
+            view.bottomAnchor.constraint(equalTo: bottomAnchor),
+            view.rightAnchor.constraint(equalTo: rightAnchor),
+        ])
     }
 
 //    deinit {

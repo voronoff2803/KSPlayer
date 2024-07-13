@@ -58,11 +58,6 @@ public struct KSVideoPlayerView: View {
                 //                    #endif
             }
             .overlay {
-                if let subtitleModel = config.playerLayer?.subtitleModel {
-                    VideoSubtitleView(model: subtitleModel)
-                }
-            }
-            .overlay {
                 controllerView
             }
             .preferredColorScheme(.dark)
@@ -584,7 +579,6 @@ extension EventModifiers {
     static let none = Self()
 }
 
-@available(iOS 16, tvOS 16, macOS 13, *)
 public struct VideoSubtitleView: View {
     @ObservedObject
     fileprivate var model: SubtitleModel
@@ -595,11 +589,12 @@ public struct VideoSubtitleView: View {
     public var body: some View {
         ZStack {
             ForEach(model.parts) { part in
-                part.subtitleView
+                part.view
             }
         }
-        .ignoresSafeArea()
-        .allowsHitTesting(false) // 禁止字幕视图交互，以免抢占视图的点击事件或其它手势事件
+        // 禁止字幕视图交互，以免抢占视图的点击事件或其它手势事件
+        .allowsHitTesting(false)
+        .ksIgnoresSafeArea()
     }
 
     fileprivate static func imageView(_ image: UIImage) -> some View {
@@ -618,9 +613,8 @@ public struct VideoSubtitleView: View {
 }
 
 private extension SubtitlePart {
-    @available(iOS 16, tvOS 16, macOS 13, *)
     @MainActor
-    var subtitleView: some View {
+    var view: some View {
         Group {
             switch self.render {
             case let .left(info):
@@ -638,31 +632,35 @@ private extension SubtitlePart {
                     if textPosition.verticalAlign == .bottom || textPosition.verticalAlign == .center {
                         Spacer()
                     }
-                    Group {
-                        if KSOptions.stripSutitleStyle {
-                            Text(text.string)
-                                .italic(KSOptions.textItalic)
-                        } else {
-                            Text(AttributedString(text))
+                    text.view
+                        .italic(value: KSOptions.textItalic)
+                        .font(Font(KSOptions.textFont))
+                        .shadow(color: .black.opacity(0.9), radius: 2, x: 1, y: 1)
+                        .foregroundColor(KSOptions.textColor)
+                        .background(KSOptions.textBackgroundColor)
+                        .multilineTextAlignment(.center)
+                        .alignmentGuide(textPosition.horizontalAlign) {
+                            $0[.leading]
                         }
-                    }
-                    .font(Font(KSOptions.textFont))
-                    .shadow(color: .black.opacity(0.9), radius: 2, x: 1, y: 1)
-                    .foregroundColor(KSOptions.textColor)
-                    .background(KSOptions.textBackgroundColor)
-                    .multilineTextAlignment(.center)
-                    .alignmentGuide(textPosition.horizontalAlign) {
-                        $0[.leading]
-                    }
-                    .padding(textPosition.edgeInsets)
+                        .padding(textPosition.edgeInsets)
                     #if !os(tvOS)
-                        .textSelection(.enabled)
+                        .textSelection()
                     #endif
                     if textPosition.verticalAlign == .top || textPosition.verticalAlign == .center {
                         Spacer()
                     }
                 }
             }
+        }
+    }
+}
+
+extension NSAttributedString {
+    var view: some View {
+        if #available(macOS 12, iOS 15, tvOS 15, *), !KSOptions.stripSutitleStyle {
+            Text(AttributedString(self))
+        } else {
+            Text(string)
         }
     }
 }

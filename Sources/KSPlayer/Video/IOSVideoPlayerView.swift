@@ -45,9 +45,6 @@ open class IOSVideoPlayerView: VideoPlayerView {
 
     override open func customizeUIComponents() {
         super.customizeUIComponents()
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            subtitleLabel.font = .systemFont(ofSize: 14)
-        }
         insertSubview(maskImageView, at: 0)
         maskImageView.contentMode = .scaleAspectFit
         toolBar.addArrangedSubview(landscapeButton)
