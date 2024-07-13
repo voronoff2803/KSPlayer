@@ -205,7 +205,9 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
                         return nil
                     }
                     atomsData = Data(bytes: extradata, count: Int(extradataSize))
-                    bitStreamFilter = AnnexbToCCBitStreamFilter.self
+                    if codecpar.codec_id != AV_CODEC_ID_AV1 {
+                        bitStreamFilter = AnnexbToCCBitStreamFilter.self
+                    }
                 }
             } else {
                 if codecType.rawValue == kCMVideoCodecType_VP9 {
