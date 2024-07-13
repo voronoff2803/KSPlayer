@@ -7,8 +7,17 @@
 
 import AVKit
 
+@MainActor
 @available(tvOS 14.0, *)
-public class KSPictureInPictureController: AVPictureInPictureController {
+public protocol KSPictureInPictureProtocol {
+    func start(layer: KSComplexPlayerLayer)
+    func stop(restoreUserInterface: Bool)
+    static func mute()
+}
+
+@MainActor
+@available(tvOS 14.0, *)
+public class KSPictureInPictureController: AVPictureInPictureController, KSPictureInPictureProtocol {
     private static var pipController: KSPictureInPictureController?
     private var layer: KSComplexPlayerLayer?
     private weak var originalViewController: UIViewController?
@@ -18,7 +27,7 @@ public class KSPictureInPictureController: AVPictureInPictureController {
     private weak var navigationController: UINavigationController?
     #endif
     @MainActor
-    func start(layer: KSComplexPlayerLayer) {
+    public func start(layer: KSComplexPlayerLayer) {
         startPictureInPicture()
         self.layer = layer
         guard KSOptions.isPipPopViewController else {
@@ -55,7 +64,7 @@ public class KSPictureInPictureController: AVPictureInPictureController {
     }
 
     @MainActor
-    func stop(restoreUserInterface: Bool) {
+    public func stop(restoreUserInterface: Bool) {
         stopPictureInPicture()
         guard KSOptions.isPipPopViewController else {
             layer = nil
@@ -94,7 +103,7 @@ public class KSPictureInPictureController: AVPictureInPictureController {
     }
 
     @MainActor
-    static func mute() {
+    public static func mute() {
         pipController?.layer?.player.isMuted = true
     }
 }

@@ -557,7 +557,7 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
         super.play()
         MPNowPlayingInfoCenter.default().playbackState = .playing
         if #available(tvOS 14.0, *) {
-            KSPictureInPictureController.mute()
+            KSOptions.pictureInPictureType.mute()
         }
     }
 

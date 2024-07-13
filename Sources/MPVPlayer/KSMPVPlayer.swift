@@ -6,6 +6,7 @@
 //
 
 import AVFoundation
+import AVKit
 import CoreGraphics
 import Dispatch
 import Foundation
@@ -150,7 +151,7 @@ extension KSMPVPlayer: MediaPlayerProtocol {
     }
 
     @available(tvOS 14.0, *)
-    public var pipController: KSPlayer.KSPictureInPictureController? {
+    public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? {
         nil
     }
 

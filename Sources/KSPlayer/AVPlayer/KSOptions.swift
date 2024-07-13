@@ -10,6 +10,7 @@ import SwiftUI
 #if os(tvOS) || os(xrOS)
 import DisplayCriteria
 #endif
+import AVKit
 import OSLog
 
 open class KSOptions {
@@ -353,6 +354,8 @@ open class KSOptions {
     public static let displayEnumVR = VRDisplayModel()
     @MainActor
     public static let displayEnumVRBox = VRBoxDisplayModel()
+    @available(tvOS 14.0, *)
+    public static var pictureInPictureType: (KSPictureInPictureProtocol & AVPictureInPictureController).Type = KSPictureInPictureController.self
     public var display: DisplayEnum = displayEnumPlane
     public var videoDelay = 0.0 // s
     public var autoRotate = true

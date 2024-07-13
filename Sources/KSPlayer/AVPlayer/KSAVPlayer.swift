@@ -100,7 +100,7 @@ public class KSAVPlayer {
 
     private lazy var _pipController: Any? = {
         if #available(tvOS 14.0, *) {
-            let pip = KSPictureInPictureController(playerLayer: playerView.playerLayer)
+            let pip = KSOptions.pictureInPictureType.init(playerLayer: playerView.playerLayer)
             return pip
         } else {
             return nil
@@ -108,8 +108,8 @@ public class KSAVPlayer {
     }()
 
     @available(tvOS 14.0, *)
-    public var pipController: KSPictureInPictureController? {
-        _pipController as? KSPictureInPictureController
+    public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? {
+        _pipController as? (AVPictureInPictureController & KSPictureInPictureProtocol)
     }
 
     public var naturalSize: CGSize = .zero
