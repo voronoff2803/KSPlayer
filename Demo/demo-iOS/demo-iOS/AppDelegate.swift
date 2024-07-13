@@ -70,12 +70,6 @@ class CustomVideoPlayerView: VideoPlayerView {
         super.player(layer: layer, state: state)
         if state == .readyToPlay {
             KSLog(layer.player.naturalSize.debugDescription)
-            // list the all subtitles
-            let subtitleInfos = srtControl.subtitleInfos
-            for subtitleInfo in subtitleInfos {
-                KSLog(subtitleInfo.name)
-            }
-            srtControl.selectedSubtitleInfo = subtitleInfos.first
             for track in layer.player.tracks(mediaType: .audio) {
                 KSLog("audio name: \(track.name) language: \(track.language ?? "")")
             }

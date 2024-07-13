@@ -287,6 +287,7 @@ open class SubtitleModel: ObservableObject {
     @Published
     public private(set) var parts = [SubtitlePart]()
     public var subtitleDelay = 0.0 // s
+    public var isHDR = false
     public var url: URL {
         didSet {
             subtitleDataSouces.removeAll()

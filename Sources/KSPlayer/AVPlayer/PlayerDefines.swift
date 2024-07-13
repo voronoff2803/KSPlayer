@@ -96,6 +96,10 @@ public enum DynamicRange: Int32 {
         }
         #endif
     }
+
+    var isHDR: Bool {
+        rawValue > 0
+    }
 }
 
 extension DynamicRange: CustomStringConvertible {

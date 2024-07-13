@@ -313,6 +313,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
 
     public func readyToPlay(player: some MediaPlayerProtocol) {
         state = .readyToPlay
+        subtitleModel.isHDR = player.dynamicRange?.isHDR ?? false
         if let view = player.view {
             addSubtitle(to: view)
         }

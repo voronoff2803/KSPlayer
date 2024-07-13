@@ -589,7 +589,7 @@ public struct VideoSubtitleView: View {
     public var body: some View {
         ZStack {
             ForEach(model.parts) { part in
-                part.view
+                part.view(isHDR: model.isHDR)
             }
         }
         // 禁止字幕视图交互，以免抢占视图的点击事件或其它手势事件
@@ -614,7 +614,7 @@ public struct VideoSubtitleView: View {
 
 private extension SubtitlePart {
     @MainActor
-    var view: some View {
+    func view(isHDR: Bool) -> some View {
         Group {
             switch self.render {
             case let .left(info):
@@ -622,7 +622,9 @@ private extension SubtitlePart {
                     // 不能加scaledToFit。不然的话图片的缩放比率会有问题。
                     let rect = info.displaySize.convert(rect: info.rect, toSize: geometry.size)
                     VideoSubtitleView.imageView(info.image)
-                        .allowedDynamicRange()
+                        .if(isHDR) {
+                            $0.allowedDynamicRange()
+                        }
                         .offset(CGSize(width: rect.origin.x, height: rect.origin.y))
                         .frame(width: rect.width, height: rect.height)
                 }
