@@ -26,7 +26,7 @@ public class KSPictureInPictureController: AVPictureInPictureController, KSPictu
     #if canImport(UIKit)
     private weak var navigationController: UINavigationController?
     #endif
-    @MainActor
+
     public func start(layer: KSComplexPlayerLayer) {
         startPictureInPicture()
         self.layer = layer
@@ -63,7 +63,6 @@ public class KSPictureInPictureController: AVPictureInPictureController, KSPictu
         KSPictureInPictureController.pipController = self
     }
 
-    @MainActor
     public func stop(restoreUserInterface: Bool) {
         stopPictureInPicture()
         guard KSOptions.isPipPopViewController else {
@@ -102,7 +101,6 @@ public class KSPictureInPictureController: AVPictureInPictureController, KSPictu
         layer = nil
     }
 
-    @MainActor
     public static func mute() {
         pipController?.layer?.player.isMuted = true
     }

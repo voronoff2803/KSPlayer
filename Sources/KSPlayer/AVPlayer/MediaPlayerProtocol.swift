@@ -8,6 +8,9 @@
 import AVFoundation
 import AVKit
 import Foundation
+#if canImport(RealityKit)
+import RealityKit
+#endif
 #if canImport(UIKit)
 import UIKit
 #else
@@ -86,6 +89,10 @@ public protocol MediaPlayerProtocol: MediaPlayback {
     var playbackVolume: Float { get set }
     var contentMode: UIViewContentMode { get set }
     var subtitleDataSouce: (any EmbedSubtitleDataSouce)? { get }
+//    #if canImport(RealityKit)
+//    @available(visionOS 1.0, macOS 15.0, iOS 18.0, *)
+//    var videoPlayerComponent: VideoPlayerComponent { get }
+//    #endif
     @available(macOS 12.0, iOS 15.0, tvOS 15.0, *)
     var playbackCoordinator: AVPlaybackCoordinator { get }
     @available(tvOS 14.0, *)

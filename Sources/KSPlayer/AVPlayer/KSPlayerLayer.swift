@@ -109,18 +109,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     public internal(set) var url: URL {
         didSet {
             subtitleModel.url = url
-            let firstPlayerType: MediaPlayerProtocol.Type
-            if isWirelessRouteActive {
-                // airplay的话，默认使用KSAVPlayer
-                firstPlayerType = KSAVPlayer.self
-            } else if options.display.isSphere {
-                // AR模式只能用KSMEPlayer
-                // swiftlint:disable force_cast
-                firstPlayerType = NSClassFromString("KSPlayer.KSMEPlayer") as! MediaPlayerProtocol.Type
-                // swiftlint:enable force_cast
-            } else {
-                firstPlayerType = KSOptions.firstPlayerType
-            }
+            let firstPlayerType = KSOptions.firstPlayerType
             if type(of: player) == firstPlayerType {
                 if url == oldValue {
                     if isAutoPlay {
@@ -168,15 +157,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         self.options = options
         self.delegate = delegate
         let firstPlayerType: MediaPlayerProtocol.Type
-        if options.display.isSphere {
-            // AR模式只能用KSMEPlayer
-            // swiftlint:disable force_cast
-            firstPlayerType = NSClassFromString("KSPlayer.KSMEPlayer") as! MediaPlayerProtocol.Type
-            // swiftlint:enable force_cast
-        } else {
-            firstPlayerType = KSOptions.firstPlayerType
-        }
-        player = firstPlayerType.init(url: url, options: options)
+        player = KSOptions.firstPlayerType.init(url: url, options: options)
         self.isAutoPlay = isAutoPlay
         subtitleModel = SubtitleModel(url: url)
         subtitleVC = UIHostingController(rootView: VideoSubtitleView(model: subtitleModel))
@@ -202,6 +183,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
             player.pipController?.contentSource = nil
         }
+        subtitleVC.view.removeFromSuperview()
         player.shutdown()
         options.playerLayerDeinit()
     }
