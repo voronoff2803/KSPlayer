@@ -7,8 +7,6 @@
 
 import AVKit
 
-@MainActor
-@available(tvOS 14.0, *)
 public protocol KSPictureInPictureProtocol {
     func start(layer: KSComplexPlayerLayer)
     func stop(restoreUserInterface: Bool)

@@ -211,7 +211,8 @@ extension AVAsset {
         #endif
         return compositionM
     }
-
+    // todo 先注释掉。等到xcode16出正式版本了，在处理，不然老版本会找不到符号。
+    #if !os(xrOS)
     func ceateExportSession(beginTime: TimeInterval, endTime: TimeInterval) async throws -> AVAssetExportSession? {
         let compositionM = try await ceateComposition(beginTime: beginTime, endTime: endTime)
         guard let exportSession = AVAssetExportSession(asset: compositionM, presetName: "") else {
@@ -255,6 +256,7 @@ extension AVAsset {
         exportURL = exportURL.appendingPathExtension("Export.mp4")
         try exportMp4(beginTime: beginTime, endTime: endTime, outputURL: exportURL, progress: progress, completion: completion)
     }
+    #endif
 }
 
 extension UIImageView {
