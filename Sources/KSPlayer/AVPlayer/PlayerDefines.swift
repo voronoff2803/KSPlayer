@@ -357,8 +357,8 @@ public extension FixedWidthInteger {
 }
 
 open class AbstractAVIOContext {
-    let bufferSize: Int32
-    let writable: Bool
+    public let bufferSize: Int32
+    public let writable: Bool
     public init(bufferSize: Int32 = 32 * 1024, writable: Bool = false) {
         self.bufferSize = bufferSize
         self.writable = writable
@@ -387,6 +387,11 @@ open class AbstractAVIOContext {
 
     open func close() {}
     deinit {}
+}
+
+public protocol PreLoadProtocol {
+    var loadedSize: Int64 { get }
+    func more() -> Int32
 }
 
 public enum LogLevel: Int32, CustomStringConvertible {

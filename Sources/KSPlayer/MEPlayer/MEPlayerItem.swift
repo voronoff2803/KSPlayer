@@ -42,6 +42,7 @@ public final class MEPlayerItem: Sendable {
     private var videoDisplayCount = UInt8(0)
     private var seekByBytes = false
     private var lastVideoClock = KSClock()
+    private var ioContext: AbstractAVIOContext?
     public private(set) var chapters: [Chapter] = []
     public var playbackRate: Float {
         get {
@@ -222,9 +223,10 @@ extension MEPlayerItem {
 //            0
 //        }
         setHttpProxy()
-        if let pb = options.process(url: url) {
+        ioContext = options.process(url: url)
+        if let ioContext {
             // 如果要自定义协议的话，那就用avio_alloc_context，对formatCtx.pointee.pb赋值
-            formatCtx.pointee.pb = pb.getContext()
+            formatCtx.pointee.pb = ioContext.getContext()
         }
         let urlString: String
         if url.isFileURL {
@@ -501,6 +503,12 @@ extension MEPlayerItem {
         allPlayerItemTracks.forEach { $0.decode() }
         while [MESourceState.paused, .seeking, .reading].contains(state) {
             if state == .paused {
+                if let preload = ioContext as? PreLoadProtocol {
+                    let size = preload.more()
+                    if size > 0 {
+                        continue
+                    }
+                }
                 condition.wait()
             }
             if state == .seeking {
@@ -793,7 +801,14 @@ extension MEPlayerItem: MediaPlayback {
 extension MEPlayerItem: CodecCapacityDelegate {
     func codecDidChangeCapacity() {
         let loadingState = options.playable(capacitys: videoAudioTracks, isFirst: isFirst, isSeek: isSeek)
-        delegate?.sourceDidChange(loadingState: loadingState)
+        if let preload = ioContext as? PreLoadProtocol, fileSize > 0, duration > 0 {
+            let loadedTime = min(1, Double(preload.loadedSize) / fileSize) * duration
+            var state = loadingState
+            delegate?.sourceDidChange(loadingState:
+                LoadingState(loadedTime: loadedTime - currentPlaybackTime, progress: loadingState.progress, packetCount: loadingState.packetCount, frameCount: loadingState.frameCount, isEndOfFile: loadingState.isEndOfFile, isPlayable: loadingState.isPlayable, isFirst: loadingState.isFirst, isSeek: loadingState.isSeek))
+        } else {
+            delegate?.sourceDidChange(loadingState: loadingState)
+        }
         if loadingState.isPlayable {
             isFirst = false
             isSeek = false
