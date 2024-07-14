@@ -307,8 +307,6 @@ open class KSOptions {
     // MARK: sutile options
 
     static let fontsDir = URL(fileURLWithPath: NSTemporaryDirectory() + "fontsDir")
-    public var autoSelectEmbedSubtitle = true
-    public var isSeekImageSubtitle = false
     public static var isASSUseImageRender = false
     // 丢弃掉字幕自带的样式，用自定义的样式
     public static var stripSutitleStyle = true
@@ -325,6 +323,9 @@ open class KSOptions {
     public static var audioRecognizes = [any AudioRecognize]()
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
     public static var sutitleDynamicRange = Image.DynamicRange.high
+    public var autoSelectEmbedSubtitle = true
+    public var isSeekImageSubtitle = false
+    public var subtitleTimeInterval = 0.1
 
     // MARK: video options
 

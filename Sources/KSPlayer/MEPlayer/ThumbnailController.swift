@@ -106,7 +106,7 @@ public class ThumbnailController {
                     }
                     let ret = avcodec_receive_frame(codecContext, frame)
                     if ret < 0 {
-                        if ret == -EAGAIN {
+                        if ret == AVError.tryAgain.code {
                             continue
                         } else {
                             break

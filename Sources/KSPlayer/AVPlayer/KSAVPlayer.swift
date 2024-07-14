@@ -98,6 +98,8 @@ public class KSAVPlayer {
         }
     }
 
+    #if os(tvOS)
+    // 在visionOS，这样的代码会crash，所以只能区分下系统
     private lazy var _pipController: Any? = {
         if #available(tvOS 14.0, *) {
             let pip = KSOptions.pictureInPictureType.init(playerLayer: playerView.playerLayer)
@@ -109,8 +111,14 @@ public class KSAVPlayer {
 
     @available(tvOS 14.0, *)
     public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? {
-        _pipController as? (AVPictureInPictureController & KSPictureInPictureProtocol)
+        _pipController as? any AVPictureInPictureController & KSPictureInPictureProtocol
     }
+    #else
+    public lazy var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? = {
+        let pip = KSOptions.pictureInPictureType.init(playerLayer: playerView.playerLayer)
+        return pip
+    }()
+    #endif
 
     public var naturalSize: CGSize = .zero
     public let dynamicInfo: DynamicInfo? = nil

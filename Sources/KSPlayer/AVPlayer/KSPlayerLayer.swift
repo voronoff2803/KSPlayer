@@ -139,7 +139,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         }
     }
 
-    private lazy var timer: Timer = .scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+    private lazy var timer: Timer = .scheduledTimer(withTimeInterval: options.subtitleTimeInterval, repeats: true) { [weak self] _ in
         guard let self, self.player.isReadyToPlay else {
             return
         }

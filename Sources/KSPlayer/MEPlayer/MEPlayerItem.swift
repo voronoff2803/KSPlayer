@@ -658,7 +658,7 @@ extension MEPlayerItem {
                 }
             }
         } else {
-            if readResult == AVError.tryAgain.code || readResult == AVError.eof.code || avio_feof(formatCtx?.pointee.pb) > 0 {
+            if readResult == AVError.eof.code || avio_feof(formatCtx?.pointee.pb) > 0 {
                 if options.isLoopPlay, allPlayerItemTracks.allSatisfy({ !$0.isLoopModel }) {
                     allPlayerItemTracks.forEach { $0.isLoopModel = true }
                     _ = av_seek_frame(formatCtx, -1, startTime.value, AVSEEK_FLAG_BACKWARD)
@@ -666,7 +666,7 @@ extension MEPlayerItem {
                     allPlayerItemTracks.forEach { $0.isEndOfFile = true }
                     state = .finished
                 }
-            } else {
+            } else if readResult != AVError.tryAgain.code {
                 //                        if IS_AVERROR_INVALIDDATA(readResult)
                 error = .init(errorCode: .readFrame, avErrorCode: readResult)
             }
