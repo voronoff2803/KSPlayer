@@ -15,6 +15,8 @@ struct ImmersiveView: View {
     @Binding var url: String?
 
     @State var view: KSMEPlayer?
+    @AppStorage("is360Play")
+    private var is360Play = false
 
     var body: some View {
         RealityView { content in
@@ -24,14 +26,24 @@ struct ImmersiveView: View {
                 view = player
 
                 if let displayLayer = player.videoOutput?.displayLayer {
-                    let videoEntity = Entity()
-                    let material = VideoMaterial(videoRenderer: displayLayer.sampleBufferRenderer)
-                    let boxMesh = MeshResource.generatePlane(width: 16, height: 9)
-                    videoEntity.components.set(ModelComponent(mesh: boxMesh, materials: [material]))
+                    if is360Play {
+                        let videoEntity = Entity()
+                        let material = VideoMaterial(videoRenderer: displayLayer.sampleBufferRenderer)
+                        let geometry = MeshResource.generateSphere(radius: 1E3)
+                        videoEntity.components.set(ModelComponent(mesh: geometry, materials: [material]))
+                        videoEntity.scale *= SIMD3(1, 1, -1)
+                        videoEntity.orientation *= simd_quatf(angle: .pi / 2, axis: [0, 1, 0])
+                        content.add(videoEntity)
+                    } else {
+                        let videoEntity = Entity()
+                        let material = VideoMaterial(videoRenderer: displayLayer.sampleBufferRenderer)
+                        let boxMesh = MeshResource.generatePlane(width: 16, height: 9)
+                        videoEntity.components.set(ModelComponent(mesh: boxMesh, materials: [material]))
 
-                    videoEntity.transform.translation = [0, 2.5, -5]
-                    content.add(videoEntity)
-                    // 播放视频
+                        videoEntity.transform.translation = [0, 2.5, -5]
+                        content.add(videoEntity)
+                    }
+                    
                     player.prepareToPlay()
                     player.play()
                 }
