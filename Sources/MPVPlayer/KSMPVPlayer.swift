@@ -26,7 +26,7 @@ public class KSMPVPlayer: MPVHandle {
     public private(set) var loadState = MediaLoadState.idle
     public var seekable: Bool = false
     public var duration: TimeInterval = 0
-    public var fileSize: Double = 0
+    public var fileSize: Int64 = 0
     public var naturalSize: CGSize = .zero
     private lazy var _playbackCoordinator: Any? = {
         if #available(macOS 12.0, iOS 15.0, tvOS 15.0, *) {
@@ -79,7 +79,7 @@ public class KSMPVPlayer: MPVHandle {
         isReadyToPlay = true
         seekable = getFlag(MPVProperty.seekable)
         duration = getDouble(MPVProperty.duration)
-        fileSize = getDouble(MPVProperty.fileSize)
+        fileSize = Int64(getInt(MPVProperty.fileSize))
         naturalSize = CGSize(width: getInt(MPVProperty.width), height: getInt(MPVProperty.height))
         let trackCount = getInt(MPVProperty.trackListCount)
         tracks = (0 ..< trackCount).compactMap { index in

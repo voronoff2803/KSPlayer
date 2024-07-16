@@ -61,7 +61,7 @@ public final class MEPlayerItem: Sendable {
     private var seekTime = TimeInterval(0)
     private var startTime = CMTime.zero
     public private(set) var duration: TimeInterval = 0
-    public private(set) var fileSize: Double = 0
+    public private(set) var fileSize: Int64 = 0
     public private(set) var naturalSize = CGSize.one
     private var error: NSError? {
         didSet {
@@ -275,7 +275,7 @@ extension MEPlayerItem {
         maxFrameDuration = flags & AVFMT_TS_DISCONT == AVFMT_TS_DISCONT ? 10.0 : 3600.0
         options.findTime = CACurrentMediaTime()
         options.formatName = String(cString: formatCtx.pointee.iformat.pointee.name)
-        seekByBytes = (flags & AVFMT_NO_BYTE_SEEK == 0) && (flags & AVFMT_TS_DISCONT != 0) && options.formatName != "ogg"
+        seekByBytes = (flags & AVFMT_NO_BYTE_SEEK == 0) && (flags & (AVFMT_TS_DISCONT | AVFMT_NOTIMESTAMPS) != 0) && options.formatName != "ogg"
         if formatCtx.pointee.start_time != Int64.min {
             startTime = CMTime(value: formatCtx.pointee.start_time, timescale: AV_TIME_BASE)
             videoClock.time = startTime
@@ -283,7 +283,7 @@ extension MEPlayerItem {
         }
         duration = TimeInterval(max(formatCtx.pointee.duration, 0) / Int64(AV_TIME_BASE))
         dynamicInfo.byteRate = formatCtx.pointee.bit_rate / 8
-        fileSize = Double(dynamicInfo.byteRate) * duration
+        fileSize = avio_size(formatCtx.pointee.pb)
         createCodec(formatCtx: formatCtx)
         if formatCtx.pointee.nb_chapters > 0 {
             chapters.removeAll()
@@ -519,18 +519,26 @@ extension MEPlayerItem {
                 let timeStamp: Int64
                 if seekByBytes {
                     seekFlags |= AVSEEK_FLAG_BYTE
-                    increase *= dynamicInfo.byteRate
-                    var position = Int64(-1)
-                    if position < 0 {
-                        position = videoClock.position
+                    if fileSize > 0, duration > 0 {
+                        timeStamp = Int64(Double(fileSize) * seekToTime / (duration - startTime.seconds))
+                    } else {
+                        var byteRate = (formatCtx?.pointee.bit_rate ?? 0) / 8
+                        if byteRate == 0 {
+                            byteRate = dynamicInfo.byteRate
+                        }
+                        increase *= byteRate
+                        var position = Int64(-1)
+                        if position < 0 {
+                            position = videoClock.position
+                        }
+                        if position < 0 {
+                            position = audioClock.position
+                        }
+                        if position < 0 {
+                            position = avio_tell(formatCtx?.pointee.pb)
+                        }
+                        timeStamp = position + increase
                     }
-                    if position < 0 {
-                        position = audioClock.position
-                    }
-                    if position < 0 {
-                        position = avio_tell(formatCtx?.pointee.pb)
-                    }
-                    timeStamp = position + increase
                 } else {
                     increase *= Int64(AV_TIME_BASE)
                     timeStamp = Int64(time.seconds) * Int64(AV_TIME_BASE) + increase
@@ -802,7 +810,7 @@ extension MEPlayerItem: CodecCapacityDelegate {
     func codecDidChangeCapacity() {
         let loadingState = options.playable(capacitys: videoAudioTracks, isFirst: isFirst, isSeek: isSeek)
         if let preload = ioContext as? PreLoadProtocol, fileSize > 0, duration > 0 {
-            let loadedTime = min(1, Double(preload.loadedSize) / fileSize) * duration
+            let loadedTime = min(1, Double(preload.loadedSize) / Double(fileSize)) * duration
             var state = loadingState
             delegate?.sourceDidChange(loadingState:
                 LoadingState(loadedTime: loadedTime - currentPlaybackTime, progress: loadingState.progress, packetCount: loadingState.packetCount, frameCount: loadingState.frameCount, isEndOfFile: loadingState.isEndOfFile, isPlayable: loadingState.isPlayable, isFirst: loadingState.isFirst, isSeek: loadingState.isSeek))

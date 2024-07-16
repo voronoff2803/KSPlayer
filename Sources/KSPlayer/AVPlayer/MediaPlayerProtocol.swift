@@ -19,7 +19,7 @@ import AppKit
 
 public protocol MediaPlayback: AnyObject {
     var duration: TimeInterval { get }
-    var fileSize: Double { get }
+    var fileSize: Int64 { get }
     var naturalSize: CGSize { get }
     var chapters: [Chapter] { get }
     var currentPlaybackTime: TimeInterval { get }

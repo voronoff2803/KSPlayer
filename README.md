@@ -27,6 +27,14 @@ English | [简体中文](./README_CN.md)
 - [x] Dolby Atmos/Spatial Audio 
 - [x] 360° panorama video.
 - [x] Custom url protocols such as smb nfs.
+- [x] Support live stream seek back.
+- [x] Use memory cache for fast seek in short time range.
+- [x] Support complex ass animation (use libass to render ass subtitles).
+- [x] Optimize Dovi P5 display effect (no overheating)
+- [x] Support Annex-B hardware decoding
+- [x] AV1 hardware decoding
+- [x] Picture in Picture supports subtitle display
+- [x] Support hard disk preloading video
 
 ## Requirements
 

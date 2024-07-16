@@ -20,7 +20,7 @@ struct ImmersiveView: View {
 
     var body: some View {
         RealityView { content in
-            if let url =  URL(string: url ?? "") {
+            if let url = URL(string: url ?? "") {
                 let options = KSOptions()
                 let player = KSMEPlayer(url: url, options: options)
                 view = player
@@ -29,7 +29,7 @@ struct ImmersiveView: View {
                     if is360Play {
                         let videoEntity = Entity()
                         let material = VideoMaterial(videoRenderer: displayLayer.sampleBufferRenderer)
-                        let geometry = MeshResource.generateSphere(radius: 1E3)
+                        let geometry = MeshResource.generateSphere(radius: 1e3)
                         videoEntity.components.set(ModelComponent(mesh: geometry, materials: [material]))
                         videoEntity.scale *= SIMD3(1, 1, -1)
                         videoEntity.orientation *= simd_quatf(angle: .pi / 2, axis: [0, 1, 0])
@@ -43,7 +43,7 @@ struct ImmersiveView: View {
                         videoEntity.transform.translation = [0, 2.5, -5]
                         content.add(videoEntity)
                     }
-                    
+
                     player.prepareToPlay()
                     player.play()
                 }

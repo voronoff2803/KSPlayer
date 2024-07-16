@@ -135,7 +135,7 @@ public class KSAVPlayer {
 
     public weak var delegate: MediaPlayerDelegate?
     public private(set) var duration: TimeInterval = 0
-    public private(set) var fileSize: Double = 0
+    public private(set) var fileSize: Int64 = 0
     public private(set) var playableTime: TimeInterval = 0
     public let chapters: [Chapter] = []
     public var playbackRate: Float = 1 {
@@ -272,7 +272,7 @@ extension KSAVPlayer {
             item.tracks.filter { $0.assetTrack?.mediaType.rawValue == AVMediaType.audio.rawValue }.dropFirst().forEach { $0.isEnabled = false }
             duration = item.duration.seconds
             let estimatedDataRates = item.tracks.compactMap { $0.assetTrack?.estimatedDataRate }
-            fileSize = Double(estimatedDataRates.reduce(0, +)) * duration / 8
+            fileSize = Int64(Double(estimatedDataRates.reduce(0, +)) * duration / 8)
             isReadyToPlay = true
         } else if item.status == .failed {
             error = item.error

@@ -67,7 +67,7 @@ struct HomeView: View {
                         #if os(visionOS)
                         Button {
                             Task { @MainActor in
-                                await  openImmersiveSpace(id: "ImmersiveView", value: model.url?.absoluteString ?? "")
+                                await openImmersiveSpace(id: "ImmersiveView", value: model.url?.absoluteString ?? "")
                             }
                         } label: {
                             MoiveView(model: model)
