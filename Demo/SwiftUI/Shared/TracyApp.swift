@@ -105,6 +105,13 @@ struct TracyApp: App {
 //        }
 //        .menuBarExtraStyle(.menu)
         #endif
+        
+        
+        // immersive
+        ImmersiveSpace(id: "ImmersiveView", for: String.self) { url in
+            ImmersiveView(url: url)
+        }
+        .immersionStyle(selection: .constant(.full), in: .full)
     }
 }
 
