@@ -29,13 +29,13 @@ English | [简体中文](./README_CN.md)
 - [x] Custom url protocols such as smb nfs.
 - [x] Use memory cache for fast seek in short time range.
 - [x] Support complex ass animation (use libass to render ass subtitles).
-- [x] Normal display Dovi P5 color (overheating)
+- [x] Dovi P5 displays HDR (overheating)
 - [x] Support Annex-B hardware decoding
 - [x] AV1 hardware decoding
 - [x] Picture in Picture supports subtitle display
 
 ## Paid Features
-- [x] Normal display Dovi P5 color (overheating)
+- [x] Dovi P5 displays HDR (not overheating)
 - [x] Customizable URL caching capabilities, for example: caching viewed content on disk, preloading video content on disk
 
 ## Requirements
