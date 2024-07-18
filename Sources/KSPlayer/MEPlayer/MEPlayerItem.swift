@@ -43,6 +43,7 @@ public final class MEPlayerItem: Sendable {
     private var seekByBytes = false
     private var lastVideoClock = KSClock()
     private var ioContext: AbstractAVIOContext?
+    private var defaultIOOpen: ((UnsafeMutablePointer<AVFormatContext>?, UnsafeMutablePointer<UnsafeMutablePointer<AVIOContext>?>?, UnsafePointer<CChar>?, Int32, UnsafeMutablePointer<OpaquePointer?>?) -> Int32)? = nil
     public private(set) var chapters: [Chapter] = []
     public var playbackRate: Float {
         get {
@@ -222,11 +223,27 @@ extension MEPlayerItem {
 //        formatCtx.pointee.io_close2 = { _, _ -> Int32 in
 //            0
 //        }
+        formatCtx.pointee.opaque = Unmanaged.passUnretained(self).toOpaque()
         setHttpProxy()
         ioContext = options.process(url: url)
         if let ioContext {
             // 如果要自定义协议的话，那就用avio_alloc_context，对formatCtx.pointee.pb赋值
             formatCtx.pointee.pb = ioContext.getContext()
+//            defaultIOOpen = formatCtx.pointee.io_open
+//            // 处理m3u8这种有子url的情况。
+//            formatCtx.pointee.io_open = { s, pb, url, flags, options -> Int32 in
+//                guard let s, let url else {
+//                    return -1
+//                }
+//                let playerItem = Unmanaged<MEPlayerItem>.fromOpaque(s.pointee.opaque).takeUnretainedValue()
+            ////                let result = playerItem.defaultIOOpen?(s, pb, url, flags, options)
+//                if let ioContext = playerItem.ioContext, let url = URL(string: String(cString: url)), var subPb = ioContext.addSub(url: url, flags: flags, options: options) {
+//                    pb?.pointee = subPb
+//                    return 0
+//                } else {
+//                    return -1
+//                }
+//            }
         }
         let urlString: String
         if url.isFileURL {
@@ -981,7 +998,7 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
     }
 }
 
-extension AbstractAVIOContext {
+public extension AbstractAVIOContext {
     func getContext() -> UnsafeMutablePointer<AVIOContext> {
         // 需要持有ioContext，不然会被释放掉,等到shutdown在清空
         avio_alloc_context(av_malloc(Int(bufferSize)), bufferSize, writable ? 1 : 0, Unmanaged.passRetained(self).toOpaque()) { opaque, buffer, size -> Int32 in
