@@ -41,6 +41,10 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
     var closedCaptionsTrack: FFmpegAssetTrack?
     var bitStreamFilter: BitStreamFilter.Type?
     var seekByBytes = false
+//    video stream is an image
+    var image = false
+    // video consists of multiple sparse still images
+    var stillImage = false
     public var description: String {
         var description = codecName
         if let formatName {
@@ -72,6 +76,12 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
     convenience init?(stream: UnsafeMutablePointer<AVStream>) {
         let codecpar = stream.pointee.codecpar.pointee
         self.init(codecpar: codecpar)
+        if stream.pointee.disposition & AV_DISPOSITION_STILL_IMAGE != 0 {
+            stillImage = true
+        }
+        if stream.pointee.nb_frames == 1 {
+            image = true
+        }
         self.stream = stream
         let metadata = toDictionary(stream.pointee.metadata)
         if let value = metadata["variant_bitrate"] ?? metadata["BPS"], let bitRate = Int64(value) {

@@ -127,7 +127,7 @@ public final class MEPlayerItem: Sendable {
                     if context.prot != nil, context.flags == 3, let opaque = context.interrupt_callback.opaque {
                         // 因为这里需要获取playerItem。所以如果有其他的播放器内核的话，那需要重新设置av_log_set_callback，不然在这里会crash。
                         let playerItem = Unmanaged<MEPlayerItem>.fromOpaque(opaque).takeUnretainedValue()
-                        if playerItem.state != .closed {
+                        if playerItem.state != .closed, playerItem.options != nil {
                             // 不能在这边判断playerItem.formatCtx。不然会报错Simultaneous accesses
                             playerItem.options.urlIO(log: String(log))
                             if log.starts(with: "Will reconnect at") {
