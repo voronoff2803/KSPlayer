@@ -386,7 +386,7 @@ open class KSOptions {
     /// customize dar
     /// - Parameters:
     ///   - sar: SAR(Sample Aspect Ratio)
-    ///   - dar: PAR(Pixel Aspect Ratio)
+    ///   - par: PAR(Pixel Aspect Ratio)
     /// - Returns: DAR(Display Aspect Ratio)
     open func customizeDar(sar _: CGSize, par _: CGSize) -> CGSize? {
         nil
@@ -421,7 +421,7 @@ open class KSOptions {
     }
 
     @MainActor
-    open func updateVideo(refreshRate: Float, isDovi: Bool, formatDescription: CMFormatDescription?) {
+    open func updateVideo(refreshRate: Float, isDovi: Bool, formatDescription: CMFormatDescription) {
         #if os(tvOS) || os(xrOS)
         /**
          快速更改preferredDisplayCriteria，会导致isDisplayModeSwitchInProgress变成true。
@@ -432,9 +432,8 @@ open class KSOptions {
         else {
             return
         }
-        if let dynamicRange = isDovi ? .dolbyVision : formatDescription?.dynamicRange {
-            displayManager.preferredDisplayCriteria = AVDisplayCriteria(refreshRate: refreshRate, videoDynamicRange: dynamicRange.rawValue)
-        }
+        let dynamicRange = isDovi ? .dolbyVision : formatDescription.dynamicRange
+        displayManager.preferredDisplayCriteria = AVDisplayCriteria(refreshRate: refreshRate, videoDynamicRange: dynamicRange.rawValue)
         #endif
     }
 

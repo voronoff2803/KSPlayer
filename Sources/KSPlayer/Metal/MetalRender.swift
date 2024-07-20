@@ -11,7 +11,12 @@ import Foundation
 import Metal
 import QuartzCore
 import simd
-
+#if canImport(RealityFoundation)
+import RealityFoundation
+#endif
+#if canImport(MetalKit)
+import MetalKit
+#endif
 public class MetalRender {
     public static let device = MTLCreateSystemDefaultDevice()!
     public static var mtlTextureCache: CVMetalTextureCache? = {
@@ -102,10 +107,34 @@ public class MetalRender {
         display.set(frame: frame, encoder: encoder)
         encoder.popDebugGroup()
         encoder.endEncoding()
-        commandBuffer.present(drawable)
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
+        drawable.present()
     }
+
+    #if canImport(RealityFoundation)
+    @available(macOS 12.0, iOS 15.0, *)
+    @MainActor
+    static func draw(frame: VideoVTBFrame, display: DisplayEnum, drawable: TextureResource.Drawable) {
+        let inputTextures = frame.pixelBuffer.textures()
+        renderPassDescriptor.colorAttachments[0].texture = drawable.texture
+        guard !inputTextures.isEmpty, let commandBuffer = commandQueue?.makeCommandBuffer(), let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
+            return
+        }
+        encoder.pushDebugGroup("RenderFrame")
+        encoder.setFragmentSamplerState(samplerState, index: 0)
+        for (index, texture) in inputTextures.enumerated() {
+            texture.label = "texture\(index)"
+            encoder.setFragmentTexture(texture, index: index)
+        }
+        display.set(frame: frame, encoder: encoder)
+        encoder.popDebugGroup()
+        encoder.endEncoding()
+        commandBuffer.commit()
+        commandBuffer.waitUntilCompleted()
+        drawable.present()
+    }
+    #endif
 
     public static func setFragmentBuffer(encoder: MTLRenderCommandEncoder, pixelBuffer: PixelBufferProtocol) {
         if pixelBuffer.planeCount > 1 {
@@ -181,6 +210,84 @@ public class MetalRender {
         }
     }
 }
+
+public protocol Drawable {
+    @MainActor
+    func draw(frame: VideoVTBFrame, display: DisplayEnum)
+    func clear()
+}
+
+extension CAMetalLayer: Drawable {
+    public func draw(frame: VideoVTBFrame, display: DisplayEnum) {
+        #if !os(tvOS)
+        // 设置edrMetadata 需要同时设置对的colorspace，不然会导致过度曝光。
+        if #available(iOS 16, *) {
+            edrMetadata = frame.edrMetadata
+        }
+        #endif
+        let size: CGSize
+        if display.isSphere {
+            size = KSOptions.sceneSize
+        } else {
+            let par = frame.pixelBuffer.size
+            let sar = frame.pixelBuffer.aspectRatio
+            size = CGSize(width: par.width, height: par.height * sar.height / sar.width)
+        }
+        drawableSize = size
+        pixelFormat = KSOptions.colorPixelFormat(bitDepth: frame.pixelBuffer.bitDepth)
+
+        let colorspace = frame.pixelBuffer.colorspace
+        if colorspace != nil, self.colorspace != colorspace {
+            self.colorspace = colorspace
+            KSLog("[video] CAMetalLayer colorspace \(String(describing: colorspace))")
+            #if !os(tvOS)
+            if #available(iOS 16.0, *) {
+                if let name = colorspace?.name, name != CGColorSpace.sRGB {
+                    #if os(macOS)
+                    wantsExtendedDynamicRangeContent = NSScreen.main?.maximumPotentialExtendedDynamicRangeColorComponentValue ?? 1.0 > 1.0
+                    #else
+                    wantsExtendedDynamicRangeContent = true
+                    #endif
+                } else {
+                    wantsExtendedDynamicRangeContent = false
+                }
+                KSLog("[video] CAMetalLayer wantsExtendedDynamicRangeContent \(wantsExtendedDynamicRangeContent)")
+            }
+            #endif
+        }
+        guard let drawable = nextDrawable() else {
+            KSLog("[video] CAMetalLayer not readyForMoreMediaData")
+            return
+        }
+        MetalRender.draw(frame: frame, display: display, drawable: drawable)
+    }
+
+    public func clear() {
+        #if !os(tvOS)
+        if #available(iOS 16, *) {
+            edrMetadata = nil
+        }
+        #endif
+        if let drawable = nextDrawable() {
+            MetalRender.clear(drawable: drawable)
+        }
+    }
+}
+
+#if canImport(RealityFoundation)
+@available(macOS 12.0, iOS 15.0, *)
+extension TextureResource.DrawableQueue: Drawable {
+    public func draw(frame: VideoVTBFrame, display: any DisplayEnum) {
+        guard let drawable = try? nextDrawable() else {
+            KSLog("[video] TextureResource not readyForMoreMediaData")
+            return
+        }
+        MetalRender.draw(frame: frame, display: display, drawable: drawable)
+    }
+
+    public func clear() {}
+}
+#endif
 
 // swiftlint:disable identifier_name
 // private let kvImage_YpCbCrToARGBMatrix_ITU_R_601_4 = vImage_YpCbCrToARGBMatrix(Kr: 0.299, Kb: 0.114)

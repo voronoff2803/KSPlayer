@@ -9,10 +9,12 @@ import AVFoundation
 import Combine
 import CoreMedia
 import FFmpegKit
-#if canImport(MetalKit)
-import MetalKit
+import QuartzCore
+#if canImport(UIKit)
+import UIKit
+#else
+import AppKit
 #endif
-
 public protocol VideoOutput: FrameOutput {
     var options: KSOptions { get set }
 //    AVSampleBufferDisplayLayer和CAMetalLayer无法使用截图方法 render(in ctx: CGContext)，所以要保存pixelBuffer来进行视频截图。
@@ -31,13 +33,15 @@ public final class MetalPlayView: UIView, VideoOutput {
     private var isDovi: Bool = false
     private var formatDescription: CMFormatDescription? {
         didSet {
-            options.updateVideo(refreshRate: fps, isDovi: isDovi, formatDescription: formatDescription)
+            if let formatDescription {
+                options.updateVideo(refreshRate: fps, isDovi: isDovi, formatDescription: formatDescription)
+            }
         }
     }
 
     private var fps = Float(60) {
         didSet {
-            if fps != oldValue {
+            if fps != oldValue, let formatDescription {
                 if KSOptions.preferredFrame {
                     let preferredFramesPerSecond = ceil(fps)
                     if #available(iOS 15.0, tvOS 15.0, macOS 14.0, *) {
@@ -61,10 +65,11 @@ public final class MetalPlayView: UIView, VideoOutput {
     public weak var renderSource: OutputRenderSourceDelegate?
     // AVSampleBufferAudioRenderer AVSampleBufferRenderSynchronizer AVSampleBufferDisplayLayer
     private let displayView = AVSampleBufferDisplayView()
-
+    public var drawable: Drawable
     private let metalView = MetalView()
     public init(options: KSOptions) {
         self.options = options
+        drawable = metalView.metalLayer
         super.init(frame: .zero)
         addSub(view: displayView)
         addSub(view: metalView)
@@ -126,7 +131,7 @@ public final class MetalPlayView: UIView, VideoOutput {
     public func flush() {
         pixelBuffer = nil
         if displayView.isHidden {
-            metalView.clear()
+            drawable.clear()
         } else {
             displayView.displayLayer.flushAndRemoveImage()
         }
@@ -175,16 +180,16 @@ extension MetalPlayView {
             let cmtime = frame.cmtime
             let par = pixelBuffer.size
             let sar = pixelBuffer.aspectRatio
+            if let dar = options.customizeDar(sar: sar, par: par) {
+                pixelBuffer.aspectRatio = CGSize(width: dar.width, height: dar.height * par.width / par.height)
+            }
+            checkFormatDescription(pixelBuffer: pixelBuffer)
             if let pixelBuffer = pixelBuffer.cvPixelBuffer, options.isUseDisplayLayer() {
                 if displayView.isHidden {
                     displayView.isHidden = false
                     metalView.isHidden = true
-                    metalView.clear()
+                    drawable.clear()
                 }
-                if let dar = options.customizeDar(sar: sar, par: par) {
-                    pixelBuffer.aspectRatio = CGSize(width: dar.width, height: dar.height * par.width / par.height)
-                }
-                checkFormatDescription(pixelBuffer: pixelBuffer)
                 set(pixelBuffer: pixelBuffer, time: cmtime)
             } else {
                 if !displayView.isHidden {
@@ -192,24 +197,7 @@ extension MetalPlayView {
                     metalView.isHidden = false
                     displayView.displayLayer.flushAndRemoveImage()
                 }
-                let size: CGSize
-                if options.display.isSphere {
-                    size = KSOptions.sceneSize
-                } else {
-                    if let dar = options.customizeDar(sar: sar, par: par) {
-                        size = CGSize(width: par.width, height: par.width * dar.height / dar.width)
-                    } else {
-                        size = CGSize(width: par.width, height: par.height * sar.height / sar.width)
-                    }
-                }
-                checkFormatDescription(pixelBuffer: pixelBuffer)
-                #if !os(tvOS)
-                // 设置edrMetadata 需要同时设置对的colorspace，不然会导致过度曝光。
-                if #available(iOS 16, *) {
-                    metalView.metalLayer.edrMetadata = frame.edrMetadata
-                }
-                #endif
-                metalView.draw(frame: frame, display: options.display, size: size)
+                drawable.draw(frame: frame, display: options.display)
             }
             renderSource?.setVideo(time: cmtime, position: frame.position)
         }
@@ -259,46 +247,6 @@ public class MetalView: UIView {
     @available(*, unavailable)
     required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    func clear() {
-        #if !os(tvOS)
-        if #available(iOS 16, *) {
-            metalLayer.edrMetadata = nil
-        }
-        #endif
-        if let drawable = metalLayer.nextDrawable() {
-            MetalRender.clear(drawable: drawable)
-        }
-    }
-
-    func draw(frame: VideoVTBFrame, display: DisplayEnum, size: CGSize) {
-        metalLayer.drawableSize = size
-        metalLayer.pixelFormat = KSOptions.colorPixelFormat(bitDepth: frame.pixelBuffer.bitDepth)
-        let colorspace = frame.pixelBuffer.colorspace
-        if colorspace != nil, metalLayer.colorspace != colorspace {
-            metalLayer.colorspace = colorspace
-            KSLog("[video] CAMetalLayer colorspace \(String(describing: colorspace))")
-            #if !os(tvOS)
-            if #available(iOS 16.0, *) {
-                if let name = colorspace?.name, name != CGColorSpace.sRGB {
-                    #if os(macOS)
-                    metalLayer.wantsExtendedDynamicRangeContent = window?.screen?.maximumPotentialExtendedDynamicRangeColorComponentValue ?? 1.0 > 1.0
-                    #else
-                    metalLayer.wantsExtendedDynamicRangeContent = true
-                    #endif
-                } else {
-                    metalLayer.wantsExtendedDynamicRangeContent = false
-                }
-                KSLog("[video] CAMetalLayer wantsExtendedDynamicRangeContent \(metalLayer.wantsExtendedDynamicRangeContent)")
-            }
-            #endif
-        }
-        guard let drawable = metalLayer.nextDrawable() else {
-            KSLog("[video] CAMetalLayer not readyForMoreMediaData")
-            return
-        }
-        MetalRender.draw(frame: frame, display: display, drawable: drawable)
     }
 }
 
@@ -365,6 +313,7 @@ private class AVSampleBufferDisplayView: UIView {
 
 #if os(macOS)
 import CoreVideo
+import RealityFoundation
 
 class CADisplayLink {
     private let displayLink: CVDisplayLink

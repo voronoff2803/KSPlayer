@@ -31,7 +31,7 @@ public extension KSOptions {
 }
 #else
 import AppKit
-
+public typealias UIImage = NSImage
 public typealias UIView = NSView
 public typealias UIPasteboard = NSPasteboard
 public extension KSOptions {

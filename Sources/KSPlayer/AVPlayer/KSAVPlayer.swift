@@ -4,8 +4,6 @@ import AVKit
 import UIKit
 #else
 import AppKit
-
-public typealias UIImage = NSImage
 #endif
 import Combine
 import CoreGraphics
