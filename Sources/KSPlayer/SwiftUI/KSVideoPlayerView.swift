@@ -11,7 +11,7 @@ import SwiftUI
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
 @MainActor
 public struct KSVideoPlayerView: View {
-    private let subtitleDataSouce: SubtitleDataSouce?
+    private let subtitleDataSource: SubtitleDataSource?
     public let options: KSOptions
     @State
     private var title: String
@@ -26,15 +26,15 @@ public struct KSVideoPlayerView: View {
     @State
     private var isDropdownShow = false
     public init(url: URL, options: KSOptions, title: String? = nil) {
-        self.init(coordinator: KSVideoPlayer.Coordinator(), url: url, options: options, title: title, subtitleDataSouce: nil)
+        self.init(coordinator: KSVideoPlayer.Coordinator(), url: url, options: options, title: title, subtitleDataSource: nil)
     }
 
     // xcode 15.2还不支持对MainActor参数设置默认值
-    public init(coordinator: KSVideoPlayer.Coordinator, url: URL, options: KSOptions, title: String? = nil, subtitleDataSouce: SubtitleDataSouce? = nil) {
-        self.init(coordinator: coordinator, url: .init(wrappedValue: url), options: options, title: .init(wrappedValue: title ?? url.lastPathComponent), subtitleDataSouce: subtitleDataSouce)
+    public init(coordinator: KSVideoPlayer.Coordinator, url: URL, options: KSOptions, title: String? = nil, subtitleDataSource: SubtitleDataSource? = nil) {
+        self.init(coordinator: coordinator, url: .init(wrappedValue: url), options: options, title: .init(wrappedValue: title ?? url.lastPathComponent), subtitleDataSource: subtitleDataSource)
     }
 
-    public init(coordinator: KSVideoPlayer.Coordinator, url: State<URL>, options: KSOptions, title: State<String>, subtitleDataSouce: SubtitleDataSouce?) {
+    public init(coordinator: KSVideoPlayer.Coordinator, url: State<URL>, options: KSOptions, title: State<String>, subtitleDataSource: SubtitleDataSource?) {
         _url = url
         _config = .init(wrappedValue: coordinator)
         _title = title
@@ -42,11 +42,11 @@ public struct KSVideoPlayerView: View {
         NSDocumentController.shared.noteNewRecentDocumentURL(url.wrappedValue)
         #endif
         self.options = options
-        self.subtitleDataSouce = subtitleDataSouce
+        self.subtitleDataSource = subtitleDataSource
     }
 
     public var body: some View {
-        KSCorePlayerView(config: config, url: _url, options: options, title: _title, subtitleDataSouce: subtitleDataSouce)
+        KSCorePlayerView(config: config, url: _url, options: options, title: _title, subtitleDataSource: subtitleDataSource)
             .onAppear {
                 focusableView = .play
                 // 不要加这个，不然config无法释放，也可以在onDisappear调用removeMonitor释放
@@ -161,21 +161,21 @@ public struct KSCorePlayerView: View {
     public let options: KSOptions
     @State
     private var title: String
-    private let subtitleDataSouce: SubtitleDataSouce?
-    public init(config: KSVideoPlayer.Coordinator, url: State<URL>, options: KSOptions, title: State<String>, subtitleDataSouce: SubtitleDataSouce?) {
+    private let subtitleDataSource: SubtitleDataSource?
+    public init(config: KSVideoPlayer.Coordinator, url: State<URL>, options: KSOptions, title: State<String>, subtitleDataSource: SubtitleDataSource?) {
         _config = .init(wrappedValue: config)
         _url = url
         self.options = options
         _title = title
-        self.subtitleDataSouce = subtitleDataSouce
+        self.subtitleDataSource = subtitleDataSource
     }
 
     public var body: some View {
         KSVideoPlayer(coordinator: config, url: url, options: options)
             .onStateChanged { playerLayer, state in
                 if state == .readyToPlay {
-                    if let subtitleDataSouce {
-                        config.playerLayer?.subtitleModel.addSubtitle(dataSouce: subtitleDataSouce)
+                    if let subtitleDataSource {
+                        config.playerLayer?.subtitleModel.addSubtitle(dataSource: subtitleDataSource)
                     }
                     if let movieTitle = playerLayer.player.dynamicInfo?.metadata["title"] {
                         title = movieTitle
@@ -659,7 +659,7 @@ private extension SubtitlePart {
 
 extension NSAttributedString {
     var view: some View {
-        if #available(macOS 12, iOS 15, tvOS 15, *), !KSOptions.stripSutitleStyle {
+        if #available(macOS 12, iOS 15, tvOS 15, *), !KSOptions.stripSubtitleStyle {
             Text(AttributedString(self))
         } else {
             Text(string)
@@ -719,13 +719,13 @@ struct VideoSettingView: View {
                     LabeledContent("Video Type", value: (videoTracks.first { $0.isEnabled }?.dynamicRange ?? .sdr).description)
                     LabeledContent("Stream Type", value: (videoTracks.first { $0.isEnabled }?.fieldOrder ?? .progressive).description)
                 }
-                TextField("Sutitle delay", value: Binding {
+                TextField("Subtitle delay", value: Binding {
                     playerLayer.subtitleModel.subtitleDelay
                 } set: { value in
                     playerLayer.subtitleModel.subtitleDelay = value
                 }, format: .number)
                 TextField("Title", text: $subtitleTitle)
-                Button("Search Sutitle") {
+                Button("Search Subtitle") {
                     playerLayer.subtitleModel.searchSubtitle(query: subtitleTitle, languages: ["zh-cn"])
                 }
                 .buttonStyle(.bordered)

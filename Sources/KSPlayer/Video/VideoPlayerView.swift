@@ -56,8 +56,8 @@ open class VideoPlayerView: PlayerView {
     public private(set) var resource: KSPlayerResource? {
         didSet {
             if let resource, oldValue != resource {
-                if let subtitleDataSouce = resource.subtitleDataSouce {
-                    playerLayer?.subtitleModel.addSubtitle(dataSouce: subtitleDataSouce)
+                if let subtitleDataSource = resource.subtitleDataSource {
+                    playerLayer?.subtitleModel.addSubtitle(dataSource: subtitleDataSource)
                 }
                 titleLabel.text = resource.name
                 toolBar.definitionButton.isHidden = resource.definitions.count < 2
@@ -65,7 +65,7 @@ open class VideoPlayerView: PlayerView {
                     #if !os(tvOS)
                     toolBar.definitionButton.setMenu(title: NSLocalizedString("video quality", comment: ""), current: resource.definitions[currentDefinition], list: resource.definitions) { value in
                         value.definition
-                    } completition: { [weak self] value in
+                    } completion: { [weak self] value in
                         guard let self else { return }
                         if let value, let index = self.resource?.definitions.firstIndex(of: value) {
                             self.change(definitionIndex: index)

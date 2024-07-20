@@ -32,7 +32,7 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
     public let isImageSubtitle: Bool
     public var delay: TimeInterval = 0
     var subtitle: SyncPlayerItemTrack<SubtitleFrame>?
-    var sutitleRender: KSSubtitleProtocol?
+    var subtitleRender: KSSubtitleProtocol?
     // video
     public private(set) var rotation: Int16 = 0
     public var dovi: DOVIDecoderConfigurationRecord?

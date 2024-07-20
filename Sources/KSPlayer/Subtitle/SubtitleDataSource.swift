@@ -1,5 +1,5 @@
 //
-//  SubtitleDataSouce.swift
+//  SubtitleDataSource.swift
 //  KSPlayer-7de52535
 //
 //  Created by kintan on 2018/8/7.
@@ -60,32 +60,32 @@ public class URLSubtitleInfo: KSSubtitle, SubtitleInfo {
     }
 }
 
-public protocol SubtitleDataSouce: AnyObject {}
+public protocol SubtitleDataSource: AnyObject {}
 
-public protocol EmbedSubtitleDataSouce: SubtitleDataSouce {
+public protocol EmbedSubtitleDataSource: SubtitleDataSource {
     associatedtype Subtitle: SubtitleInfo
     var infos: [Subtitle] { get }
 }
 
-public protocol URLSubtitleDataSouce: SubtitleDataSouce {
+public protocol URLSubtitleDataSource: SubtitleDataSource {
     func searchSubtitle(fileURL: URL) async throws -> [URLSubtitleInfo]
 }
 
-public protocol SearchSubtitleDataSouce: SubtitleDataSouce {
+public protocol SearchSubtitleDataSource: SubtitleDataSource {
     var infos: [URLSubtitleInfo] { get }
     func searchSubtitle(query: String, languages: [String]) async throws -> [URLSubtitleInfo]
 }
 
-public protocol CacheSubtitleDataSouce: URLSubtitleDataSouce {
+public protocol CacheSubtitleDataSource: URLSubtitleDataSource {
     func addCache(fileURL: URL, downloadURL: URL)
 }
 
 public extension KSOptions {
-    static var subtitleDataSouces: [SubtitleDataSouce] = [DirectorySubtitleDataSouce()]
+    static var subtitleDataSources: [SubtitleDataSource] = [DirectorySubtitleDataSource()]
 }
 
-public class PlistCacheSubtitleDataSouce: CacheSubtitleDataSouce {
-    public static let singleton = PlistCacheSubtitleDataSouce()
+public class PlistCacheSubtitleDataSource: CacheSubtitleDataSource {
+    public static let singleton = PlistCacheSubtitleDataSource()
     private let srtCacheInfoPath: String
     // 因为plist不能保存URL
     private var srtInfoCaches: [String: [String]]
@@ -132,7 +132,7 @@ public class PlistCacheSubtitleDataSouce: CacheSubtitleDataSouce {
     }
 }
 
-public class ConstantURLSubtitleDataSouce: URLSubtitleDataSouce {
+public class ConstantURLSubtitleDataSource: URLSubtitleDataSource {
     public let infos: [URLSubtitleInfo]
     public let url: URL
     public init(url: URL, subtitleURLs: [URL]) {
@@ -145,7 +145,7 @@ public class ConstantURLSubtitleDataSouce: URLSubtitleDataSouce {
     }
 }
 
-public class DirectorySubtitleDataSouce: URLSubtitleDataSouce {
+public class DirectorySubtitleDataSource: URLSubtitleDataSource {
     public init() {}
     public func searchSubtitle(fileURL: URL) async throws -> [URLSubtitleInfo] {
         if fileURL.isFileURL {
@@ -159,7 +159,7 @@ public class DirectorySubtitleDataSouce: URLSubtitleDataSouce {
     }
 }
 
-public class ShooterSubtitleDataSouce: URLSubtitleDataSouce {
+public class ShooterSubtitleDataSource: URLSubtitleDataSource {
     public init() {}
     public func searchSubtitle(fileURL: URL) async throws -> [URLSubtitleInfo] {
         guard fileURL.isFileURL, let searchApi = URL(string: "https://www.shooter.cn/api/subapi.php")?
@@ -189,7 +189,7 @@ public class ShooterSubtitleDataSouce: URLSubtitleDataSouce {
     }
 }
 
-public class AssrtSubtitleDataSouce: SearchSubtitleDataSouce {
+public class AssrtSubtitleDataSource: SearchSubtitleDataSource {
     private let token: String
     public private(set) var infos = [URLSubtitleInfo]()
     public init(token: String) {
@@ -256,7 +256,7 @@ public class AssrtSubtitleDataSouce: SearchSubtitleDataSouce {
     }
 }
 
-public class OpenSubtitleDataSouce: SearchSubtitleDataSouce {
+public class OpenSubtitleDataSource: SearchSubtitleDataSource {
     private var token: String? = nil
     private let username: String?
     private let password: String?

@@ -303,12 +303,12 @@ open class KSOptions {
         }
     }
 
-    // MARK: sutile options
+    // MARK: subtile options
 
     static let fontsDir = URL(fileURLWithPath: NSTemporaryDirectory() + "fontsDir")
     public static var isASSUseImageRender = false
     // 丢弃掉字幕自带的样式，用自定义的样式
-    public static var stripSutitleStyle = true
+    public static var stripSubtitleStyle = true
     public static var textColor: Color = .white
     public static var textBackgroundColor: Color = .clear
     public static var textFont: UIFont {
@@ -321,7 +321,7 @@ open class KSOptions {
     public static var textPosition = TextPosition()
     public static var audioRecognizes = [any AudioRecognize]()
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
-    public static var sutitleDynamicRange = Image.DynamicRange.high
+    public static var subtitleDynamicRange = Image.DynamicRange.high
     public var autoSelectEmbedSubtitle = true
     public var isSeekImageSubtitle = false
     public var subtitleTimeInterval = 0.1

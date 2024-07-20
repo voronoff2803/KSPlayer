@@ -88,7 +88,7 @@ public protocol MediaPlayerProtocol: MediaPlayback {
     var isExternalPlaybackActive: Bool { get }
     var playbackVolume: Float { get set }
     var contentMode: UIViewContentMode { get set }
-    var subtitleDataSouce: (any EmbedSubtitleDataSouce)? { get }
+    var subtitleDataSource: (any EmbedSubtitleDataSource)? { get }
     #if canImport(RealityKit)
 //    var videoMaterial: VideoMaterial { get }
 //    @available(visionOS 1.0, macOS 15.0, iOS 18.0, *)
