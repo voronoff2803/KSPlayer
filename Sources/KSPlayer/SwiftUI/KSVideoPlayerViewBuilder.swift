@@ -214,7 +214,7 @@ extension View {
 
     func allowedDynamicRange() -> some View {
         if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
-            return self.allowedDynamicRange(KSOptions.sutitleDynamicRange)
+            return self.allowedDynamicRange(KSOptions.subtitleDynamicRange)
         } else {
             return self
         }

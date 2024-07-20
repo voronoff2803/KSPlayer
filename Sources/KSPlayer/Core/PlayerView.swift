@@ -175,7 +175,7 @@ open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
             if #available(iOS 14.0, tvOS 15.0, *) {
                 buildMenusForButtons()
             }
-            if let subtitleDataSouce = layer.player.subtitleDataSouce {
+            if let subtitleDataSource = layer.player.subtitleDataSource {
                 // 要延后增加内嵌字幕。因为有些内嵌字幕是放在视频流的。所以会比readyToPlay回调晚。
                 DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 2.5) { [weak self] in
                     guard let self else { return }
@@ -222,7 +222,7 @@ public extension PlayerView {
         let videoTracks = playerLayer?.player.tracks(mediaType: .video) ?? []
         toolBar.videoSwitchButton.setMenu(title: NSLocalizedString("switch video", comment: ""), current: videoTracks.first(where: { $0.isEnabled }), list: videoTracks) { value in
             value.name + " \(value.naturalSize.width)x\(value.naturalSize.height)"
-        } completition: { [weak self] value in
+        } completion: { [weak self] value in
             guard let self else { return }
             if let value {
                 self.playerLayer?.player.select(track: value)
@@ -231,7 +231,7 @@ public extension PlayerView {
         let audioTracks = playerLayer?.player.tracks(mediaType: .audio) ?? []
         toolBar.audioSwitchButton.setMenu(title: NSLocalizedString("switch audio", comment: ""), current: audioTracks.first(where: { $0.isEnabled }), list: audioTracks) { value in
             value.description
-        } completition: { [weak self] value in
+        } completion: { [weak self] value in
             guard let self else { return }
             if let value {
                 self.playerLayer?.player.select(track: value)
@@ -239,7 +239,7 @@ public extension PlayerView {
         }
         toolBar.playbackRateButton.setMenu(title: NSLocalizedString("speed", comment: ""), current: playerLayer?.player.playbackRate ?? 1, list: [0.75, 1.0, 1.25, 1.5, 2.0]) { value in
             "\(value) x"
-        } completition: { [weak self] value in
+        } completion: { [weak self] value in
             guard let self else { return }
             if let value {
                 self.playerLayer?.player.playbackRate = value
@@ -248,7 +248,7 @@ public extension PlayerView {
         if let subtitleModel = playerLayer?.subtitleModel {
             toolBar.srtButton.setMenu(title: NSLocalizedString("subtitle", comment: ""), current: subtitleModel.selectedSubtitleInfo, list: subtitleModel.subtitleInfos, addDisabled: true) { value in
                 value.name
-            } completition: { [weak self] value in
+            } completion: { [weak self] value in
                 guard let self else { return }
                 subtitleModel.selectedSubtitleInfo = value
             }

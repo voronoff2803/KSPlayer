@@ -1,5 +1,5 @@
 //
-//  EmbedDataSouce.swift
+//  EmbedDataSource.swift
 //  KSPlayer-7de52535
 //
 //  Created by kintan on 2018/8/7.
@@ -16,8 +16,8 @@ extension FFmpegAssetTrack: SubtitleInfo {
 
 extension FFmpegAssetTrack: KSSubtitleProtocol {
     public func search(for time: TimeInterval, size: CGSize) async -> [SubtitlePart] {
-        if let sutitleRender {
-            return await sutitleRender.search(for: time, size: size)
+        if let subtitleRender {
+            return await subtitleRender.search(for: time, size: size)
         }
         return subtitle?.outputRenderQueue.search { item -> Bool in
             item.part.isEqual(time: time)
@@ -25,7 +25,7 @@ extension FFmpegAssetTrack: KSSubtitleProtocol {
     }
 }
 
-extension KSMEPlayer: EmbedSubtitleDataSouce {
+extension KSMEPlayer: EmbedSubtitleDataSource {
     public var infos: [FFmpegAssetTrack] {
         tracks(mediaType: .subtitle).compactMap { $0 as? FFmpegAssetTrack }
     }

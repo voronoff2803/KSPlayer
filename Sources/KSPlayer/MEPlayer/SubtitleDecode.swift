@@ -30,7 +30,7 @@ class SubtitleDecode: DecodeProtocol {
                 let subtitleHeader = String(cString: pointer)
                 if KSOptions.isASSUseImageRender {
                     assImageRenderer = AssImageRenderer()
-                    assetTrack.sutitleRender = assImageRenderer
+                    assetTrack.subtitleRender = assImageRenderer
                     Task(priority: .high) {
                         await assImageRenderer?.subtitle(header: subtitleHeader)
                     }

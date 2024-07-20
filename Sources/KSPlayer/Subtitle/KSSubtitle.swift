@@ -281,7 +281,7 @@ open class SubtitleModel: ObservableObject {
         }
     }
 
-    private var subtitleDataSouces = [SubtitleDataSouce]()
+    private var subtitleDataSources = [SubtitleDataSource]()
     @Published
     public private(set) var subtitleInfos = [any SubtitleInfo]()
     @Published
@@ -290,9 +290,9 @@ open class SubtitleModel: ObservableObject {
     public var isHDR = false
     public var url: URL {
         didSet {
-            subtitleDataSouces.removeAll()
-            for datasouce in KSOptions.subtitleDataSouces {
-                addSubtitle(dataSouce: datasouce)
+            subtitleDataSources.removeAll()
+            for dataSource in KSOptions.subtitleDataSources {
+                addSubtitle(dataSource: dataSource)
             }
             Task { @MainActor in
                 subtitleInfos.removeAll()
@@ -310,7 +310,7 @@ open class SubtitleModel: ObservableObject {
             if let selectedSubtitleInfo {
                 selectedSubtitleInfo.isEnabled = true
                 addSubtitle(info: selectedSubtitleInfo)
-                if let info = selectedSubtitleInfo as? URLSubtitleInfo, !info.downloadURL.isFileURL, let cache = subtitleDataSouces.first(where: { $0 is CacheSubtitleDataSouce }) as? CacheSubtitleDataSouce {
+                if let info = selectedSubtitleInfo as? URLSubtitleInfo, !info.downloadURL.isFileURL, let cache = subtitleDataSources.first(where: { $0 is CacheSubtitleDataSource }) as? CacheSubtitleDataSource {
                     cache.addCache(fileURL: url, downloadURL: info.downloadURL)
                 }
             }
@@ -319,8 +319,8 @@ open class SubtitleModel: ObservableObject {
 
     public init(url: URL) {
         self.url = url
-        for datasouce in KSOptions.subtitleDataSouces {
-            addSubtitle(dataSouce: datasouce)
+        for dataSource in KSOptions.subtitleDataSources {
+            addSubtitle(dataSource: dataSource)
         }
     }
 
@@ -350,16 +350,16 @@ open class SubtitleModel: ObservableObject {
     }
 
     public func searchSubtitle(query: String, languages: [String]) {
-        for dataSouce in subtitleDataSouces {
-            if let dataSouce = dataSouce as? SearchSubtitleDataSouce {
+        for dataSource in subtitleDataSources {
+            if let dataSource = dataSource as? SearchSubtitleDataSource {
                 subtitleInfos.removeAll { info in
-                    dataSouce.infos.contains {
+                    dataSource.infos.contains {
                         $0 === info
                     }
                 }
                 Task { @MainActor in
                     do {
-                        try await subtitleInfos.append(contentsOf: dataSouce.searchSubtitle(query: query, languages: languages))
+                        try await subtitleInfos.append(contentsOf: dataSource.searchSubtitle(query: query, languages: languages))
                     } catch {
                         KSLog(error)
                     }
@@ -368,18 +368,18 @@ open class SubtitleModel: ObservableObject {
         }
     }
 
-    public func addSubtitle(dataSouce: SubtitleDataSouce) {
-        subtitleDataSouces.append(dataSouce)
-        if let dataSouce = dataSouce as? URLSubtitleDataSouce {
+    public func addSubtitle(dataSource: SubtitleDataSource) {
+        subtitleDataSources.append(dataSource)
+        if let dataSource = dataSource as? URLSubtitleDataSource {
             Task { @MainActor in
                 do {
-                    try await subtitleInfos.append(contentsOf: dataSouce.searchSubtitle(fileURL: url))
+                    try await subtitleInfos.append(contentsOf: dataSource.searchSubtitle(fileURL: url))
                 } catch {
                     KSLog(error)
                 }
             }
-        } else if let dataSouce = dataSouce as? (any EmbedSubtitleDataSouce) {
-            subtitleInfos.append(contentsOf: dataSouce.infos)
+        } else if let dataSource = dataSource as? (any EmbedSubtitleDataSource) {
+            subtitleInfos.append(contentsOf: dataSource.infos)
         }
     }
 }
