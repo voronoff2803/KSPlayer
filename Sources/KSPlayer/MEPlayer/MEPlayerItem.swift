@@ -119,13 +119,19 @@ public final class MEPlayerItem: Sendable {
             if let arguments {
                 log = NSString(format: log, arguments: arguments) as String
             }
-            if let ptr, let namePtr = av_default_item_name(ptr) {
-                let name = String(cString: namePtr)
+            if let ptr {
                 let avclass = ptr.assumingMemoryBound(to: UnsafePointer<AVClass>.self).pointee
-                if name == "URLContext" {
+                if avclass == avfilter_get_class() {
+                    let context = ptr.assumingMemoryBound(to: AVFilterContext.self).pointee
+                    if let opaque = context.graph?.pointee.opaque {
+                        let options = Unmanaged<KSOptions>.fromOpaque(opaque).takeUnretainedValue()
+                        options.filter(log: log)
+                    }
+                } else if avclass != nil, let namePtr = avclass.pointee.class_name, String(cString: namePtr) == "URLContext" {
                     let context = ptr.assumingMemoryBound(to: URLContext.self).pointee
+                    // 自定义IO的URLContext没有设置interrupt_callback。
                     // 做下保护防止crash，Setting default whitelist的时候flags还是1.所以专门过滤掉
-                    if context.prot != nil, context.flags == 3, let opaque = context.interrupt_callback.opaque {
+                    if context.prot != nil, context.flags == 3, let opaque = context.interrupt_callback.opaque, context.interrupt_callback.callback != nil {
                         // 因为这里需要获取playerItem。所以如果有其他的播放器内核的话，那需要重新设置av_log_set_callback，不然在这里会crash。
                         let playerItem = Unmanaged<MEPlayerItem>.fromOpaque(opaque).takeUnretainedValue()
                         if playerItem.state != .closed, playerItem.options != nil {
@@ -137,12 +143,6 @@ public final class MEPlayerItem: Sendable {
                                 playerItem.audioTrack?.seekTime = seconds
                             }
                         }
-                    }
-                } else if avclass == avfilter_get_class() {
-                    let context = ptr.assumingMemoryBound(to: AVFilterContext.self).pointee
-                    if let opaque = context.graph?.pointee.opaque {
-                        let options = Unmanaged<KSOptions>.fromOpaque(opaque).takeUnretainedValue()
-                        options.filter(log: log)
                     }
                 }
             }
@@ -229,14 +229,14 @@ extension MEPlayerItem {
         if let ioContext {
             // 如果要自定义协议的话，那就用avio_alloc_context，对formatCtx.pointee.pb赋值
             formatCtx.pointee.pb = ioContext.getContext()
-//            defaultIOOpen = formatCtx.pointee.io_open
+            ////            defaultIOOpen = formatCtx.pointee.io_open
 //            // 处理m3u8这种有子url的情况。
 //            formatCtx.pointee.io_open = { s, pb, url, flags, options -> Int32 in
 //                guard let s, let url else {
 //                    return -1
 //                }
 //                let playerItem = Unmanaged<MEPlayerItem>.fromOpaque(s.pointee.opaque).takeUnretainedValue()
-            ////                let result = playerItem.defaultIOOpen?(s, pb, url, flags, options)
+            ////                let result = playerItem.defaultIOOpen?(s, pb, url, flags, options) ?? -1
 //                if let ioContext = playerItem.ioContext, let url = URL(string: String(cString: url)), var subPb = ioContext.addSub(url: url, flags: flags, options: options) {
 //                    pb?.pointee = subPb
 //                    return 0
@@ -763,11 +763,7 @@ extension MEPlayerItem: MediaPlayback {
             Thread.current.name = (self.operationQueue.name ?? "") + "_close"
             self.allPlayerItemTracks.forEach { $0.shutdown() }
             KSLog("清空formatCtx")
-            // 自定义的协议才会av_class为空
-            if let formatCtx = self.formatCtx, (formatCtx.pointee.flags & AVFMT_FLAG_CUSTOM_IO) != 0, let opaque = formatCtx.pointee.pb.pointee.opaque {
-                let value = Unmanaged<AbstractAVIOContext>.fromOpaque(opaque).takeRetainedValue()
-                value.close()
-            }
+            self.ioContext?.close()
             // 不要自己来释放pb。不然第二次播放同一个url会出问题
 //            self.formatCtx?.pointee.pb = nil
             self.formatCtx?.pointee.interrupt_callback.opaque = nil
@@ -999,9 +995,8 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
 }
 
 public extension AbstractAVIOContext {
-    func getContext() -> UnsafeMutablePointer<AVIOContext> {
-        // 需要持有ioContext，不然会被释放掉,等到shutdown在清空
-        avio_alloc_context(av_malloc(Int(bufferSize)), bufferSize, writable ? 1 : 0, Unmanaged.passRetained(self).toOpaque()) { opaque, buffer, size -> Int32 in
+    func getContext(bufferSize: Int32 = AbstractAVIOContext.bufferSize, writable: Bool = false) -> UnsafeMutablePointer<AVIOContext> {
+        avio_alloc_context(av_malloc(Int(bufferSize)), bufferSize, writable ? 1 : 0, Unmanaged.passUnretained(self).toOpaque()) { opaque, buffer, size -> Int32 in
             let value = Unmanaged<AbstractAVIOContext>.fromOpaque(opaque!).takeUnretainedValue()
             let ret = value.read(buffer: buffer, size: size)
             return Int32(ret)

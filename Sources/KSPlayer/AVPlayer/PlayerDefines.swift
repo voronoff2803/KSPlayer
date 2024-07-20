@@ -357,13 +357,8 @@ public extension FixedWidthInteger {
 }
 
 open class AbstractAVIOContext {
-    public let bufferSize: Int32
-    public let writable: Bool
-    public init(bufferSize: Int32 = 32 * 1024, writable: Bool = false) {
-        self.bufferSize = bufferSize
-        self.writable = writable
-    }
-
+    public static let bufferSize = Int32(32 * 1024)
+    public init() {}
     open func read(buffer _: UnsafeMutablePointer<UInt8>?, size: Int32) -> Int32 {
         size
     }

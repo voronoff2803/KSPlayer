@@ -340,7 +340,7 @@ open class KSOptions {
     public static var asynchronousDecompression = false
     public static var isPipPopViewController = false
     public static var canStartPictureInPictureAutomaticallyFromInline = true
-    public static var preferredFrame = true
+    public static var preferredFrame = false
     #if os(tvOS)
     // tvos 只能在tmp上创建文件
     public static var recordDir: URL? = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("record")
