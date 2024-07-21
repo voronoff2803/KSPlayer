@@ -24,11 +24,12 @@ public enum KSVideoPlayerViewBuilder {
             config.playerLayer?.subtitleModel.selectedSubtitleInfo?.subtitleID
         } set: { value in
             let info = config.playerLayer?.subtitleModel.subtitleInfos.first { $0.subtitleID == value }
-            config.playerLayer?.subtitleModel.selectedSubtitleInfo = info
+            // 需要先调用select(track。 因为里面判断了isEnabled
             if let info = info as? MediaPlayerTrack {
                 // 因为图片字幕想要实时的显示，那就需要seek。所以需要走select track
                 config.playerLayer?.player.select(track: info)
             }
+            config.playerLayer?.subtitleModel.selectedSubtitleInfo = info
         }) {
             Text("Off").tag(nil as String?)
             ForEach(config.playerLayer?.subtitleModel.subtitleInfos ?? [], id: \.subtitleID) { track in

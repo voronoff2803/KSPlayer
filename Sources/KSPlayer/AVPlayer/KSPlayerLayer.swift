@@ -213,7 +213,9 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     }
 
     func play(currentTime: TimeInterval) {
-        subtitleModel.subtitle(currentTime: currentTime, size: player.naturalSize.within(size: player.view?.frame.size))
+        if player.playbackState != .seeking {
+            subtitleModel.subtitle(currentTime: currentTime, size: player.naturalSize.within(size: player.view?.frame.size))
+        }
         delegate?.player(layer: self, currentTime: currentTime, totalTime: player.duration)
         if player.playbackState == .playing, player.loadState == .playable, state == .buffering {
             // 一个兜底保护，正常不能走到这里

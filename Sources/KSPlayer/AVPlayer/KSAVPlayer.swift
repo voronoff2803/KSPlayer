@@ -270,7 +270,10 @@ extension KSAVPlayer {
             item.tracks.filter { $0.assetTrack?.mediaType.rawValue == AVMediaType.audio.rawValue }.dropFirst().forEach { $0.isEnabled = false }
             duration = item.duration.seconds
             let estimatedDataRates = item.tracks.compactMap { $0.assetTrack?.estimatedDataRate }
-            fileSize = Int64(Double(estimatedDataRates.reduce(0, +)) * duration / 8)
+            let size = estimatedDataRates.reduce(0, +) * Float(duration) / 8.0
+            if !size.isNaN, !size.isInfinite {
+                fileSize = Int64(size)
+            }
             isReadyToPlay = true
         } else if item.status == .failed {
             error = item.error
