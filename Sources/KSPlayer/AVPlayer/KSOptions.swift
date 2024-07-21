@@ -54,6 +54,7 @@ open class KSOptions {
 //        formatContextOptions["listen_timeout"] = 3
         decoderOptions["threads"] = "auto"
         decoderOptions["refcounted_frames"] = "1"
+        decoderOptions["flags"] = "+copy_opaque"
     }
 
     open func playerLayerDeinit() {

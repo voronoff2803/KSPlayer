@@ -188,7 +188,13 @@ final class Packet: ObjectQueueItem {
             guard let packet = corePacket?.pointee else {
                 return
             }
-            timestamp = packet.pts == Int64.min ? packet.dts : packet.pts
+            if packet.pts == Int64.min {
+                if packet.dts != Int64.min {
+                    timestamp = packet.dts
+                }
+            } else {
+                timestamp = packet.pts
+            }
             position = packet.pos
             duration = packet.duration
             size = packet.size

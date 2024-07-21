@@ -126,29 +126,27 @@ public class TVSlide: UIControl {
             onEditingChanged(false)
         default:
             timer.fireDate = Date.distantFuture
-            onEditingChanged(false)
             super.pressesBegan(presses, with: event)
         }
     }
 
     @objc private func actionPanGesture(sender: UIPanGestureRecognizer) {
-        let translation = sender.translation(in: self)
-        if abs(translation.y) > abs(translation.x) {
-            return
-        }
         switch sender.state {
         case .began, .possible:
             timer.fireDate = Date.distantFuture
             beganValue = value.wrappedValue
             onEditingChanged(true)
         case .changed:
+            let translation = sender.translation(in: self)
+            if abs(translation.y) > abs(translation.x) {
+                return
+            }
             let wrappedValue = beganValue + Float(translation.x) / Float(frame.size.width) * (ranges.upperBound - ranges.lowerBound) / 5
             if wrappedValue <= ranges.upperBound, wrappedValue >= ranges.lowerBound {
                 value.wrappedValue = wrappedValue
             }
         case .ended:
             beganValue = value.wrappedValue
-            onEditingChanged(false)
         case .cancelled, .failed:
 //            value.wrappedValue = beganValue
             break
