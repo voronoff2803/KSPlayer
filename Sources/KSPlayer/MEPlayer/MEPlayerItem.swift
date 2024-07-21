@@ -530,11 +530,23 @@ extension MEPlayerItem {
             }
             if state == .seeking {
                 let seekToTime = seekTime
+                let seekSuccess = seekUsePacketCache(seconds: seekToTime)
+                if seekSuccess {
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self else { return }
+                        self.seekingCompletionHandler?(true)
+                        self.seekingCompletionHandler = nil
+                    }
+                    state = .reading
+                    KSLog("seek use packet cache \(seekToTime)")
+                    continue
+                }
                 let time = mainClock().time
                 var increase = Int64(seekTime + startTime.seconds - time.seconds)
                 var seekFlags = options.seekFlags
                 let timeStamp: Int64
-                if seekByBytes {
+                // 先不用seekByBytes来进行判断，因为有的ts走seekByBytes的话，那会seek不会精准，所以先关掉，下次遇到ts seek有问题的话在看下。
+                if false {
                     seekFlags |= AVSEEK_FLAG_BYTE
                     if fileSize > 0, duration > 0 {
                         timeStamp = Int64(Double(fileSize) * seekToTime / (duration - startTime.seconds))
@@ -562,17 +574,6 @@ extension MEPlayerItem {
                 }
                 let seekMin = increase > 0 ? timeStamp - increase + 2 : Int64.min
                 let seekMax = increase < 0 ? timeStamp - increase - 2 : Int64.max
-                let seekSuccess = seekUsePacketCache(seconds: seekToTime)
-                if seekSuccess {
-                    DispatchQueue.main.async { [weak self] in
-                        guard let self else { return }
-                        self.seekingCompletionHandler?(true)
-                        self.seekingCompletionHandler = nil
-                    }
-                    state = .reading
-                    KSLog("seek use packet cache \(seekToTime)")
-                    continue
-                }
 //                allPlayerItemTracks.forEach { $0.seek(time: seekToTime) }
                 // can not seek to key frame
                 let seekStartTime = CACurrentMediaTime()
