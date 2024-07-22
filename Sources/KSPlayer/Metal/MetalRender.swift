@@ -276,6 +276,29 @@ extension CAMetalLayer: Drawable {
 
 #if canImport(RealityFoundation)
 @available(macOS 12.0, iOS 15.0, *)
+extension TextureResource: Drawable {
+    public func draw(frame: VideoVTBFrame, display: any DisplayEnum) {
+        if let drawableQueue, drawableQueue.width == frame.pixelBuffer.width, drawableQueue.height == frame.pixelBuffer.height {
+            drawableQueue.draw(frame: frame, display: display)
+        } else {
+            if let drawableQueue = try? TextureResource.DrawableQueue(TextureResource.DrawableQueue.Descriptor(
+                pixelFormat: KSOptions.colorPixelFormat(bitDepth: frame.pixelBuffer.bitDepth),
+                width: frame.pixelBuffer.width,
+                height: frame.pixelBuffer.height,
+                usage: [.renderTarget, .shaderRead, .shaderWrite],
+                mipmapsMode: .none
+            )) {
+                replace(withDrawables: drawableQueue)
+                drawableQueue.draw(frame: frame, display: display)
+            }
+        }
+    }
+    public func clear() {
+        drawableQueue?.clear()
+    }
+}
+
+@available(macOS 12.0, iOS 15.0, *)
 extension TextureResource.DrawableQueue: Drawable {
     public func draw(frame: VideoVTBFrame, display: any DisplayEnum) {
         guard let drawable = try? nextDrawable() else {
