@@ -179,7 +179,13 @@ public final class MEPlayerItem: Sendable {
             findBestAudio(videoTrack: assetTrack)
         } else if assetTrack.mediaType == .subtitle {
             if assetTrack.isImageSubtitle {
-                if !options.isSeekImageSubtitle {
+                if options.isSeekImageSubtitle {
+                    assetTracks.filter { $0.mediaType == track.mediaType }.forEach {
+                        $0.subtitle?.outputRenderQueue.flush()
+                    }
+                    // 图片字幕是特殊的，一定要seek。所以只能把缓存给清空了，这样seek才不会走缓存
+                    videoTrack?.seek(time: currentPlaybackTime)
+                } else {
                     return false
                 }
             } else {
@@ -418,6 +424,13 @@ extension MEPlayerItem {
                 }
             }
             return nil
+        }
+        let subtitles = assetTracks.filter {
+            $0.mediaType == .subtitle
+        }
+        // 因为本地视频加载很快，所以要在这边就把图片字幕给打开。不然前几秒的图片视频可能就无法展示出来了。
+        if subtitles.count > 0, subtitles.first(where: { $0.isEnabled }) == nil, options.autoSelectEmbedSubtitle {
+            subtitles.first?.isEnabled = true
         }
         var videoIndex: Int32 = -1
         if !options.videoDisable {

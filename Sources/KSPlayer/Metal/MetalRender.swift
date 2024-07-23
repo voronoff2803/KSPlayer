@@ -293,6 +293,7 @@ extension TextureResource: Drawable {
             }
         }
     }
+
     public func clear() {
         drawableQueue?.clear()
     }

@@ -303,14 +303,9 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         }
         if let subtitleDataSource = player.subtitleDataSource {
             subtitleModel.addSubtitle(dataSource: subtitleDataSource)
-            if subtitleModel.selectedSubtitleInfo == nil, options.autoSelectEmbedSubtitle {
-                subtitleModel.selectedSubtitleInfo = subtitleDataSource.infos.first
-            }
-            // 要延后增加内嵌字幕。因为有些内嵌字幕是放在视频流的。所以会比readyToPlay回调晚。有些视频1s可能不够，所以改成2s
-            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 2) { [weak self] in
-                guard let self else { return }
-                if self.subtitleModel.selectedSubtitleInfo == nil, options.autoSelectEmbedSubtitle {
-                    self.subtitleModel.selectedSubtitleInfo = subtitleDataSource.infos.first
+            if subtitleModel.selectedSubtitleInfo == nil {
+                subtitleModel.selectedSubtitleInfo = subtitleDataSource.infos.first {
+                    $0.isEnabled
                 }
             }
         }
