@@ -183,8 +183,6 @@ public final class MEPlayerItem: Sendable {
                     assetTracks.filter { $0.mediaType == track.mediaType }.forEach {
                         $0.subtitle?.outputRenderQueue.flush()
                     }
-                    // 图片字幕是特殊的，一定要seek。所以只能把缓存给清空了，这样seek才不会走缓存
-                    videoTrack?.seek(time: currentPlaybackTime)
                 } else {
                     return false
                 }
@@ -192,6 +190,9 @@ public final class MEPlayerItem: Sendable {
                 return false
             }
         }
+
+        // 切换轨道的话，要把缓存给清空了，这样seek才不会走缓存
+        allPlayerItemTracks.forEach { $0.seek(time: currentPlaybackTime) }
         seek(time: currentPlaybackTime) { _ in
         }
         return true

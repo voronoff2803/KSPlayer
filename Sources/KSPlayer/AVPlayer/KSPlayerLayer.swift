@@ -190,6 +190,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
 
     public func set(url: URL, options: KSOptions) {
         self.options = options
+        isAutoPlay = KSOptions.isAutoPlay
         runOnMainThread {
             self.url = url
         }
