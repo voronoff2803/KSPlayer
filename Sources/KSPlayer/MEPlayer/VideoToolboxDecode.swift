@@ -52,7 +52,7 @@ class VideoToolboxDecode: DecodeProtocol {
             let packetFlags = corePacket.flags
             let duration = corePacket.duration
             let size = corePacket.size
-            _ = VTDecompressionSessionDecodeFrame(session.decompressionSession, sampleBuffer: sampleBuffer, flags: flags, infoFlagsOut: &flagOut) { [weak self] status, infoFlags, imageBuffer, _, _ in
+            let status = VTDecompressionSessionDecodeFrame(session.decompressionSession, sampleBuffer: sampleBuffer, flags: flags, infoFlagsOut: &flagOut) { [weak self] status, infoFlags, imageBuffer, _, _ in
                 guard let self, !infoFlags.contains(.frameDropped) else {
                     return
                 }
@@ -83,6 +83,15 @@ class VideoToolboxDecode: DecodeProtocol {
                 frame.size = size
                 self.lastPosition += frame.duration
                 completionHandler(.success(frame))
+            }
+            // tvOS切换app会导致硬解失败，并且只在这里返回错误，不会走到block里面，所以这里也要判断错误。而iOS是在block里面返回错误，不会在这里返回错误
+            if status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr || status == kVTVideoDecoderBadDataErr {
+                if packet.isKeyFrame {
+                    throw NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
+                } else {
+                    // 解决从后台切换到前台，解码失败的问题
+                    session = DecompressionSession(assetTrack: session.assetTrack, options: options)!
+                }
             }
         } catch {
             completionHandler(.failure(error))
