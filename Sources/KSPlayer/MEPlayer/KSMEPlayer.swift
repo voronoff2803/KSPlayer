@@ -199,6 +199,16 @@ private extension KSMEPlayer {
             (track as? FFmpegAssetTrack)?.audioDescriptor?.updateAudioFormat()
         }
         audioOutput.flush()
+        // 切换成蓝牙音箱的话，需要异步暂停播放下，不然会没有声音
+        if playbackState == .playing, loadState == .playable {
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.audioOutput.pause()
+                self.videoOutput?.pause()
+                self.audioOutput.play()
+                self.videoOutput?.play()
+            }
+        }
     }
     #endif
 }
