@@ -143,7 +143,28 @@ public class KSMEPlayer: NSObject {
         playerItem.delegate = self
         audioOutput.renderSource = playerItem
         videoOutput?.renderSource = playerItem
-        #if !os(macOS)
+        #if os(macOS)
+        let audioId = AudioObjectID(bitPattern: kAudioObjectSystemObject)
+        var forPropertyAddress = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDefaultOutputDevice,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMaster
+        )
+        AudioObjectAddPropertyListenerBlock(audioId, &forPropertyAddress, DispatchQueue.main) { [weak self] _, _ in
+            guard let self else { return }
+            self.audioOutput.flush()
+            // 切换成蓝牙音箱的话，需要异步暂停播放下，不然会没有声音。并且要延迟1s之后处理，不然不行
+            if self.playbackState == .playing, self.loadState == .playable {
+                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1) { [weak self] in
+                    guard let self else { return }
+                    self.audioOutput.pause()
+                    self.videoOutput?.pause()
+                    self.audioOutput.play()
+                    self.videoOutput?.play()
+                }
+            }
+        }
+        #else
         NotificationCenter.default.addObserver(self, selector: #selector(audioRouteChange), name: AVAudioSession.routeChangeNotification, object: AVAudioSession.sharedInstance())
         if #available(tvOS 15.0, iOS 15.0, *) {
             NotificationCenter.default.addObserver(self, selector: #selector(spatialCapabilityChange), name: AVAudioSession.spatialPlaybackCapabilitiesChangedNotification, object: nil)
