@@ -43,6 +43,7 @@ public final class MEPlayerItem: Sendable {
     private var seekByBytes = false
     private var lastVideoClock = KSClock()
     private var ioContext: AbstractAVIOContext?
+    private var pbArray = [PBClass]()
     private var defaultIOOpen: ((UnsafeMutablePointer<AVFormatContext>?, UnsafeMutablePointer<UnsafeMutablePointer<AVIOContext>?>?, UnsafePointer<CChar>?, Int32, UnsafeMutablePointer<OpaquePointer?>?) -> Int32)? = nil
     public private(set) var chapters: [Chapter] = []
     public var playbackRate: Float {
@@ -98,7 +99,7 @@ public final class MEPlayerItem: Sendable {
         // metadata可能会实时变化。所以把它放在DynamicInfo里面
         toDictionary(self?.formatCtx?.pointee.metadata)
     } bytesRead: { [weak self] in
-        self?.formatCtx?.pointee.pb?.pointee.bytes_read ?? 0
+        self?.pbArray.map(\.bytesRead).reduce(0, +) ?? 0
     } audioBitrate: { [weak self] in
         Int(8 * (self?.audioTrack?.bitrate ?? 0))
     } videoBitrate: { [weak self] in
@@ -129,10 +130,10 @@ public final class MEPlayerItem: Sendable {
                     }
                 } else if avclass != nil, let namePtr = avclass.pointee.class_name, String(cString: namePtr) == "URLContext" {
                     let context = ptr.assumingMemoryBound(to: URLContext.self).pointee
-                    // 自定义IO的URLContext没有设置interrupt_callback。
-                    // 做下保护防止crash，Setting default whitelist的时候flags还是1.所以专门过滤掉
-                    if context.prot != nil, context.flags == 3, let opaque = context.interrupt_callback.opaque, context.interrupt_callback.callback != nil {
-                        // 因为这里需要获取playerItem。所以如果有其他的播放器内核的话，那需要重新设置av_log_set_callback，不然在这里会crash。
+                    /// 自定义IO的URLContext没有设置interrupt_callback。
+                    /// 因为这里需要获取playerItem。所以如果有其他的播放器内核的话，那需要重新设置av_log_set_callback，不然在这里会crash。
+                    /// 其他播放内核不设置interrupt_callback的话，那也不会有问题
+                    if let opaque = context.interrupt_callback.opaque, context.interrupt_callback.callback != nil {
                         let playerItem = Unmanaged<MEPlayerItem>.fromOpaque(opaque).takeUnretainedValue()
                         if playerItem.state != .closed, playerItem.options != nil {
                             // 不能在这边判断playerItem.formatCtx。不然会报错Simultaneous accesses
@@ -205,6 +206,7 @@ extension MEPlayerItem {
     private func openThread() {
         formatCtx?.pointee.interrupt_callback.opaque = nil
         formatCtx?.pointee.interrupt_callback.callback = nil
+        pbArray.removeAll()
         avformat_close_input(&self.formatCtx)
         formatCtx = avformat_alloc_context()
         guard let formatCtx else {
@@ -236,21 +238,26 @@ extension MEPlayerItem {
         if let ioContext {
             // 如果要自定义协议的话，那就用avio_alloc_context，对formatCtx.pointee.pb赋值
             formatCtx.pointee.pb = ioContext.getContext()
-            ////            defaultIOOpen = formatCtx.pointee.io_open
-//            // 处理m3u8这种有子url的情况。
-//            formatCtx.pointee.io_open = { s, pb, url, flags, options -> Int32 in
-//                guard let s, let url else {
-//                    return -1
-//                }
-//                let playerItem = Unmanaged<MEPlayerItem>.fromOpaque(s.pointee.opaque).takeUnretainedValue()
-            ////                let result = playerItem.defaultIOOpen?(s, pb, url, flags, options) ?? -1
-//                if let ioContext = playerItem.ioContext, let url = URL(string: String(cString: url)), var subPb = ioContext.addSub(url: url, flags: flags, options: options) {
-//                    pb?.pointee = subPb
-//                    return 0
-//                } else {
-//                    return -1
-//                }
+            pbArray.append(PBClass(pb: &formatCtx.pointee.pb))
+        }
+        defaultIOOpen = formatCtx.pointee.io_open
+        // 处理m3u8这种有子url的情况。
+        formatCtx.pointee.io_open = { s, pb, url, flags, options -> Int32 in
+            guard let s, let url else {
+                return -1
+            }
+            let playerItem = Unmanaged<MEPlayerItem>.fromOpaque(s.pointee.opaque).takeUnretainedValue()
+            let result = playerItem.defaultIOOpen?(s, pb, url, flags, options) ?? -1
+            if result >= 0 {
+                playerItem.pbArray.append(PBClass(pb: pb))
+            }
+//            if let ioContext = playerItem.ioContext, let url = URL(string: String(cString: url)), var subPb = ioContext.addSub(url: url, flags: flags, options: options) {
+//                pb?.pointee = subPb
+//                return 0
+//            } else {
+//                return -1
 //            }
+            return result
         }
         let urlString: String
         if url.isFileURL {
@@ -773,6 +780,7 @@ extension MEPlayerItem: MediaPlayback {
         state = .closed
         av_packet_free(&outputPacket)
         stopRecord()
+        pbArray.removeAll()
         // 故意循环引用。等结束了。才释放
         let closeOperation = BlockOperation {
             Thread.current.name = (self.operationQueue.name ?? "") + "_close"
@@ -1026,5 +1034,26 @@ public extension AbstractAVIOContext {
             }
             return value.seek(offset: offset, whence: whence)
         }
+    }
+}
+
+private class PBClass {
+    private let pb: UnsafeMutablePointer<UnsafeMutablePointer<AVIOContext>?>?
+    private var _bytesRead: Int64 = 0
+    private var add: Int64 = 0
+    fileprivate var bytesRead: Int64 {
+        if let pb = pb?.pointee?.pointee {
+            // pb有可能会复用，小于就认为进行复用了。
+            if _bytesRead > pb.bytes_read {
+                add += _bytesRead
+            }
+            _bytesRead = pb.bytes_read
+        }
+        // 因为m3u8的pb会被释放，所以要保存之前的已读长度。
+        return add + _bytesRead
+    }
+
+    init(pb: UnsafeMutablePointer<UnsafeMutablePointer<AVIOContext>?>?) {
+        self.pb = pb
     }
 }

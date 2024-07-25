@@ -40,14 +40,17 @@ public class DynamicInfo: ObservableObject {
         metadataBlock()
     }
 
+    // 单位是B
     public var bytesRead: Int64 {
         bytesReadBlock()
     }
 
+    // 单位是b/s
     public var audioBitrate: Int {
         audioBitrateBlock()
     }
 
+    // 单位是b/s
     public var videoBitrate: Int {
         videoBitrateBlock()
     }
