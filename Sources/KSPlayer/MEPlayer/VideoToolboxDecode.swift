@@ -44,6 +44,9 @@ class VideoToolboxDecode: DecodeProtocol {
                 tuple = try bitStreamFilter.filter(tuple)
             }
             let sampleBuffer = try session.formatDescription.createSampleBuffer(tuple: tuple)
+            if session.assetTrack.bitStreamFilter != nil {
+                tuple.0.deallocate()
+            }
             let flags: VTDecodeFrameFlags = [
                 //                ._EnableAsynchronousDecompression,
             ]
