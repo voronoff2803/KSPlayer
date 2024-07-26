@@ -45,6 +45,8 @@ public final class MEPlayerItem: Sendable {
     private var ioContext: AbstractAVIOContext?
     private var pbArray = [PBClass]()
     private var defaultIOOpen: ((UnsafeMutablePointer<AVFormatContext>?, UnsafeMutablePointer<UnsafeMutablePointer<AVIOContext>?>?, UnsafePointer<CChar>?, Int32, UnsafeMutablePointer<OpaquePointer?>?) -> Int32)? = nil
+    private var defaultIOClose: ((UnsafeMutablePointer<AVFormatContext>?, UnsafeMutablePointer<AVIOContext>?) -> Int32)? = nil
+
     public private(set) var chapters: [Chapter] = []
     public var playbackRate: Float {
         get {
@@ -228,17 +230,13 @@ extension MEPlayerItem {
             }
         }
         formatCtx.pointee.interrupt_callback = interruptCB
-        // avformat_close_input这个函数会调用io_close2。但是自定义协议是不会调用io_close2这个函数
-//        formatCtx.pointee.io_close2 = { _, _ -> Int32 in
-//            0
-//        }
         formatCtx.pointee.opaque = Unmanaged.passUnretained(self).toOpaque()
         setHttpProxy()
         ioContext = options.process(url: url)
         if let ioContext {
             // 如果要自定义协议的话，那就用avio_alloc_context，对formatCtx.pointee.pb赋值
             formatCtx.pointee.pb = ioContext.getContext()
-            pbArray.append(PBClass(pb: &formatCtx.pointee.pb))
+            pbArray.append(PBClass(pb: formatCtx.pointee.pb))
         }
         defaultIOOpen = formatCtx.pointee.io_open
         // 处理m3u8这种有子url的情况。
@@ -249,7 +247,7 @@ extension MEPlayerItem {
             let playerItem = Unmanaged<MEPlayerItem>.fromOpaque(s.pointee.opaque).takeUnretainedValue()
             let result = playerItem.defaultIOOpen?(s, pb, url, flags, options) ?? -1
             if result >= 0 {
-                playerItem.pbArray.append(PBClass(pb: pb))
+                playerItem.pbArray.append(PBClass(pb: pb?.pointee))
             }
 //            if let ioContext = playerItem.ioContext, let url = URL(string: String(cString: url)), var subPb = ioContext.addSub(url: url, flags: flags, options: options) {
 //                pb?.pointee = subPb
@@ -257,6 +255,20 @@ extension MEPlayerItem {
 //            } else {
 //                return -1
 //            }
+            return result
+        }
+//         avformat_close_input这个函数会调用io_close2。但是自定义协议是不会调用io_close2这个函数
+        defaultIOClose = formatCtx.pointee.io_close2
+        formatCtx.pointee.io_close2 = { s, pb -> Int32 in
+            guard let s else {
+                return -1
+            }
+            let playerItem = Unmanaged<MEPlayerItem>.fromOpaque(s.pointee.opaque).takeUnretainedValue()
+            if let index = playerItem.pbArray.firstIndex(where: { $0.pb == pb }) {
+                let pbClass = playerItem.pbArray.remove(at: index)
+                playerItem.pbArray.first?.add(num: pbClass.bytesRead)
+            }
+            let result = playerItem.defaultIOClose?(s, pb) ?? -1
             return result
         }
         let urlString: String
@@ -1038,11 +1050,11 @@ public extension AbstractAVIOContext {
 }
 
 private class PBClass {
-    private let pb: UnsafeMutablePointer<UnsafeMutablePointer<AVIOContext>?>?
+    fileprivate let pb: UnsafeMutablePointer<AVIOContext>?
     private var _bytesRead: Int64 = 0
     private var add: Int64 = 0
     fileprivate var bytesRead: Int64 {
-        if let pb = pb?.pointee?.pointee {
+        if let pb = pb?.pointee {
             // pb有可能会复用，小于就认为进行复用了。
             if _bytesRead > pb.bytes_read {
                 add += _bytesRead
@@ -1053,7 +1065,11 @@ private class PBClass {
         return add + _bytesRead
     }
 
-    init(pb: UnsafeMutablePointer<UnsafeMutablePointer<AVIOContext>?>?) {
+    init(pb: UnsafeMutablePointer<AVIOContext>?) {
         self.pb = pb
+    }
+
+    fileprivate func add(num: Int64) {
+        add += num
     }
 }
