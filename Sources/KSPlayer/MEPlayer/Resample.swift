@@ -206,6 +206,8 @@ class VideoSwresample: FrameChange {
         sws_freeContext(imgConvertCtx)
         imgConvertCtx = nil
     }
+
+    deinit {}
 }
 
 extension BinaryInteger {
@@ -263,6 +265,8 @@ class AudioSwresample: FrameChange {
     func shutdown() {
         swr_free(&swrContext)
     }
+
+    deinit {}
 }
 
 public class AudioDescriptor: Equatable {

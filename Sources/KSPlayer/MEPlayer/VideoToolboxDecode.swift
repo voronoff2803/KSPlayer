@@ -112,6 +112,8 @@ class VideoToolboxDecode: DecodeProtocol {
         lastPosition = 0
         startTime = 0
     }
+
+    deinit {}
 }
 
 class DecompressionSession {

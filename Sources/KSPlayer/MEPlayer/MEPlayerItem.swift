@@ -200,6 +200,8 @@ public final class MEPlayerItem: Sendable {
         }
         return true
     }
+
+    deinit {}
 }
 
 // MARK: private functions

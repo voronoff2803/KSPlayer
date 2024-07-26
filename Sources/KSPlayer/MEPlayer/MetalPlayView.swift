@@ -156,9 +156,7 @@ public final class MetalPlayView: UIView, VideoOutput {
         ])
     }
 
-//    deinit {
-//        print()
-//    }
+    deinit {}
 }
 
 extension MetalPlayView {

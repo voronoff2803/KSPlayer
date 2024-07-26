@@ -303,6 +303,8 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
             stream?.pointee.discard = discard
         }
     }
+
+    deinit {}
 }
 
 extension FFmpegAssetTrack {
