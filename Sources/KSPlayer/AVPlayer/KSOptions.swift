@@ -357,6 +357,7 @@ open class KSOptions {
     public static let displayEnumVRBox = VRBoxDisplayModel()
     @available(tvOS 14.0, *)
     public static var pictureInPictureType: (KSPictureInPictureProtocol & AVPictureInPictureController).Type = KSPictureInPictureController.self
+    public var isHDR = false
     public var display: DisplayEnum = displayEnumPlane
     public var videoDelay = 0.0 // s
     public var autoRotate = true
@@ -423,6 +424,8 @@ open class KSOptions {
 
     @MainActor
     open func updateVideo(refreshRate: Float, isDovi: Bool, formatDescription: CMFormatDescription) {
+        let dynamicRange = isDovi ? .dolbyVision : formatDescription.dynamicRange
+        isHDR = dynamicRange.isHDR
         #if os(tvOS) || os(xrOS)
         /**
          快速更改preferredDisplayCriteria，会导致isDisplayModeSwitchInProgress变成true。
@@ -433,7 +436,6 @@ open class KSOptions {
         else {
             return
         }
-        let dynamicRange = isDovi ? .dolbyVision : formatDescription.dynamicRange
         displayManager.preferredDisplayCriteria = AVDisplayCriteria(refreshRate: refreshRate, videoDynamicRange: dynamicRange.rawValue)
         #endif
     }

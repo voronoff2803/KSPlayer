@@ -98,7 +98,7 @@ public enum DynamicRange: Int32 {
         #endif
     }
 
-    var isHDR: Bool {
+    public var isHDR: Bool {
         rawValue > 0
     }
 }
