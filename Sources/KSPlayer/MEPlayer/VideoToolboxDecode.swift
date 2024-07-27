@@ -40,15 +40,16 @@ class VideoToolboxDecode: DecodeProtocol {
         }
         do {
             var tuple = (data, Int(corePacket.size))
-            if let bitStreamFilter = session.assetTrack.bitStreamFilter {
+            let bitStreamFilter = session.assetTrack.bitStreamFilter
+            if let bitStreamFilter {
                 tuple = try bitStreamFilter.filter(tuple)
             }
             let sampleBuffer = try session.formatDescription.createSampleBuffer(tuple: tuple)
-            if session.assetTrack.bitStreamFilter != nil {
+            if bitStreamFilter != nil {
                 tuple.0.deallocate()
             }
             let flags: VTDecodeFrameFlags = [
-                //                ._EnableAsynchronousDecompression,
+                ._EnableAsynchronousDecompression,
             ]
             var flagOut = VTDecodeInfoFlags(rawValue: 0)
             let timestamp = packet.timestamp

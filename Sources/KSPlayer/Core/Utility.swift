@@ -1057,7 +1057,7 @@ extension CGRect {
     }
 }
 
-// 性能 while > stride(from:to:by:) > for in
+// 在debug下 性能 while > stride(from:to:by:) > for in 。但是在release下差别不大
 @inline(__always)
 func loop(iterations: Int, stride: Int = 1, body: (Int) -> Void) {
     var index = 0

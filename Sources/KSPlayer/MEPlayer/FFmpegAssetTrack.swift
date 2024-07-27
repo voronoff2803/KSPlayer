@@ -215,6 +215,7 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
                         return nil
                     }
                     atomsData = Data(bytes: extradata, count: Int(extradataSize))
+                    extradata.deallocate()
                     if codecpar.codec_id != AV_CODEC_ID_AV1 {
                         bitStreamFilter = AnnexbToCCBitStreamFilter.self
                     }
@@ -236,6 +237,7 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
                     data.append(&array, count: 4)
                     data.append(extradata, count: Int(extradataSize))
                     atomsData = data
+                    extradata.deallocate()
                 } else {
                     atomsData = nil
                 }
