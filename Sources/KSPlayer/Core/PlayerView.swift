@@ -237,7 +237,7 @@ public extension PlayerView {
                 self.playerLayer?.player.select(track: value)
             }
         }
-        toolBar.playbackRateButton.setMenu(title: NSLocalizedString("speed", comment: ""), current: playerLayer?.player.playbackRate ?? 1, list: [0.75, 1.0, 1.25, 1.5, 2.0]) { value in
+        toolBar.playbackRateButton.setMenu(title: NSLocalizedString("speed".localized, comment: ""), current: playerLayer?.player.playbackRate ?? 1, list: [0.75, 1.0, 1.25, 1.5, 2.0]) { value in
             "\(value) x"
         } completion: { [weak self] value in
             guard let self else { return }
@@ -246,7 +246,7 @@ public extension PlayerView {
             }
         }
         if let subtitleModel = playerLayer?.subtitleModel {
-            toolBar.srtButton.setMenu(title: NSLocalizedString("subtitle", comment: ""), current: subtitleModel.selectedSubtitleInfo, list: subtitleModel.subtitleInfos, addDisabled: true) { value in
+            toolBar.srtButton.setMenu(title: NSLocalizedString("subtitle".localized, comment: ""), current: subtitleModel.selectedSubtitleInfo, list: subtitleModel.subtitleInfos, addDisabled: true) { value in
                 value.name
             } completion: { [weak self] value in
                 guard let self else { return }
