@@ -475,7 +475,12 @@ extension KSMEPlayer: MediaPlayerProtocol {
 
     public func enterBackground() {}
 
-    public func enterForeground() {}
+    public func enterForeground() {
+        // 因为硬解进入前台会失败。如果视频 i 帧间隔比较长，那画面会卡比较久。所以要seek让页面不会卡住
+        if options.hardwareDecode {
+            seek(time: currentPlaybackTime) { _ in }
+        }
+    }
 
     public var isMuted: Bool {
         get {

@@ -787,9 +787,13 @@ extension KSComplexPlayerLayer {
     }
 
     @objc private func enterForeground() {
-        if KSOptions.canBackgroundPlay {
-            player.enterForeground()
+        guard !player.isExternalPlaybackActive else {
+            return
         }
+        if #available(tvOS 14.0, *), player.pipController?.isPictureInPictureActive == true {
+            return
+        }
+        player.enterForeground()
     }
 
     @available(tvOS 14.0, *)
