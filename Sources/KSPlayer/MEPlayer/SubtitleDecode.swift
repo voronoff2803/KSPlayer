@@ -89,7 +89,11 @@ class SubtitleDecode: DecodeProtocol {
         avsubtitle_free(&subtitle)
     }
 
-    func doFlushCodec() {}
+    func doFlushCodec() {
+        Task(priority: .high) {
+            await assImageRenderer?.flush()
+        }
+    }
 
     func shutdown() {
         scale.shutdown()

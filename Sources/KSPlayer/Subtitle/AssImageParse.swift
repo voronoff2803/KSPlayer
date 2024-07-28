@@ -70,6 +70,10 @@ public final actor AssImageRenderer {
         ass_set_storage_size(renderer, width, height)
     }
 
+    public func flush() {
+        ass_flush_events(currentTrack)
+    }
+
     deinit {
         currentTrack = nil
         ass_library_done(library)
