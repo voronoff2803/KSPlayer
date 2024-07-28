@@ -515,6 +515,11 @@
 			<string>XML</string>
 		</dict>
 	</array>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>de</string>
+		<string>en</string>
+	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

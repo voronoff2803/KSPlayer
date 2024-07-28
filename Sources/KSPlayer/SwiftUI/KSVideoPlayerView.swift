@@ -570,7 +570,7 @@ struct VideoTimeShowView: View {
             }
             .font(.system(.title2))
         } else {
-            Text("Live Streaming")
+            Text("Live Streaming".localized)
         }
     }
 }
@@ -692,10 +692,10 @@ struct VideoSettingView: View {
                             Text(track.description).tag(track.trackID as Int32?)
                         }
                     } label: {
-                        Label("Video Track", systemImage: "video.fill")
+                        Label("Video Track".localized, systemImage: "video.fill")
                     }
 
-                    Picker("Video Display Type", selection: Binding {
+                    Picker("Video Display Type".localized, selection: Binding {
                         if playerLayer.options.display === KSOptions.displayEnumVR {
                             return "VR"
                         } else if playerLayer.options.display === KSOptions.displayEnumVRBox {
@@ -716,16 +716,16 @@ struct VideoSettingView: View {
                         Text("VR").tag("VR")
                         Text("VRBox").tag("VRBox")
                     }
-                    LabeledContent("Video Type", value: (videoTracks.first { $0.isEnabled }?.dynamicRange ?? .sdr).description)
-                    LabeledContent("Stream Type", value: (videoTracks.first { $0.isEnabled }?.fieldOrder ?? .progressive).description)
+                    LabeledContent("Video Type".localized, value: (videoTracks.first { $0.isEnabled }?.dynamicRange ?? .sdr).description)
+                    LabeledContent("Stream Type".localized, value: (videoTracks.first { $0.isEnabled }?.fieldOrder ?? .progressive).description)
                 }
-                TextField("Subtitle delay", value: Binding {
+                TextField("Subtitle delay".localized, value: Binding {
                     playerLayer.subtitleModel.subtitleDelay
                 } set: { value in
                     playerLayer.subtitleModel.subtitleDelay = value
                 }, format: .number)
-                TextField("Title", text: $subtitleTitle)
-                Button("Search Subtitle") {
+                TextField("Title".localized, text: $subtitleTitle)
+                Button("Search Subtitle".localized) {
                     playerLayer.subtitleModel.searchSubtitle(query: subtitleTitle, languages: ["zh-cn"])
                 }
                 .buttonStyle(.bordered)
@@ -735,15 +735,15 @@ struct VideoSettingView: View {
                 }
                 let fileSize = playerLayer.player.fileSize
                 if fileSize > 0 {
-                    LabeledContent("File Size", value: fileSize.kmFormatted + "B")
+                    LabeledContent("File Size".localized, value: fileSize.kmFormatted + "B")
                 }
             } else {
-                Text("Loading...")
+                Text("Loading...".localized)
             }
         }
         #if os(macOS) || targetEnvironment(macCatalyst) || os(xrOS)
         .toolbar {
-            Button("Done") {
+            Button("Done".localized) {
                 dismiss()
             }
             .keyboardShortcut(.defaultAction)
@@ -757,12 +757,12 @@ public struct DynamicInfoView: View {
     @ObservedObject
     fileprivate var dynamicInfo: DynamicInfo
     public var body: some View {
-        LabeledContent("Display FPS", value: dynamicInfo.displayFPS, format: .number)
-        LabeledContent("Audio Video sync", value: dynamicInfo.audioVideoSyncDiff, format: .number)
-        LabeledContent("Dropped Frames", value: dynamicInfo.droppedVideoFrameCount + dynamicInfo.droppedVideoPacketCount, format: .number)
-        LabeledContent("Bytes Read", value: dynamicInfo.bytesRead.kmFormatted + "B")
-        LabeledContent("Audio bitrate", value: dynamicInfo.audioBitrate.kmFormatted + "bps")
-        LabeledContent("Video bitrate", value: dynamicInfo.videoBitrate.kmFormatted + "bps")
+        LabeledContent("Display FPS".localized, value: dynamicInfo.displayFPS, format: .number)
+        LabeledContent("Audio Video sync".localized, value: dynamicInfo.audioVideoSyncDiff, format: .number)
+        LabeledContent("Dropped Frames".localized, value: dynamicInfo.droppedVideoFrameCount + dynamicInfo.droppedVideoPacketCount, format: .number)
+        LabeledContent("Bytes Read".localized, value: dynamicInfo.bytesRead.kmFormatted + "B")
+        LabeledContent("Audio bitrate".localized, value: dynamicInfo.audioBitrate.kmFormatted + "bps")
+        LabeledContent("Video bitrate".localized, value: dynamicInfo.videoBitrate.kmFormatted + "bps")
     }
 }
 
