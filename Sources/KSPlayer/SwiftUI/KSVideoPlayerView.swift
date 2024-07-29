@@ -589,70 +589,27 @@ public struct VideoSubtitleView: View {
     public var body: some View {
         ZStack {
             ForEach(model.parts) { part in
-                part.view(isHDR: model.isHDR)
+                subtitleView(part: part)
             }
         }
         // 禁止字幕视图交互，以免抢占视图的点击事件或其它手势事件
         .allowsHitTesting(false)
         .ksIgnoresSafeArea()
     }
-
-    fileprivate static func imageView(_ image: UIImage) -> some View {
-        #if enableFeatureLiveText && canImport(VisionKit) && !targetEnvironment(simulator)
-        if #available(macCatalyst 17.0, *) {
-            return LiveTextImage(uiImage: image)
-        } else {
-            return Image(uiImage: image)
-                .resizable()
-        }
-        #else
-        return Image(uiImage: image)
-            .resizable()
-        #endif
-    }
-}
-
-private extension SubtitlePart {
-    @MainActor
-    func view(isHDR: Bool) -> some View {
-        Group {
-            switch self.render {
-            case let .left(info):
-                GeometryReader { geometry in
-                    // 不能加scaledToFit。不然的话图片的缩放比率会有问题。
-                    let rect = info.displaySize.convert(rect: info.rect, toSize: geometry.size)
-                    VideoSubtitleView.imageView(info.image)
-                        .if(isHDR) {
-                            $0.allowedDynamicRange()
-                        }
-                        .offset(CGSize(width: rect.origin.x, height: rect.origin.y))
-                        .frame(width: rect.width, height: rect.height)
-                }
-            case let .right(text):
-                VStack {
-                    let textPosition = self.textPosition ?? KSOptions.textPosition
-                    if textPosition.verticalAlign == .bottom || textPosition.verticalAlign == .center {
-                        Spacer()
-                    }
-                    text.view
-                        .italic(value: KSOptions.textItalic)
-                        .font(Font(KSOptions.textFont))
-                        .shadow(color: .black.opacity(0.9), radius: 2, x: 1, y: 1)
-                        .foregroundColor(KSOptions.textColor)
-                        .background(KSOptions.textBackgroundColor)
-                        .multilineTextAlignment(.center)
-                        .alignmentGuide(textPosition.horizontalAlign) {
-                            $0[.leading]
-                        }
-                        .padding(textPosition.edgeInsets)
-                    #if !os(tvOS)
-                        .textSelection()
-                    #endif
-                    if textPosition.verticalAlign == .top || textPosition.verticalAlign == .center {
-                        Spacer()
-                    }
-                }
-            }
+    
+    @ViewBuilder
+    private func subtitleView(part: SubtitlePart) -> some View {
+        switch part.render {
+        case let .left(info):
+            SubtitleLeftView(
+                info: info,
+                isHDR: model.isHDR
+            )
+        case let .right(text):
+            SubtitleRightView(
+                textPosition: part.textPosition,
+                text: text
+            )
         }
     }
 }
