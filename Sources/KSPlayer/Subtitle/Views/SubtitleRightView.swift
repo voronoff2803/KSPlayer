@@ -8,10 +8,9 @@
 import SwiftUI
 
 struct SubtitleRightView: View {
-    
     let textPosition: TextPosition?
     let text: NSAttributedString
-    
+
     var body: some View {
         VStack {
             let textPosition = textPosition ?? KSOptions.textPosition

@@ -596,7 +596,7 @@ public struct VideoSubtitleView: View {
         .allowsHitTesting(false)
         .ksIgnoresSafeArea()
     }
-    
+
     @ViewBuilder
     private func subtitleView(part: SubtitlePart) -> some View {
         switch part.render {

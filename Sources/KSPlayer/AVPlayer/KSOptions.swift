@@ -35,13 +35,14 @@ open class KSOptions {
         // ts直播流需要加这个才能一直直播下去，不然播放一小段就会结束了。
         formatContextOptions["reconnect"] = 1
         formatContextOptions["reconnect_streamed"] = 1
+        // 需要加这个超时，不然从wifi切换到4g就会一直卡住
+        formatContextOptions["rw_timeout"] = 10_000_000
         // 这个是用来开启http的链接复用（keep-alive）。vlc默认是打开的，所以这边也默认打开。
         // 开启这个，百度网盘的视频链接无法播放
         // formatContextOptions["multiple_requests"] = 1
         // 下面是用来处理秒开的参数，有需要的自己打开。默认不开，不然在播放某些特殊的ts直播流会频繁卡顿。
 //        formatContextOptions["auto_convert"] = 0
 //        formatContextOptions["fps_probe_size"] = 3
-//        formatContextOptions["rw_timeout"] = 10_000_000
 //        formatContextOptions["max_analyze_duration"] = 300 * 1000
         // 默认情况下允许所有协议，只有嵌套协议才需要指定这个协议子集，例如m3u8里面有http。
 //        formatContextOptions["protocol_whitelist"] = "file,http,https,tcp,tls,crypto,async,cache,data,httpproxy"

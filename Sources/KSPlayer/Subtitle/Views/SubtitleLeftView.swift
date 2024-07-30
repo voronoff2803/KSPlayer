@@ -8,10 +8,9 @@
 import SwiftUI
 
 struct SubtitleLeftView: View {
-    
     let info: SubtitleImageInfo
     let isHDR: Bool
-    
+
     var body: some View {
         GeometryReader { geometry in
             // 不能加scaledToFit。不然的话图片的缩放比率会有问题。
