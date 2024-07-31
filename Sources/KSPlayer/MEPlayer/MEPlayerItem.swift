@@ -64,6 +64,7 @@ public final class MEPlayerItem: Sendable {
 
     private var seekTime = TimeInterval(0)
     private var startTime = CMTime.zero
+    // duration 不用在减去startTime了
     public private(set) var duration: TimeInterval = 0
     public private(set) var fileSize: Int64 = 0
     public private(set) var naturalSize = CGSize.one
@@ -542,13 +543,24 @@ extension MEPlayerItem {
     private func readThread() {
         if state == .opened {
             if options.startPlayTime > 0 {
-                let timestamp = startTime + CMTime(seconds: options.startPlayTime)
-                let flags = seekByBytes ? AVSEEK_FLAG_BYTE : 0
+                var flags = options.seekFlags
+                let timestamp: Int64
+                let time = startTime + CMTime(seconds: options.startPlayTime)
+                if seekByBytes {
+                    if fileSize > 0, duration > 0 {
+                        flags |= AVSEEK_FLAG_BYTE
+                        timestamp = Int64(Double(fileSize) * options.startPlayTime / duration)
+                    } else {
+                        timestamp = time.value
+                    }
+                } else {
+                    timestamp = time.value
+                }
                 let seekStartTime = CACurrentMediaTime()
-                let result = avformat_seek_file(formatCtx, -1, Int64.min, timestamp.value, Int64.max, flags)
-                audioClock.time = timestamp
-                videoClock.time = timestamp
-                KSLog("start PlayTime: \(timestamp.seconds) spend Time: \(CACurrentMediaTime() - seekStartTime)")
+                let result = avformat_seek_file(formatCtx, -1, Int64.min, timestamp, Int64.max, flags)
+                audioClock.time = time
+                videoClock.time = time
+                KSLog("start PlayTime: \(time.seconds) spend Time: \(CACurrentMediaTime() - seekStartTime)")
             }
             state = .reading
         }
@@ -584,7 +596,7 @@ extension MEPlayerItem {
                 if false {
                     seekFlags |= AVSEEK_FLAG_BYTE
                     if fileSize > 0, duration > 0 {
-                        timeStamp = Int64(Double(fileSize) * seekToTime / (duration - startTime.seconds))
+                        timeStamp = Int64(Double(fileSize) * seekToTime / duration)
                     } else {
                         var byteRate = (formatCtx?.pointee.bit_rate ?? 0) / 8
                         if byteRate == 0 {
