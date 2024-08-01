@@ -400,27 +400,16 @@ open class KSOptions {
         display === KSOptions.displayEnumPlane
     }
 
-    open func availableDynamicRange(_ cotentRange: DynamicRange?) -> DynamicRange? {
-        #if canImport(UIKit)
-        let availableHDRModes = AVPlayer.availableHDRModes
-        if let preferedDynamicRange = destinationDynamicRange {
-            // value of 0 indicates that no HDR modes are supported.
-            if availableHDRModes == AVPlayer.HDRMode(rawValue: 0) {
-                return .sdr
-            } else if availableHDRModes.contains(preferedDynamicRange.hdrMode) {
-                return preferedDynamicRange
-            } else if let cotentRange,
-                      availableHDRModes.contains(cotentRange.hdrMode)
-            {
-                return cotentRange
-            } else if preferedDynamicRange != .sdr { // trying update to HDR mode
-                return availableHDRModes.dynamicRange
-            }
+    open func availableDynamicRange() -> DynamicRange? {
+        guard let destinationDynamicRange else {
+            return nil
         }
-        return cotentRange
-        #else
-        return destinationDynamicRange ?? cotentRange
-        #endif
+        let availableHDRModes = DynamicRange.availableHDRModes
+        if availableHDRModes.contains(destinationDynamicRange) {
+            return destinationDynamicRange
+        } else {
+            return availableHDRModes.first
+        }
     }
 
     @MainActor

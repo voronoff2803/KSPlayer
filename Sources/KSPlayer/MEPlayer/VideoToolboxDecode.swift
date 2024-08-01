@@ -157,7 +157,7 @@ class DecompressionSession {
             VTSessionSetProperty(decompressionSession, key: kVTDecompressionPropertyKey_PropagatePerFrameHDRDisplayMetadata,
                                  value: kCFBooleanTrue)
         }
-        if let destinationDynamicRange = options.availableDynamicRange(nil) {
+        if let destinationDynamicRange = options.availableDynamicRange() {
             let pixelTransferProperties = [
                 kVTPixelTransferPropertyKey_DestinationColorPrimaries: destinationDynamicRange.colorPrimaries,
                 kVTPixelTransferPropertyKey_DestinationTransferFunction: destinationDynamicRange.transferFunction,

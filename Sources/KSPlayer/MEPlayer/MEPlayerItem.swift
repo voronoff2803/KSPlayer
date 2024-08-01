@@ -592,7 +592,7 @@ extension MEPlayerItem {
                 var increase = Int64(seekTime + startTime.seconds - time.seconds)
                 var seekFlags = options.seekFlags
                 let timeStamp: Int64
-                // 先不用seekByBytes来进行判断，因为有的ts走seekByBytes的话，那会seek不会精准，所以先关掉，下次遇到ts seek有问题的话在看下。
+                // todo 先不用seekByBytes来进行判断，因为有的ts走seekByBytes的话，那会seek不会精准，所以先关掉，下次遇到ts seek有问题的话在看下。
                 if false {
                     seekFlags |= AVSEEK_FLAG_BYTE
                     if fileSize > 0, duration > 0 {

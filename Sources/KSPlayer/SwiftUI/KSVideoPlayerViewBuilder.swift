@@ -97,22 +97,6 @@ public enum KSVideoPlayerViewBuilder {
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
 public extension KSVideoPlayerViewBuilder {
-    static var playSystemName: String {
-        #if os(xrOS) || os(macOS)
-        "play.fill"
-        #else
-        "play.circle.fill"
-        #endif
-    }
-
-    static var pauseSystemName: String {
-        #if os(xrOS) || os(macOS)
-        "pause.fill"
-        #else
-        "pause.circle.fill"
-        #endif
-    }
-
     static var speakerSystemName: String {
         #if os(xrOS) || os(macOS)
         "speaker.fill"
@@ -168,7 +152,7 @@ public extension KSVideoPlayerViewBuilder {
                 config.playerLayer?.play()
             }
         } label: {
-            Image(systemName: config.state == .error ? "play.slash.fill" : (config.state.isPlaying ? pauseSystemName : playSystemName))
+            Image(systemName: config.state.systemName)
         }
         #if os(xrOS)
         .contentTransition(.symbolEffect(.replace))
@@ -176,6 +160,32 @@ public extension KSVideoPlayerViewBuilder {
         #if !os(tvOS)
         .keyboardShortcut(.space, modifiers: .none)
         #endif
+    }
+}
+
+extension KSPlayerState {
+    var systemName: String {
+        if self == .error {
+            return "play.slash.fill"
+        } else if self == .playedToTheEnd {
+            #if os(xrOS) || os(macOS)
+            return "restart.circle"
+            #else
+            return "restart.circle.fill"
+            #endif
+        } else if isPlaying {
+            #if os(xrOS) || os(macOS)
+            return "pause.fill"
+            #else
+            return "pause.circle.fill"
+            #endif
+        } else {
+            #if os(xrOS) || os(macOS)
+            return "play.fill"
+            #else
+            return "play.circle.fill"
+            #endif
+        }
     }
 }
 
