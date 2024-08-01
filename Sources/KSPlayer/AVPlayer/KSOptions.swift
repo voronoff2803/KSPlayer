@@ -380,9 +380,9 @@ open class KSOptions {
 
     open func videoFrameMaxCount(fps: Float, naturalSize _: CGSize, isLive: Bool) -> UInt8 {
         if isLive {
-            return fps > 50 ? 8 : 4
+            return fps > 49 ? 8 : 4
         } else {
-            return 16
+            return fps > 49 ? 16 : 8
         }
     }
 

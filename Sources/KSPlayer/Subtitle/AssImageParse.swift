@@ -82,7 +82,7 @@ public final actor AssImageRenderer {
 }
 
 extension AssImageRenderer: KSSubtitleProtocol {
-    public func image(for time: TimeInterval, changed: inout Int32) -> (CGRect, CGImage)? {
+    public func image(for time: TimeInterval, changed: inout Int32, isHDR: Bool) -> (CGRect, CGImage)? {
         let millisecond = Int64(time * 1000)
 //        let start = CACurrentMediaTime()
         guard let frame = ass_render_frame(renderer, currentTrack, millisecond, &changed) else {
@@ -100,17 +100,17 @@ extension AssImageRenderer: KSSubtitleProtocol {
         } else {
             imagePipeline = BlendImagePipeline.self
         }
-        guard let image = imagePipeline.process(images: images, boundingRect: boundingRect) else {
+        guard let image = imagePipeline.process(images: images, boundingRect: boundingRect, isHDR: isHDR) else {
             return nil
         }
 //        print("image count: \(images.count) time:\(CACurrentMediaTime() - start)")
         return (boundingRect, image)
     }
 
-    public func search(for time: TimeInterval, size: CGSize) async -> [SubtitlePart] {
+    public func search(for time: TimeInterval, size: CGSize, isHDR: Bool) async -> [SubtitlePart] {
         setFrame(size: size)
         var changed = Int32(0)
-        guard let processedImage = image(for: time, changed: &changed) else {
+        guard let processedImage = image(for: time, changed: &changed, isHDR: isHDR) else {
             if changed == 0 {
                 return []
             } else {
@@ -126,5 +126,5 @@ extension AssImageRenderer: KSSubtitleProtocol {
 
 /// Pipeline that processed an `ASS_Image` into a ``ProcessedImage`` that can be drawn on the screen.
 public protocol ImagePipelineType {
-    static func process(images: [ASS_Image], boundingRect: CGRect) -> CGImage?
+    static func process(images: [ASS_Image], boundingRect: CGRect, isHDR: Bool) -> CGImage?
 }

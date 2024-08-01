@@ -7,7 +7,7 @@ import QuartzCore
 /// by combining all images using `vImage.PixelBuffer`.
 @available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *)
 public final class AccelerateImagePipeline: ImagePipelineType {
-    public static func process(images: [ASS_Image], boundingRect: CGRect) -> CGImage? {
+    public static func process(images: [ASS_Image], boundingRect: CGRect, isHDR: Bool) -> CGImage? {
         let buffers = images.lazy.compactMap { translateBuffer($0, boundingRect: boundingRect) }
         let destinationBuffer = buffers[0]
         for buffer in buffers.dropFirst() {
@@ -17,7 +17,7 @@ public final class AccelerateImagePipeline: ImagePipelineType {
                 destination: destinationBuffer
             )
         }
-        return makeImage(from: destinationBuffer, alphaInfo: .first)
+        return makeImage(from: destinationBuffer, alphaInfo: .first, isHDR: isHDR)
     }
 
     private static func translateBuffer(_ image: ASS_Image, boundingRect: CGRect) -> vImage.PixelBuffer<vImage.Interleaved8x4>? {
@@ -68,11 +68,11 @@ public final class AccelerateImagePipeline: ImagePipelineType {
         return destinationBuffer
     }
 
-    private static func makeImage(from buffer: vImage.PixelBuffer<vImage.Interleaved8x4>, alphaInfo: CGImageAlphaInfo) -> CGImage? {
+    private static func makeImage(from buffer: vImage.PixelBuffer<vImage.Interleaved8x4>, alphaInfo: CGImageAlphaInfo, isHDR: Bool) -> CGImage? {
         vImage_CGImageFormat(
             bitsPerComponent: 8,
             bitsPerPixel: 8 * 4,
-            colorSpace: CGColorSpace(name: CGColorSpace.itur_2100_PQ) ?? CGColorSpaceCreateDeviceRGB(),
+            colorSpace: isHDR ? CGColorSpace(name: CGColorSpace.itur_2100_PQ) ?? CGColorSpaceCreateDeviceRGB() : CGColorSpaceCreateDeviceRGB(),
             bitmapInfo: CGBitmapInfo(rawValue: alphaInfo.rawValue)
         ).flatMap { format in
             buffer.makeCGImage(cgImageFormat: format)

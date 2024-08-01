@@ -15,9 +15,9 @@ extension FFmpegAssetTrack: SubtitleInfo {
 }
 
 extension FFmpegAssetTrack: KSSubtitleProtocol {
-    public func search(for time: TimeInterval, size: CGSize) async -> [SubtitlePart] {
+    public func search(for time: TimeInterval, size: CGSize, isHDR: Bool) async -> [SubtitlePart] {
         if let subtitleRender {
-            return await subtitleRender.search(for: time, size: size)
+            return await subtitleRender.search(for: time, size: size, isHDR: isHDR)
         }
         return subtitle?.outputRenderQueue.search { item -> Bool in
             item.part.isEqual(time: time)

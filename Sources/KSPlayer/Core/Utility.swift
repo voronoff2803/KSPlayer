@@ -862,8 +862,8 @@ extension CGImage {
         return nil
     }
 
-    static func make(rgbData: UnsafePointer<UInt8>, linesize: Int, width: Int, height: Int, isAlpha: Bool = false) -> CGImage? {
-        let colorSpace = CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF) ?? CGColorSpaceCreateDeviceRGB()
+    static func make(rgbData: UnsafePointer<UInt8>, linesize: Int, width: Int, height: Int, isHDR: Bool, isAlpha: Bool = false) -> CGImage? {
+        let colorSpace = isHDR ? CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF) ?? CGColorSpaceCreateDeviceRGB() : CGColorSpaceCreateDeviceRGB()
         let bitmapInfo: CGBitmapInfo = isAlpha ? CGBitmapInfo(rawValue: CGImageAlphaInfo.last.rawValue) : CGBitmapInfo.byteOrderMask
         guard let data = CFDataCreate(kCFAllocatorDefault, rgbData, linesize * height), let provider = CGDataProvider(data: data) else {
             return nil

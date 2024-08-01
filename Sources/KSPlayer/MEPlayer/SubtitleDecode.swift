@@ -21,8 +21,10 @@ class SubtitleDecode: DecodeProtocol {
     private var assParse: AssParse? = nil
     private var assImageRenderer: AssImageRenderer? = nil
     private let displaySize: CGSize?
+    private let isHDR: Bool
     required init(assetTrack: FFmpegAssetTrack, options: KSOptions) {
         startTime = assetTrack.startTime.seconds
+        isHDR = options.isHDR
         displaySize = assetTrack.formatDescription?.displaySize
         do {
             codecContext = try assetTrack.createContext(options: options)

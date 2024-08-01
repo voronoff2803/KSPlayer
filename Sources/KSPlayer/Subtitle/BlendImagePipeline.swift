@@ -5,9 +5,9 @@ import simd
 /// Pipeline that processed an `ASS_Image` into a ``ProcessedImage``
 /// by alpha blending in place all the layers one by one.
 public final class BlendImagePipeline: ImagePipelineType {
-    public static func process(images: [ASS_Image], boundingRect: CGRect) -> CGImage? {
+    public static func process(images: [ASS_Image], boundingRect: CGRect, isHDR: Bool) -> CGImage? {
         let (rgbData, linesize) = renderBlend(images: images, boundingRect: boundingRect)
-        let image = CGImage.make(rgbData: rgbData, linesize: linesize, width: Int(boundingRect.size.width), height: Int(boundingRect.size.height), isAlpha: true)
+        let image = CGImage.make(rgbData: rgbData, linesize: linesize, width: Int(boundingRect.size.width), height: Int(boundingRect.size.height), isHDR: isHDR, isAlpha: true)
         rgbData.deallocate()
         return image
     }

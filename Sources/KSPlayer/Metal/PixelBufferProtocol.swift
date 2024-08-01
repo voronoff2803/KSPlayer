@@ -255,7 +255,7 @@ class PixelBuffer: PixelBufferProtocol {
     func cgImage() -> CGImage? {
         let image: CGImage?
         if format == AV_PIX_FMT_RGB24 {
-            image = CGImage.make(rgbData: buffers[0]!.contents().assumingMemoryBound(to: UInt8.self), linesize: Int(lineSize[0]), width: width, height: height)
+            image = CGImage.make(rgbData: buffers[0]!.contents().assumingMemoryBound(to: UInt8.self), linesize: Int(lineSize[0]), width: width, height: height, isHDR: false)
         } else {
             let scale = VideoSwresample(isDovi: false)
             image = scale.transfer(format: format, width: Int32(width), height: Int32(height), data: buffers.map { $0?.contents().assumingMemoryBound(to: UInt8.self) }, linesize: lineSize.map { Int32($0) })?.cgImage()

@@ -153,7 +153,7 @@ extension SubtitlePart: NumericComparable {
 }
 
 public protocol KSSubtitleProtocol {
-    func search(for time: TimeInterval, size: CGSize) async -> [SubtitlePart]
+    func search(for time: TimeInterval, size: CGSize, isHDR: Bool) async -> [SubtitlePart]
 }
 
 public protocol SubtitleInfo: KSSubtitleProtocol, AnyObject, Hashable, Identifiable {
@@ -184,8 +184,8 @@ public class KSSubtitle {
 
 extension KSSubtitle: KSSubtitleProtocol {
     /// Search for target group for time
-    public func search(for time: TimeInterval, size: CGSize) async -> [SubtitlePart] {
-        await searchProtocol?.search(for: time, size: size) ?? []
+    public func search(for time: TimeInterval, size: CGSize, isHDR: Bool) async -> [SubtitlePart] {
+        await searchProtocol?.search(for: time, size: size, isHDR: isHDR) ?? []
     }
 }
 
@@ -335,7 +335,7 @@ open class SubtitleModel: ObservableObject {
             var newParts = [SubtitlePart]()
             if let subtile = selectedSubtitleInfo {
                 let currentTime = currentTime - subtile.delay - subtitleDelay
-                newParts = await subtile.search(for: currentTime, size: size)
+                newParts = await subtile.search(for: currentTime, size: size, isHDR: isHDR)
                 if newParts.isEmpty {
                     newParts = parts.filter { part in
                         part == currentTime
