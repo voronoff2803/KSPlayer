@@ -442,30 +442,22 @@ open class KSOptions {
                 videoClockDelayCount += 1
                 let log = "[video] video delay=\(diff), clock=\(desire), delay count=\(videoClockDelayCount), frameCount=\(frameCount)"
                 if frameCount == 1 {
-                    if diff < -1, videoClockDelayCount % 10 == 0 {
+                    if diff < -2, videoClockDelayCount % 10 == 0 {
                         KSLog("\(log) drop gop Packet")
                         return (diff, .dropGOPPacket)
-                    } else if videoClockDelayCount % 5 == 0 {
-                        KSLog("\(log) drop next frame")
-                        return (diff, .dropNextFrame)
                     } else {
                         return (diff, .next)
                     }
                 } else {
-                    if diff < -8, videoClockDelayCount % 100 == 0 {
+                    if diff < -8 {
                         KSLog("\(log) seek video track")
                         return (diff, .seek)
                     }
-                    if diff < -1, videoClockDelayCount % 10 == 0 {
+                    if diff < -1 {
                         KSLog("\(log) flush video track")
                         return (diff, .flush)
                     }
-                    if videoClockDelayCount % 2 == 0 {
-                        KSLog("\(log) drop next frame")
-                        return (diff, .dropNextFrame)
-                    } else {
-                        return (diff, .next)
-                    }
+                    return (diff, .dropFrame(count: Int(-diff * fps / 4.0)))
                 }
             } else {
                 videoClockDelayCount = 0

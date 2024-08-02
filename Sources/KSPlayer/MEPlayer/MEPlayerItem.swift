@@ -988,7 +988,11 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
         let predicate: ((VideoVTBFrame, Int) -> Bool)? = force ? nil : { [weak self] frame, count -> Bool in
             guard let self else { return true }
             (self.dynamicInfo.audioVideoSyncDiff, type) = self.options.videoClockSync(main: self.mainClock(), nextVideoTime: frame.seconds, fps: Double(frame.fps), frameCount: count)
-            return type != .remain
+            if case .remain = type {
+                return false
+            } else {
+                return true
+            }
         }
         let frame = videoTrack.getOutputRender(where: predicate)
         switch type {
@@ -996,9 +1000,11 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
             break
         case .next:
             break
-        case .dropNextFrame:
-            if videoTrack.getOutputRender(where: nil) != nil {
-                dynamicInfo.droppedVideoFrameCount += 1
+        case let .dropFrame(count: count):
+            loop(iterations: count) { _ in
+                if videoTrack.getOutputRender(where: nil) != nil {
+                    dynamicInfo.droppedVideoFrameCount += 1
+                }
             }
         case .flush:
             let count = videoTrack.outputRenderQueue.count
