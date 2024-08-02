@@ -12,7 +12,8 @@ import SwiftUI
 @MainActor
 public struct KSVideoPlayerView: View {
     private let subtitleDataSource: SubtitleDataSource?
-    public let options: KSOptions
+    @State
+    public var options: KSOptions
     @State
     private var title: String
     @StateObject
@@ -31,22 +32,22 @@ public struct KSVideoPlayerView: View {
 
     // xcode 15.2还不支持对MainActor参数设置默认值
     public init(coordinator: KSVideoPlayer.Coordinator, url: URL, options: KSOptions, title: String? = nil, subtitleDataSource: SubtitleDataSource? = nil) {
-        self.init(coordinator: coordinator, url: .init(wrappedValue: url), options: options, title: .init(wrappedValue: title ?? url.lastPathComponent), subtitleDataSource: subtitleDataSource)
+        self.init(coordinator: coordinator, url: .init(wrappedValue: url), options: .init(wrappedValue: options), title: .init(wrappedValue: title ?? url.lastPathComponent), subtitleDataSource: subtitleDataSource)
     }
 
-    public init(coordinator: KSVideoPlayer.Coordinator, url: State<URL>, options: KSOptions, title: State<String>, subtitleDataSource: SubtitleDataSource?) {
+    public init(coordinator: KSVideoPlayer.Coordinator, url: State<URL>, options: State<KSOptions>, title: State<String>, subtitleDataSource: SubtitleDataSource?) {
         _url = url
         _config = .init(wrappedValue: coordinator)
         _title = title
         #if os(macOS)
         NSDocumentController.shared.noteNewRecentDocumentURL(url.wrappedValue)
         #endif
-        self.options = options
+        _options = options
         self.subtitleDataSource = subtitleDataSource
     }
 
     public var body: some View {
-        KSCorePlayerView(config: config, url: _url, options: options, title: _title, subtitleDataSource: subtitleDataSource)
+        KSCorePlayerView(config: config, url: _url, options: _options, title: _title, subtitleDataSource: subtitleDataSource)
             .onAppear {
                 focusableView = .play
                 // 不要加这个，不然config无法释放，也可以在onDisappear调用removeMonitor释放
@@ -158,14 +159,15 @@ public struct KSCorePlayerView: View {
         }
     }
 
-    public let options: KSOptions
+    @State
+    public var options: KSOptions
     @State
     private var title: String
     private let subtitleDataSource: SubtitleDataSource?
-    public init(config: KSVideoPlayer.Coordinator, url: State<URL>, options: KSOptions, title: State<String>, subtitleDataSource: SubtitleDataSource?) {
+    public init(config: KSVideoPlayer.Coordinator, url: State<URL>, options: State<KSOptions>, title: State<String>, subtitleDataSource: SubtitleDataSource?) {
         _config = .init(wrappedValue: config)
         _url = url
-        self.options = options
+        _options = options
         _title = title
         self.subtitleDataSource = subtitleDataSource
     }
@@ -256,9 +258,12 @@ public struct KSCorePlayerView: View {
         #endif
     }
 
-    public func openURL(_ url: URL) {
+    public func openURL(_ url: URL, options: KSOptions? = nil) {
         runOnMainThread {
             if url.isAudio || url.isMovie {
+                if let options {
+                    self.options = options
+                }
                 self.url = url
                 title = url.lastPathComponent
             } else {

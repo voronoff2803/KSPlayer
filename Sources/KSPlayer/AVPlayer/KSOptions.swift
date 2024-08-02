@@ -26,7 +26,6 @@ open class KSOptions {
     public internal(set) var readVideoTime = 0.0
     public internal(set) var decodeAudioTime = 0.0
     public internal(set) var decodeVideoTime = 0.0
-    private var videoClockDelayCount = 0
     public init() {
         formatContextOptions["user_agent"] = userAgent
         // 参数的配置可以参考protocols.texi 和 http.c
@@ -435,14 +434,12 @@ open class KSOptions {
         let diff = nextVideoTime - desire
         //        KSLog("[video] video diff \(diff) nextVideoTime \(nextVideoTime) main \(main.time.seconds)")
         if diff >= 1 / fps / 2 {
-            videoClockDelayCount = 0
             return (diff, .remain)
         } else {
             if diff < -4 / fps {
-                videoClockDelayCount += 1
-                let log = "[video] video delay=\(diff), clock=\(desire), delay count=\(videoClockDelayCount), frameCount=\(frameCount)"
+                let log = "[video] video delay=\(diff), clock=\(desire), frameCount=\(frameCount)"
                 if frameCount == 1 {
-                    if diff < -2, videoClockDelayCount % 10 == 0 {
+                    if diff < -2 {
                         KSLog("\(log) drop gop Packet")
                         return (diff, .dropGOPPacket)
                     } else {
@@ -457,10 +454,11 @@ open class KSOptions {
                         KSLog("\(log) flush video track")
                         return (diff, .flush)
                     }
-                    return (diff, .dropFrame(count: Int(-diff * fps / 4.0)))
+                    let count = Int(-diff * fps / 4.0)
+                    KSLog("\(log) drop \(count) frame")
+                    return (diff, .dropFrame(count: count))
                 }
             } else {
-                videoClockDelayCount = 0
                 return (diff, .next)
             }
         }
