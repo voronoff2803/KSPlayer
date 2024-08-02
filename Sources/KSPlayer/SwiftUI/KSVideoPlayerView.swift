@@ -19,7 +19,16 @@ public struct KSVideoPlayerView: View {
     @StateObject
     private var config: KSVideoPlayer.Coordinator
     @State
-    public var url: URL
+    public var url: URL? {
+        didSet {
+            #if os(macOS)
+            if let url {
+                NSDocumentController.shared.noteNewRecentDocumentURL(url)
+            }
+            #endif
+        }
+    }
+
     @Environment(\.dismiss)
     private var dismiss
     @FocusState
@@ -35,101 +44,122 @@ public struct KSVideoPlayerView: View {
         self.init(coordinator: coordinator, url: .init(wrappedValue: url), options: .init(wrappedValue: options), title: .init(wrappedValue: title ?? url.lastPathComponent), subtitleDataSource: subtitleDataSource)
     }
 
-    public init(coordinator: KSVideoPlayer.Coordinator, url: State<URL>, options: State<KSOptions>, title: State<String>, subtitleDataSource: SubtitleDataSource?) {
+    public init(coordinator: KSVideoPlayer.Coordinator, url: State<URL?>, options: State<KSOptions>, title: State<String>, subtitleDataSource: SubtitleDataSource?) {
         _url = url
         _config = .init(wrappedValue: coordinator)
         _title = title
-        #if os(macOS)
-        NSDocumentController.shared.noteNewRecentDocumentURL(url.wrappedValue)
-        #endif
         _options = options
         self.subtitleDataSource = subtitleDataSource
+        #if os(macOS)
+        if let url = url.wrappedValue {
+            NSDocumentController.shared.noteNewRecentDocumentURL(url)
+        }
+        #endif
     }
 
     public var body: some View {
-        KSCorePlayerView(config: config, url: _url, options: _options, title: _title, subtitleDataSource: subtitleDataSource)
-            .onAppear {
-                focusableView = .play
-                // 不要加这个，不然config无法释放，也可以在onDisappear调用removeMonitor释放
-                //                    #if os(macOS)
-                //                    NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) {
-                //                        isMaskShow = overView
-                //                        return $0
-                //                    }
-                //                    #endif
-            }
-            .overlay {
-                controllerView
-            }
-            .preferredColorScheme(.dark)
-            .tint(.white)
-            .persistentSystemOverlays(.hidden)
-            .toolbar(.hidden, for: .automatic)
-            .focusedObject(config)
-            .onChange(of: config.isMaskShow) { newValue in
-                if newValue {
-                    focusableView = .controller
+        if let url {
+            KSCorePlayerView(config: config, url: url, options: options, title: _title, subtitleDataSource: subtitleDataSource)
+                .onAppear {
+                    focusableView = .play
+                    // 不要加这个，不然config无法释放，也可以在onDisappear调用removeMonitor释放
+                    //                    #if os(macOS)
+                    //                    NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) {
+                    //                        isMaskShow = overView
+                    //                        return $0
+                    //                    }
+                    //                    #endif
+                }
+                .overlay {
+                    controllerView
+                }
+                .preferredColorScheme(.dark)
+                .tint(.white)
+                .persistentSystemOverlays(.hidden)
+                .toolbar(.hidden, for: .automatic)
+                .focusedObject(config)
+                .onChange(of: config.isMaskShow) { newValue in
+                    if newValue {
+                        focusableView = .controller
+                    } else {
+                        focusableView = .play
+                    }
+                }
+                .onChange(of: isDropdownShow) { newValue in
+                    if newValue {
+                        focusableView = .info
+                    } else {
+                        focusableView = .play
+                    }
+                }
+            #if !os(iOS)
+                .focused($focusableView, equals: .play)
+            #endif
+            #if os(tvOS)
+            // 要放在最上层才不会有焦点丢失问题
+                .onPlayPauseCommand {
+                if config.state.isPlaying {
+                    config.playerLayer?.pause()
                 } else {
-                    focusableView = .play
+                    config.playerLayer?.play()
                 }
             }
-            .onChange(of: isDropdownShow) { newValue in
-                if newValue {
-                    focusableView = .info
+            .onExitCommand {
+                if config.isMaskShow {
+                    config.isMaskShow = false
                 } else {
-                    focusableView = .play
+                    switch focusableView {
+                    case .play:
+                        dismiss()
+                    default:
+                        focusableView = .play
+                    }
                 }
             }
-        #if !os(iOS)
-            .focused($focusableView, equals: .play)
-        #endif
-        #if os(tvOS)
-        // 要放在最上层才不会有焦点丢失问题
-            .onPlayPauseCommand {
-            if config.state.isPlaying {
-                config.playerLayer?.pause()
+            .onMoveCommand { direction in
+                if !config.isMaskShow {
+                    switch direction {
+                    case .left:
+                        config.skip(interval: -15)
+                    case .right:
+                        config.skip(interval: 15)
+                    case .up:
+                        config.mask(show: true, autoHide: false)
+                    case .down:
+                        isDropdownShow = true
+                    @unknown default:
+                        break
+                    }
+                }
+            }
+            .sheet(isPresented: $isDropdownShow) {
+                VideoSettingView(config: config, subtitleTitle: title)
+            }
+            #endif
+            #if !os(tvOS)
+            // 要放在最上面的view。这样才不会被controllerView盖住
+                .onHover { new in
+                config.isMaskShow = new
+            }
+            #endif
+        } else {
+            controllerView
+        }
+    }
+
+    public func openURL(_ url: URL, options: KSOptions? = nil) {
+        runOnMainThread {
+            if url.isAudio || url.isMovie {
+                if let options {
+                    self.options = options
+                }
+                self.url = url
+                title = url.lastPathComponent
             } else {
-                config.playerLayer?.play()
+                let info = URLSubtitleInfo(url: url)
+                config.playerLayer?.subtitleModel.selectedSubtitleInfo = info
             }
         }
-        .onExitCommand {
-            if config.isMaskShow {
-                config.isMaskShow = false
-            } else {
-                switch focusableView {
-                case .play:
-                    dismiss()
-                default:
-                    focusableView = .play
-                }
-            }
-        }
-        .onMoveCommand { direction in
-            if !config.isMaskShow {
-                switch direction {
-                case .left:
-                    config.skip(interval: -15)
-                case .right:
-                    config.skip(interval: 15)
-                case .up:
-                    config.mask(show: true, autoHide: false)
-                case .down:
-                    isDropdownShow = true
-                @unknown default:
-                    break
-                }
-            }
-        }
-        .sheet(isPresented: $isDropdownShow) {
-            VideoSettingView(config: config, subtitleTitle: title)
-        }
-        #endif
-        #if !os(tvOS)
-        // 要放在最上面的view。这样才不会被controllerView盖住
-            .onHover { new in
-            config.isMaskShow = new
-        }
-        #endif
     }
 
     private var controllerView: some View {
@@ -138,6 +168,17 @@ public struct KSVideoPlayerView: View {
             .opacity(config.isMaskShow ? 1 : 0)
         #if os(tvOS)
             .ignoresSafeArea()
+        #endif
+        #if !os(tvOS)
+        // 要放在最上面才能修改url
+        .onDrop(of: ["public.file-url"], isTargeted: nil) { providers -> Bool in
+            providers.first?.loadDataRepresentation(forTypeIdentifier: "public.file-url") { data, _ in
+                if let data, let path = NSString(data: data, encoding: 4), let url = URL(string: path as String) {
+                    openURL(url)
+                }
+            }
+            return true
+        }
         #endif
     }
 
@@ -150,24 +191,15 @@ public struct KSVideoPlayerView: View {
 public struct KSCorePlayerView: View {
     @StateObject
     private var config: KSVideoPlayer.Coordinator
-    @State
-    public var url: URL {
-        didSet {
-            #if os(macOS)
-            NSDocumentController.shared.noteNewRecentDocumentURL(url)
-            #endif
-        }
-    }
-
-    @State
-    public var options: KSOptions
+    public let url: URL
+    public let options: KSOptions
     @State
     private var title: String
     private let subtitleDataSource: SubtitleDataSource?
-    public init(config: KSVideoPlayer.Coordinator, url: State<URL>, options: State<KSOptions>, title: State<String>, subtitleDataSource: SubtitleDataSource?) {
+    public init(config: KSVideoPlayer.Coordinator, url: URL, options: KSOptions, title: State<String>, subtitleDataSource: SubtitleDataSource?) {
         _config = .init(wrappedValue: config)
-        _url = url
-        _options = options
+        self.url = url
+        self.options = options
         _title = title
         self.subtitleDataSource = subtitleDataSource
     }
@@ -245,31 +277,6 @@ public struct KSCorePlayerView: View {
         #endif
         .onTapGesture {
             config.isMaskShow.toggle()
-        }
-        #if !os(tvOS)
-        .onDrop(of: ["public.file-url"], isTargeted: nil) { providers -> Bool in
-            providers.first?.loadDataRepresentation(forTypeIdentifier: "public.file-url") { data, _ in
-                if let data, let path = NSString(data: data, encoding: 4), let url = URL(string: path as String) {
-                    openURL(url)
-                }
-            }
-            return true
-        }
-        #endif
-    }
-
-    public func openURL(_ url: URL, options: KSOptions? = nil) {
-        runOnMainThread {
-            if url.isAudio || url.isMovie {
-                if let options {
-                    self.options = options
-                }
-                self.url = url
-                title = url.lastPathComponent
-            } else {
-                let info = URLSubtitleInfo(url: url)
-                config.playerLayer?.subtitleModel.selectedSubtitleInfo = info
-            }
         }
     }
 }
