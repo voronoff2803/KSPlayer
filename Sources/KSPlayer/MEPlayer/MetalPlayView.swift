@@ -23,6 +23,7 @@ public protocol VideoOutput: FrameOutput {
     init(options: KSOptions)
     func invalidate()
     func readNextFrame()
+    func enterForeground()
 }
 
 public final class MetalPlayView: UIView, VideoOutput {
@@ -145,6 +146,13 @@ public final class MetalPlayView: UIView, VideoOutput {
         draw(force: true)
     }
 
+    public func enterForeground() {
+        // 解决从后台一会儿在进入到前台的时候，displayView黑屏的问题
+        if !displayView.isHidden, let pixelBuffer = pixelBuffer?.cvPixelBuffer {
+            set(pixelBuffer: pixelBuffer)
+        }
+    }
+
     private func addSub(view: UIView) {
         addSubview(view)
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -188,7 +196,7 @@ extension MetalPlayView {
                     metalView.isHidden = true
                     drawable.clear()
                 }
-                set(pixelBuffer: pixelBuffer, time: cmtime)
+                set(pixelBuffer: pixelBuffer)
             } else {
                 if !displayView.isHidden {
                     displayView.isHidden = true
@@ -216,9 +224,9 @@ extension MetalPlayView {
         }
     }
 
-    private func set(pixelBuffer: CVPixelBuffer, time: CMTime) {
+    private func set(pixelBuffer: CVPixelBuffer) {
         guard let formatDescription else { return }
-        displayView.enqueue(imageBuffer: pixelBuffer, formatDescription: formatDescription, time: time)
+        displayView.enqueue(imageBuffer: pixelBuffer, formatDescription: formatDescription)
     }
 }
 
@@ -277,7 +285,7 @@ private class AVSampleBufferDisplayView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func enqueue(imageBuffer: CVPixelBuffer, formatDescription: CMVideoFormatDescription, time: CMTime) {
+    func enqueue(imageBuffer: CVPixelBuffer, formatDescription: CMVideoFormatDescription) {
         let timing = CMSampleTimingInfo(duration: .invalid, presentationTimeStamp: .zero, decodeTimeStamp: .invalid)
         //        var timing = CMSampleTimingInfo(duration: .invalid, presentationTimeStamp: time, decodeTimeStamp: .invalid)
         var sampleBuffer: CMSampleBuffer?
@@ -286,17 +294,18 @@ private class AVSampleBufferDisplayView: UIView {
             if let attachmentsArray = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: true) as? [NSMutableDictionary], let dic = attachmentsArray.first {
                 dic[kCMSampleAttachmentKey_DisplayImmediately] = true
             }
-            if displayLayer.isReadyForMoreMediaData {
-                displayLayer.enqueue(sampleBuffer)
-            } else {
-                KSLog("[video] AVSampleBufferDisplayLayer not readyForMoreMediaData. video time \(time), controlTime \(displayLayer.timebase.time) ")
-                displayLayer.enqueue(sampleBuffer)
-            }
             if #available(macOS 11.0, iOS 14, tvOS 14, *) {
+                // 需要先flush在进行enqueue
                 if displayLayer.requiresFlushToResumeDecoding {
                     KSLog("[video] AVSampleBufferDisplayLayer requiresFlushToResumeDecoding so flush")
                     displayLayer.flush()
                 }
+            }
+            if displayLayer.isReadyForMoreMediaData {
+                displayLayer.enqueue(sampleBuffer)
+            } else {
+                KSLog("[video] AVSampleBufferDisplayLayer not readyForMoreMediaData. controlTime \(displayLayer.timebase.time) ")
+                displayLayer.enqueue(sampleBuffer)
             }
             if displayLayer.status == .failed {
                 KSLog("[video] AVSampleBufferDisplayLayer status failed so flush")
