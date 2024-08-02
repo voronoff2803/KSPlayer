@@ -296,7 +296,7 @@ extension KSMEPlayer: MEPlayerDelegate {
                 }
             }
         } else {
-            if loadingState.isFirst {
+            if loadingState.isFirst || loadingState.isSeek {
                 if videoOutput?.pixelBuffer == nil {
                     videoOutput?.readNextFrame()
                 }
@@ -411,6 +411,7 @@ extension KSMEPlayer: MediaPlayerProtocol {
         playerItem.seek(time: seekTime) { [weak self] result in
             guard let self else { return }
             if result {
+                self.videoOutput?.pixelBuffer = nil
                 self.audioOutput.flush()
                 runOnMainThread { [weak self] in
                     guard let self else { return }

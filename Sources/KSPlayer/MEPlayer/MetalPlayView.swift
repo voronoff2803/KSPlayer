@@ -19,7 +19,7 @@ public protocol VideoOutput: FrameOutput {
     var options: KSOptions { get set }
 //    AVSampleBufferDisplayLayer和CAMetalLayer无法使用截图方法 render(in ctx: CGContext)，所以要保存pixelBuffer来进行视频截图。
     var displayLayer: AVSampleBufferDisplayLayer { get }
-    var pixelBuffer: PixelBufferProtocol? { get }
+    var pixelBuffer: PixelBufferProtocol? { get set }
     init(options: KSOptions)
     func invalidate()
     func readNextFrame()
@@ -56,7 +56,7 @@ public final class MetalPlayView: UIView, VideoOutput {
         }
     }
 
-    public private(set) var pixelBuffer: PixelBufferProtocol?
+    public var pixelBuffer: PixelBufferProtocol?
     /// 用displayLink会导致锁屏无法draw，
     /// 用DispatchSourceTimer的话，在播放4k视频的时候repeat的时间会变长,
     /// 用MTKView的draw(in:)也是不行，会卡顿
