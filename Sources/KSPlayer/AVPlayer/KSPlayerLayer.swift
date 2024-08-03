@@ -300,7 +300,6 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     }
 
     public func readyToPlay(player: some MediaPlayerProtocol) {
-        state = .readyToPlay
         if let view = player.view {
             addSubtitle(to: view)
         }
@@ -312,6 +311,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
                 }
             }
         }
+        state = .readyToPlay
         #if os(macOS)
         runOnMainThread { [weak self] in
             guard let self else { return }
