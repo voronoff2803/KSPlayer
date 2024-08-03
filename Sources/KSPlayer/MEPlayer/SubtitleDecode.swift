@@ -22,15 +22,18 @@ class SubtitleDecode: DecodeProtocol {
     private var assImageRenderer: AssImageRenderer? = nil
     private let displaySize: CGSize?
     private let isHDR: Bool
+    private let isASS: Bool
     required init(assetTrack: FFmpegAssetTrack, options: KSOptions) {
         startTime = assetTrack.startTime.seconds
         isHDR = options.isHDR
         displaySize = assetTrack.formatDescription?.displaySize
+        isASS = assetTrack.codecpar.codec_id == AV_CODEC_ID_SSA || assetTrack.codecpar.codec_id == AV_CODEC_ID_ASS
         do {
             codecContext = try assetTrack.createContext(options: options)
             if let codecContext, let pointer = codecContext.pointee.subtitle_header {
                 let subtitleHeader = String(cString: pointer)
-                if KSOptions.isASSUseImageRender {
+                // 所以文字字幕都会自动转为ass的格式，都会有subtitle_header。所以还要判断下字幕的类型
+                if KSOptions.isASSUseImageRender, isASS {
                     assImageRenderer = AssImageRenderer()
                     assetTrack.subtitleRender = assImageRenderer
                     Task(priority: .high) {
@@ -130,6 +133,13 @@ class SubtitleDecode: DecodeProtocol {
                     if let group = assParse.parsePart(scanner: scanner) {
                         group.start = start
                         group.end = end
+                        if !isASS, let string = group.render.right?.string {
+                            if attributedString == nil {
+                                attributedString = NSMutableAttributedString()
+                            }
+                            attributedString?.append(NSAttributedString(string: string))
+                            continue
+                        }
                         parts.append(group)
                     }
                 }
