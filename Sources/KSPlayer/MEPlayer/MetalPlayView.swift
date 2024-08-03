@@ -42,16 +42,18 @@ public final class MetalPlayView: UIView, VideoOutput {
 
     private var fps = Float(60) {
         didSet {
-            if fps != oldValue, let formatDescription {
-                if KSOptions.preferredFrame {
+            if fps != oldValue {
+                if options.preferredFrame(fps: fps) {
                     let preferredFramesPerSecond = ceil(fps)
                     if #available(iOS 15.0, tvOS 15.0, macOS 14.0, *) {
                         displayLink.preferredFrameRateRange = CAFrameRateRange(minimum: preferredFramesPerSecond, maximum: 2 * preferredFramesPerSecond, __preferred: preferredFramesPerSecond)
                     } else {
-                        displayLink.preferredFramesPerSecond = Int(preferredFramesPerSecond) << 1
+                        displayLink.preferredFramesPerSecond = Int(preferredFramesPerSecond)
                     }
                 }
-                options.updateVideo(refreshRate: fps, isDovi: isDovi, formatDescription: formatDescription)
+                if let formatDescription {
+                    options.updateVideo(refreshRate: fps, isDovi: isDovi, formatDescription: formatDescription)
+                }
             }
         }
     }

@@ -370,6 +370,11 @@ open class KSOptions {
     public var videoDisable = false
     public var canStartPictureInPictureAutomaticallyFromInline = KSOptions.canStartPictureInPictureAutomaticallyFromInline
     public var automaticWindowResize = true
+
+    open func preferredFrame(fps: Float) -> Bool {
+        KSOptions.preferredFrame || fps > 61
+    }
+
     ///  wanted video stream index, or nil for automatic selection
     /// - Parameter : video track
     /// - Returns: The index of the track
