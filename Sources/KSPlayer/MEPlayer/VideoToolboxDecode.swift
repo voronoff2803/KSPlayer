@@ -47,6 +47,7 @@ class VideoToolboxDecode: DecodeProtocol {
             let sampleBuffer = try session.formatDescription.createSampleBuffer(tuple: tuple)
             let flags: VTDecodeFrameFlags = [
                 ._EnableAsynchronousDecompression,
+                ._EnableTemporalProcessing,
             ]
             var flagOut = VTDecodeInfoFlags(rawValue: 0)
             let timestamp = packet.timestamp
@@ -59,13 +60,9 @@ class VideoToolboxDecode: DecodeProtocol {
                 }
                 guard status == noErr else {
                     if status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr || status == kVTVideoDecoderBadDataErr {
-                        // 在回调里面直接掉用VTDecompressionSessionInvalidate，会卡住。
-                        if packet.isKeyFrame {
-                            completionHandler(.failure(NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)))
-                        } else {
-                            // 这个地方同步解码只会调用一次，但是异步解码，会调用多次。所以用状态来判断。
-                            self.needReconfig = true
-                        }
+                        // tvos在这边抛出NSError的话，会crash。所以就先不切换了解码器了。看下会怎么样
+                        // 这个地方同步解码只会调用一次，但是异步解码，会调用多次。所以用状态来判断。
+                        self.needReconfig = true
                     }
                     return
                 }
