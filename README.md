@@ -9,19 +9,19 @@ English | [简体中文](./README_CN.md)
 
 ## Features
 Functional differences between GPL version and LGPL version
-Feature       | LGPL      | GPL     |
-| ----------- | ----------- | ----------- |
-|AV1 hardware decoding|✅|❌|
-|All demuxers, All decoders|✅|❌|
-|Smoothly Play 120 FPS Video|✅|❌|
-|Record video clips at any time|✅|❌|
-|Dovi P5 displays HDR (not overheating)|✅|❌|
-|Picture in Picture supports subtitle display|✅|❌|
-|Annex-B async hardware decoding(Live Stream)|✅|❌|
-|Use the fonts in the video to render subtitles|✅|❌|
-|Use memory cache for fast seek in short time range|✅|❌|
-|Cache data to Hard Drive,Preload data to Hard Drive|✅|❌|
-|Full display of ass subtitles effect(Render as image using libass)|✅|❌|
+Feature       | Free      |
+| ----------- | ----------- |
+|AV1 hardware decoding|✅|
+|All demuxers, All decoders|✅|
+|Smoothly Play 120 FPS Video|✅|
+|Record video clips at any time|✅|
+|Dovi P5 displays HDR (not overheating)|❌|
+|Picture in Picture supports subtitle display|✅|
+|Annex-B async hardware decoding(Live Stream)|✅|
+|Use the fonts in the video to render subtitles|✅|
+|Use memory cache for fast seek in short time range|✅|
+|Cache data to Hard Drive,Preload data to Hard Drive|❌|
+|Full display of ass subtitles effect(Render as image using libass)|✅|
 |FFmpeg version|7.0.2|6.1.0|
 |Record video|✅|✅|
 |360° panorama video|✅|✅|
