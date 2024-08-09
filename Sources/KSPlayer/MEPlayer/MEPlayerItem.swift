@@ -454,15 +454,13 @@ extension MEPlayerItem {
             $0.mediaType == .subtitle
         }
         // 因为本地视频加载很快，所以要在这边就把图片字幕给打开。不然前几秒的图片视频可能就无法展示出来了。
-        if subtitles.count > 0, subtitles.first(where: { $0.isEnabled }) == nil, options.autoSelectEmbedSubtitle {
-            subtitles.first?.isEnabled = true
-        }
+        options.wantedSubtitle(tracks: subtitles)?.isEnabled = true
         var videoIndex: Int32 = -1
         if !options.videoDisable {
             let videos = assetTracks.filter { $0.mediaType == .video }
             let wantedStreamNb: Int32
-            if !videos.isEmpty, let index = options.wantedVideo(tracks: videos) {
-                wantedStreamNb = videos[index].trackID
+            if !videos.isEmpty, let track = options.wantedVideo(tracks: videos) {
+                wantedStreamNb = track.trackID
             } else {
                 wantedStreamNb = -1
             }
@@ -506,8 +504,8 @@ extension MEPlayerItem {
 
         let audios = assetTracks.filter { $0.mediaType == .audio }
         let wantedStreamNb: Int32
-        if !audios.isEmpty, let index = options.wantedAudio(tracks: audios) {
-            wantedStreamNb = audios[index].trackID
+        if !audios.isEmpty, let track = options.wantedAudio(tracks: audios) {
+            wantedStreamNb = track.trackID
         } else {
             wantedStreamNb = -1
         }

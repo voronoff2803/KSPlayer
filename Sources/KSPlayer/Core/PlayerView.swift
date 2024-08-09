@@ -264,7 +264,7 @@ public extension PlayerView {
         #endif
     }
 
-    func set(subtitleTrack: any SubtitleInfo) {
+    func set(subtitleTrack: SubtitleInfo) {
         // setup the subtitle track
         playerLayer?.subtitleModel.selectedSubtitleInfo = subtitleTrack
     }

@@ -156,7 +156,7 @@ public protocol KSSubtitleProtocol {
     func search(for time: TimeInterval, size: CGSize, isHDR: Bool) async -> [SubtitlePart]
 }
 
-public protocol SubtitleInfo: KSSubtitleProtocol, AnyObject, Hashable, Identifiable {
+public protocol SubtitleInfo: KSSubtitleProtocol, AnyObject {
     var subtitleID: String { get }
     var name: String { get }
     var delay: TimeInterval { get set }
@@ -304,7 +304,7 @@ open class SubtitleModel: ObservableObject {
     }
 
     @Published
-    public var selectedSubtitleInfo: (any SubtitleInfo)? {
+    public var selectedSubtitleInfo: SubtitleInfo? {
         didSet {
             oldValue?.isEnabled = false
             if let selectedSubtitleInfo {
@@ -324,7 +324,7 @@ open class SubtitleModel: ObservableObject {
         }
     }
 
-    public func addSubtitle(info: any SubtitleInfo) {
+    public func addSubtitle(info: SubtitleInfo) {
         if subtitleInfos.first(where: { $0.subtitleID == info.subtitleID }) == nil {
             subtitleInfos.append(info)
         }

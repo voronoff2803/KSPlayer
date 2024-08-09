@@ -305,10 +305,8 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         }
         if let subtitleDataSource = player.subtitleDataSource {
             subtitleModel.addSubtitle(dataSource: subtitleDataSource)
-            if subtitleModel.selectedSubtitleInfo == nil, options.autoSelectEmbedSubtitle {
-                subtitleModel.selectedSubtitleInfo = subtitleDataSource.infos.first {
-                    $0.isEnabled
-                }
+            if subtitleModel.selectedSubtitleInfo == nil, let infos = subtitleDataSource.infos as? [MediaPlayerTrack & SubtitleInfo] {
+                subtitleModel.selectedSubtitleInfo = options.wantedSubtitle(tracks: infos) as? SubtitleInfo
             }
         }
         state = .readyToPlay

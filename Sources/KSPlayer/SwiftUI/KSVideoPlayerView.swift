@@ -695,7 +695,7 @@ struct VideoSettingView: View {
                 }, format: .number)
                 TextField("Title".localized, text: $subtitleTitle)
                 Button("Search Subtitle".localized) {
-                    playerLayer.subtitleModel.searchSubtitle(query: subtitleTitle, languages: ["zh-cn"])
+                    playerLayer.subtitleModel.searchSubtitle(query: subtitleTitle, languages: [Locale.current.identifier])
                 }
                 .buttonStyle(.bordered)
 

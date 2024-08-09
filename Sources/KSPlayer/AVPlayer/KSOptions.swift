@@ -288,10 +288,7 @@ open class KSOptions {
     public static var audioPlayerType: AudioOutput.Type = AudioEnginePlayer.self
     public var audioFilters = [String]()
     public var syncDecodeAudio = false
-    /// wanted audio stream index, or nil for automatic selection
-    /// - Parameter :  audio track
-    /// - Returns: The index of the track
-    open func wantedAudio(tracks _: [MediaPlayerTrack]) -> Int? {
+    open func wantedAudio(tracks _: [MediaPlayerTrack]) -> MediaPlayerTrack? {
         nil
     }
 
@@ -326,6 +323,15 @@ open class KSOptions {
     public var autoSelectEmbedSubtitle = true
     public var isSeekImageSubtitle = false
     public var subtitleTimeInterval = 0.1
+    open func wantedSubtitle(tracks: [MediaPlayerTrack]) -> MediaPlayerTrack? {
+        if autoSelectEmbedSubtitle {
+            return tracks.first {
+                $0.language == Locale.currentLanguage
+            } ?? tracks.first
+        } else {
+            return nil
+        }
+    }
 
     // MARK: video options
 
@@ -375,10 +381,7 @@ open class KSOptions {
         KSOptions.preferredFrame || fps > 61
     }
 
-    ///  wanted video stream index, or nil for automatic selection
-    /// - Parameter : video track
-    /// - Returns: The index of the track
-    open func wantedVideo(tracks _: [MediaPlayerTrack]) -> Int? {
+    open func wantedVideo(tracks _: [MediaPlayerTrack]) -> MediaPlayerTrack? {
         nil
     }
 

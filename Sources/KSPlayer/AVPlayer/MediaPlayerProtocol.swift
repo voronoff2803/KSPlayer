@@ -136,9 +136,9 @@ public extension MediaPlayerProtocol {
         nominalFrameRate
     }
 
-    var subtitlesTracks: [any SubtitleInfo] {
+    var subtitlesTracks: [SubtitleInfo] {
         // Return the availables subtitles
-        tracks(mediaType: .subtitle).compactMap { $0 as? (any SubtitleInfo) }
+        tracks(mediaType: .subtitle).compactMap { $0 as? SubtitleInfo }
     }
 
     var audioTracks: [MediaPlayerTrack] {
@@ -269,6 +269,14 @@ extension FFmpegFieldOrder: CustomStringConvertible {
             return "top coded first (swapped)"
         case .bt:
             return "bottom coded first (swapped)"
+        }
+    }
+}
+
+extension Locale {
+    static var currentLanguage: String? {
+        Locale.current.languageCode.flatMap {
+            Locale.current.localizedString(forLanguageCode: $0)
         }
     }
 }

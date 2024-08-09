@@ -196,8 +196,8 @@ public class AssrtSubtitleDataSource: SearchSubtitleDataSource {
         self.token = token
     }
 
-    public func searchSubtitle(query: String, languages _: [String] = ["zh-cn"]) async throws -> [URLSubtitleInfo] {
-        guard let searchApi = URL(string: "https://api.assrt.net/v1/sub/search")?.add(queryItems: ["q": query]) else {
+    public func searchSubtitle(query: String, languages _: [String]) async throws -> [URLSubtitleInfo] {
+        guard let searchApi = URL(string: "http://api.assrt.net/v1/sub/search")?.add(queryItems: ["q": query]) else {
             return []
         }
         var request = URLRequest(url: searchApi)
@@ -225,7 +225,7 @@ public class AssrtSubtitleDataSource: SearchSubtitleDataSource {
 
     func loadDetails(assrtSubID: String) async throws -> [URLSubtitleInfo] {
         var infos = [URLSubtitleInfo]()
-        guard let detailApi = URL(string: "https://api.assrt.net/v1/sub/detail")?.add(queryItems: ["id": assrtSubID]) else {
+        guard let detailApi = URL(string: "http://api.assrt.net/v1/sub/detail")?.add(queryItems: ["id": assrtSubID]) else {
             return infos
         }
         var request = URLRequest(url: detailApi)
@@ -268,11 +268,11 @@ public class OpenSubtitleDataSource: SearchSubtitleDataSource {
         self.password = password
     }
 
-    public func searchSubtitle(query: String, languages: [String] = ["zh-cn"]) async throws -> [URLSubtitleInfo] {
+    public func searchSubtitle(query: String, languages: [String]) async throws -> [URLSubtitleInfo] {
         try await searchSubtitle(query: query, imdbID: 0, tmdbID: 0, languages: languages)
     }
 
-    public func searchSubtitle(query: String, imdbID: Int, tmdbID: Int, languages: [String] = ["zh-cn"]) async throws -> [URLSubtitleInfo] {
+    public func searchSubtitle(query: String, imdbID: Int, tmdbID: Int, languages: [String]) async throws -> [URLSubtitleInfo] {
         var queryItems = [String: String]()
         queryItems["query"] = query
         if imdbID != 0 {
