@@ -161,7 +161,9 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         self.isAutoPlay = isAutoPlay
         subtitleModel = SubtitleModel(url: url)
         subtitleVC = UIHostingController(rootView: VideoSubtitleView(model: subtitleModel))
-        subtitleVC.loadView()
+        /// macos <=13 会报错-[NSNib _initWithNibNamed:bundle:options:] could not load the nibName: _TtGC7SwiftUI19NSHostingControllerV8KSPlayer17VideoSubtitleView_ in bundle NSBundle
+        /// 所以就先注释掉，注释掉之后我测试了下iOS、tvOS、macOS字幕都不会问题。
+//        subtitleVC.loadView()
         subtitleVC.view.backgroundColor = .clear
         subtitleVC.view.translatesAutoresizingMaskIntoConstraints = false
         super.init()
