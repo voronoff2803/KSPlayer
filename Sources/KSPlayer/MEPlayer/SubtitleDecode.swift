@@ -146,7 +146,7 @@ class SubtitleDecode: DecodeProtocol {
             } else if rect.type == SUBTITLE_BITMAP {
                 // 不合并图片，有返回每个图片的rect，可以自己控制显示位置。
                 // 因为字幕需要有透明度,所以不能用jpg；tif在iOS支持没有那么好，会有绿色背景； 用heic格式，展示的时候会卡主线程；所以最终用png。
-                if let image = scale.transfer(format: AV_PIX_FMT_PAL8, width: rect.w, height: rect.h, data: Array(tuple: rect.data), linesize: Array(tuple: rect.linesize))?.cgImage()?.image() {
+                if let image = scale.transfer(format: AV_PIX_FMT_PAL8, width: rect.w, height: rect.h, data: Array(tuple: rect.data), linesize: Array(tuple: rect.linesize))?.cgImage(isHDR: isHDR)?.image() {
                     let imageRect = CGRect(x: Int(rect.x), y: Int(rect.y), width: Int(rect.w), height: Int(rect.h))
                     images.append((imageRect, image))
                 }

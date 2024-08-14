@@ -471,7 +471,7 @@ extension KSMEPlayer: MediaPlayerProtocol {
     }
 
     public func thumbnailImageAtCurrentTime() async -> CGImage? {
-        videoOutput?.pixelBuffer?.cgImage()
+        videoOutput?.pixelBuffer?.cgImage(isHDR: false)
     }
 
     public func enterBackground() {}

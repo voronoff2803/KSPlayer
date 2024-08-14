@@ -277,6 +277,7 @@ extension AVPixelFormat {
         case AV_PIX_FMT_0BGR: return kCVPixelFormatType_32ABGR
         case AV_PIX_FMT_RGB0: return kCVPixelFormatType_32RGBA
         case AV_PIX_FMT_RGBA: return kCVPixelFormatType_32RGBA
+        case AV_PIX_FMT_RGBA64LE: return kCVPixelFormatType_64RGBALE
         case AV_PIX_FMT_BGR48BE, AV_PIX_FMT_BGR48LE: return kCVPixelFormatType_48RGB
         case AV_PIX_FMT_NV12: return fullRange ? kCVPixelFormatType_420YpCbCr8BiPlanarFullRange : kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
         //  AVSampleBufferDisplayLayer不能显示 kCVPixelFormatType_420YpCbCr8PlanarFullRange,所以换成是kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
