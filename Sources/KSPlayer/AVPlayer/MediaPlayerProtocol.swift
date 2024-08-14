@@ -335,8 +335,9 @@ public extension CMFormatDescription {
         let contentRange: DynamicRange
         if codecType.string == "dvhe" || codecType == kCMVideoCodecType_DolbyVisionHEVC {
             contentRange = .dolbyVision
-        } else if bitDepth == 10, transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ as String {
+        } else if transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ as String {
             /// todo 10bit也有可能是sdr，所以这里用与来判断，之前有遇到10bit，但是transferFunction 不是2084的hdr10。下次遇到的时候在看下有没有其他的方式判断
+            /// FFmpegAssetTrack中的CMFormatDescription 的bitDepth的值不准，因为mediaSubType的值是解码格式hvcc 这类的值，而不是像素格式。所以就先不用加bitDepth 这个判断了
             contentRange = .hdr10
         } else if transferFunction == kCVImageBufferTransferFunction_ITU_R_2100_HLG as String { /// HLG
             contentRange = .hlg
