@@ -859,22 +859,12 @@ extension CGImage {
         }
     }
 
+    // 因为图片字幕需要有透明度,所以不能用jpg；tif在iOS支持没有那么好，会有绿色背景； 用heic格式，展示的时候会卡主线程；所以最终用png。
     func image(type: AVFileType = .png, quality: CGFloat = 0.2) -> UIImage? {
         if let data = data(type: type, quality: quality) {
             return UIImage(data: data)
         }
         return nil
-    }
-
-    static func make(rgbData: UnsafePointer<UInt8>, linesize: Int, width: Int, height: Int, isHDR: Bool, isAlpha: Bool = false) -> CGImage? {
-        let colorSpace = isHDR ? CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF) ?? CGColorSpaceCreateDeviceRGB() : CGColorSpaceCreateDeviceRGB()
-        let bitmapInfo: CGBitmapInfo = isAlpha ? CGBitmapInfo(rawValue: CGImageAlphaInfo.last.rawValue) : CGBitmapInfo.byteOrderMask
-        guard let data = CFDataCreate(kCFAllocatorDefault, rgbData, linesize * height), let provider = CGDataProvider(data: data) else {
-            return nil
-        }
-        // swiftlint:disable line_length
-        return CGImage(width: width, height: height, bitsPerComponent: 8, bitsPerPixel: isAlpha ? 32 : 24, bytesPerRow: linesize, space: colorSpace, bitmapInfo: bitmapInfo, provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent)
-        // swiftlint:enable line_length
     }
 }
 

@@ -95,11 +95,11 @@ extension AssImageRenderer: KSSubtitleProtocol {
         let images = frame.pointee.linkedImages()
         let boundingRect = images.map(\.imageRect).boundingRect()
         let imagePipeline: ImagePipelineType.Type
-//         图片少的话，用Accelerate性能会更好，耗时是0.005左右,而BlendImagePipeline就要0.04左右了
-        if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *), images.count <= 10 {
-            imagePipeline = vImage.PixelBuffer<vImage.Interleaved8x4>.self
+        /// 如果图片大于10张的话，那要用PointerImagePipeline。
+        if images.count > 10 {
+            imagePipeline = PointerImagePipeline.self
         } else {
-            imagePipeline = BlendImagePipeline.self
+            imagePipeline = KSOptions.imagePipelineType
         }
         guard let image = imagePipeline.process(images: images, boundingRect: boundingRect, isHDR: isHDR) else {
             return nil
@@ -127,5 +127,26 @@ extension AssImageRenderer: KSSubtitleProtocol {
 
 /// Pipeline that processed an `ASS_Image` into a ``ProcessedImage`` that can be drawn on the screen.
 public protocol ImagePipelineType {
-    static func process(images: [ASS_Image], boundingRect: CGRect, isHDR: Bool) -> CGImage?
+    init?(images: [ASS_Image], boundingRect: CGRect)
+    init?(width: Int, height: Int, stride: Int, bitmap: UnsafePointer<UInt8>, palette: UnsafePointer<UInt8>)
+    func cgImage(isHDR: Bool, alphaInfo: CGImageAlphaInfo) -> CGImage?
+}
+
+public extension ImagePipelineType {
+    static func process(images: [ASS_Image], boundingRect: CGRect, isHDR: Bool) -> CGImage? {
+        Self(images: images, boundingRect: boundingRect)?.cgImage(isHDR: isHDR, alphaInfo: .first)
+    }
+}
+
+public extension KSOptions {
+    static var imagePipelineType: ImagePipelineType.Type = {
+        /// 图片小的话，用PointerImagePipeline 差不多是0.0001，而Accelerate要0.0003。
+        /// 图片大的话  用Accelerate差不多0.005 ，而PointerImagePipeline差不多要0.04
+
+        if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *) {
+            return vImage.PixelBuffer<vImage.Interleaved8x4>.self
+        } else {
+            return PointerImagePipeline.self
+        }
+    }()
 }

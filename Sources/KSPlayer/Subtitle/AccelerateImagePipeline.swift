@@ -43,21 +43,18 @@ extension vImage.PixelBuffer<vImage.Interleaved8x4> {
         }
     }
 
-    init?(width: Int, height: Int, stride: Int, bitmap: UnsafePointer<UInt8>, palette: UnsafePointer<UInt8>) {
+    public init?(width: Int, height: Int, stride: Int, bitmap: UnsafePointer<UInt8>, palette: UnsafePointer<UInt8>) {
         guard let size = vImage.Size(exactly: CGSize(width: width, height: height)) else { return nil }
         self.init(size: size, pixelFormat: vImage.Interleaved8x4.self)
         var bitmapPosition = 0
-        let rowBytes = rowStride * byteCountPerPixel
+        let rowBytes = rowStride
         var vImagePosition = 0
+        let palette = palette.withMemoryRebound(to: UInt32.self, capacity: 256) { $0 }
         withUnsafeMutableBufferPointer { bufferPtr in
+            let bufferPtr = bufferPtr.withMemoryRebound(to: UInt32.self) { $0 }
             loop(iterations: height) { _ in
                 loop(iterations: width) { x in
-                    let point = palette.advanced(by: Int(bitmap[bitmapPosition + x]) * channelCount)
-                    let index = vImagePosition + x * channelCount
-                    bufferPtr[index + 0] = point[0]
-                    bufferPtr[index + 1] = point[1]
-                    bufferPtr[index + 2] = point[2]
-                    bufferPtr[index + 3] = point[3]
+                    bufferPtr[vImagePosition + x] = palette[Int(bitmap[bitmapPosition + x])]
                 }
                 vImagePosition += rowBytes
                 bitmapPosition += stride
@@ -69,12 +66,12 @@ extension vImage.PixelBuffer<vImage.Interleaved8x4> {
         self.init(width: Int(image.w), height: Int(image.h), stride: Int(image.stride), color: image.color, bitmap: image.bitmap, relativePoint: image.imageOrigin.relative(to: boundingRect.origin), size: boundingRect.size)
     }
 
-    func cgImage(isHDR: Bool, isAlphaFirst: Bool = true) -> CGImage? {
+    public func cgImage(isHDR: Bool, alphaInfo: CGImageAlphaInfo) -> CGImage? {
         vImage_CGImageFormat(
             bitsPerComponent: 8,
             bitsPerPixel: 8 * 4,
             colorSpace: isHDR ? CGColorSpace(name: CGColorSpace.itur_2100_PQ) ?? CGColorSpaceCreateDeviceRGB() : CGColorSpaceCreateDeviceRGB(),
-            bitmapInfo: CGBitmapInfo(rawValue: isAlphaFirst ? CGImageAlphaInfo.first.rawValue : CGImageAlphaInfo.last.rawValue)
+            bitmapInfo: CGBitmapInfo(rawValue: alphaInfo.rawValue)
         ).flatMap { format in
             makeCGImage(cgImageFormat: format)
         }
@@ -83,17 +80,19 @@ extension vImage.PixelBuffer<vImage.Interleaved8x4> {
 
 @available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *)
 extension vImage.PixelBuffer<vImage.Interleaved8x4>: ImagePipelineType {
-    public static func process(images: [ASS_Image], boundingRect: CGRect, isHDR: Bool) -> CGImage? {
-        let buffers = images.lazy.compactMap { Self(image: $0, boundingRect: boundingRect) }
-        let destinationBuffer = buffers[0]
-        for buffer in buffers.dropFirst() {
-            destinationBuffer.alphaComposite(
+    public init?(images: [ASS_Image], boundingRect: CGRect) {
+        guard let first = images.first else {
+            return nil
+        }
+        self.init(image: first, boundingRect: boundingRect)
+        let buffers = images.dropFirst().lazy.compactMap { Self(image: $0, boundingRect: boundingRect) }
+        for buffer in buffers {
+            alphaComposite(
                 .nonpremultiplied,
                 topLayer: buffer,
-                destination: destinationBuffer
+                destination: self
             )
         }
-        return destinationBuffer.cgImage(isHDR: isHDR)
     }
 }
 
