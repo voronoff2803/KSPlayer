@@ -320,6 +320,10 @@ extension CGPoint {
     var reverse: CGPoint {
         CGPoint(x: y, y: x)
     }
+
+    func relative(to point: CGPoint) -> CGPoint {
+        CGPoint(x: x - point.x, y: y - point.y)
+    }
 }
 
 public extension CGSize {
@@ -828,7 +832,7 @@ extension CGImage {
             }
             //            context.clear(CGRect(origin: .zero, size: CGSize(width: width, height: height)))
             for (rect, cgImage) in images {
-                context.draw(cgImage, in: rect.relativeRect(to: boundingRect))
+                context.draw(cgImage, in: rect.relative(to: boundingRect))
             }
             let cgImage = context.makeImage()
             return cgImage
@@ -1051,9 +1055,8 @@ extension CGRect {
         set { origin.y = newValue - height / 2 }
     }
 
-    func relativeRect(to boundingRect: CGRect) -> CGRect {
-        let origin = CGPoint(x: minX - boundingRect.minX, y: minY - boundingRect.minY)
-        return CGRect(origin: origin, size: size)
+    func relative(to rect: CGRect) -> CGRect {
+        CGRect(origin: origin.relative(to: rect.origin), size: size)
     }
 }
 

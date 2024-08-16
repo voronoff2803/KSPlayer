@@ -417,7 +417,7 @@ public final class VideoVTBFrame: MEFrame {
 
     public init(pixelBuffer: PixelBufferProtocol, fps: Float, isDovi: Bool) {
         self.pixelBuffer = pixelBuffer
-        // ffmpeg硬解码出来的colorspace不对，所以要自己设置下。我自己实现的硬解在macos是对的，但是在iOS也会不会，所以统一设置下。
+        // ffmpeg硬解码出来的colorspace不对，所以要自己设置下。我自己实现的硬解在macos是对的，但是在iOS也会不对，所以统一设置下。
         pixelBuffer.updateColorspace()
         self.fps = fps
         self.isDovi = isDovi

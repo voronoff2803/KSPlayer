@@ -3,45 +3,35 @@ import CoreGraphics
 import libass
 import QuartzCore
 
-/// Pipeline that processed an `ASS_Image` into a ``ProcessedImage``
-/// by combining all images using `vImage.PixelBuffer`.
 @available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *)
-public final class AccelerateImagePipeline: ImagePipelineType {
-    public static func process(images: [ASS_Image], boundingRect: CGRect, isHDR: Bool) -> CGImage? {
-        let buffers = images.lazy.compactMap { translateBuffer($0, boundingRect: boundingRect) }
-        let destinationBuffer = buffers[0]
-        for buffer in buffers.dropFirst() {
-            destinationBuffer.alphaComposite(
-                .nonpremultiplied,
-                topLayer: buffer,
-                destination: destinationBuffer
-            )
-        }
-        return makeImage(from: destinationBuffer, alphaInfo: .first, isHDR: isHDR)
+extension vImage.PixelBuffer<vImage.Interleaved8x4> {
+    init(size: vImage.Size, fillColor: Pixel_8888) {
+        self.init(size: size, pixelFormat: vImage.Interleaved8x4.self)
+        overwriteChannels(
+            [0, 1, 2, 3],
+            withPixel: fillColor,
+            destination: self
+        )
     }
 
-    private static func translateBuffer(_ image: ASS_Image, boundingRect: CGRect) -> vImage.PixelBuffer<vImage.Interleaved8x4>? {
-        let width = Int(image.w)
-        let height = Int(image.h)
-        guard let size = vImage.Size(exactly: boundingRect.size) else { return nil }
-        let destinationBuffer = makePixelBuffer(size: size, fillColor: (0, 0, 0, 0))
-        let relativeRect = image.imageRect.relativeRect(to: boundingRect)
-        let stride = Int(image.stride)
-        let red = UInt8((image.color >> 24) & 0xFF)
-        let green = UInt8((image.color >> 16) & 0xFF)
-        let blue = UInt8((image.color >> 8) & 0xFF)
-        let normalizedAlpha = Float(255 - image.color & 0xFF) / 255.0
+    init?(width: Int, height: Int, stride: Int, color: UInt32, bitmap: UnsafePointer<UInt8>, relativePoint: CGPoint, size: CGSize) {
+        guard let size = vImage.Size(exactly: size) else { return nil }
+        self.init(size: size, fillColor: (0, 0, 0, 0))
+        let red = UInt8((color >> 24) & 0xFF)
+        let green = UInt8((color >> 16) & 0xFF)
+        let blue = UInt8((color >> 8) & 0xFF)
+        let normalizedAlpha = Float(255 - color & 0xFF) / 255.0
         var bitmapPosition = 0
-        let rowBytes = destinationBuffer.rowStride * destinationBuffer.byteCountPerPixel
-        var vImagePosition = Int(relativeRect.minY) * rowBytes + Int(relativeRect.minX) * destinationBuffer.channelCount
-        destinationBuffer.withUnsafeMutableBufferPointer { bufferPtr in
+        let rowBytes = rowStride * byteCountPerPixel
+        var vImagePosition = Int(relativePoint.y) * rowBytes + Int(relativePoint.x) * channelCount
+        withUnsafeMutableBufferPointer { bufferPtr in
             loop(iterations: height) { _ in
                 loop(iterations: width) { x in
-                    let alpha = UInt8(Float(image.bitmap[bitmapPosition + x]) * normalizedAlpha)
+                    let alpha = UInt8(Float(bitmap[bitmapPosition + x]) * normalizedAlpha)
                     if alpha == 0 {
                         return
                     }
-                    let index = vImagePosition + x * destinationBuffer.channelCount
+                    let index = vImagePosition + x * channelCount
                     bufferPtr[index + 0] = alpha
                     bufferPtr[index + 1] = red
                     bufferPtr[index + 2] = green
@@ -51,41 +41,70 @@ public final class AccelerateImagePipeline: ImagePipelineType {
                 bitmapPosition += stride
             }
         }
-        return destinationBuffer
     }
 
-    private static func makePixelBuffer(size: vImage.Size, fillColor: Pixel_8888) -> vImage.PixelBuffer<vImage.Interleaved8x4> {
-        let destinationBuffer = vImage.PixelBuffer(
-            size: size,
-            pixelFormat: vImage.Interleaved8x4.self
-        )
-        destinationBuffer.overwriteChannels(
-            [0, 1, 2, 3],
-            withPixel: fillColor,
-            destination: destinationBuffer
-        )
-
-        return destinationBuffer
+    init?(width: Int, height: Int, stride: Int, bitmap: UnsafePointer<UInt8>, palette: UnsafePointer<UInt8>) {
+        guard let size = vImage.Size(exactly: CGSize(width: width, height: height)) else { return nil }
+        self.init(size: size, pixelFormat: vImage.Interleaved8x4.self)
+        var bitmapPosition = 0
+        let rowBytes = rowStride * byteCountPerPixel
+        var vImagePosition = 0
+        withUnsafeMutableBufferPointer { bufferPtr in
+            loop(iterations: height) { _ in
+                loop(iterations: width) { x in
+                    let point = palette.advanced(by: Int(bitmap[bitmapPosition + x]) * channelCount)
+                    let index = vImagePosition + x * channelCount
+                    bufferPtr[index + 0] = point[0]
+                    bufferPtr[index + 1] = point[1]
+                    bufferPtr[index + 2] = point[2]
+                    bufferPtr[index + 3] = point[3]
+                }
+                vImagePosition += rowBytes
+                bitmapPosition += stride
+            }
+        }
     }
 
-    private static func makeImage(from buffer: vImage.PixelBuffer<vImage.Interleaved8x4>, alphaInfo: CGImageAlphaInfo, isHDR: Bool) -> CGImage? {
+    init?(image: ASS_Image, boundingRect: CGRect) {
+        self.init(width: Int(image.w), height: Int(image.h), stride: Int(image.stride), color: image.color, bitmap: image.bitmap, relativePoint: image.imageOrigin.relative(to: boundingRect.origin), size: boundingRect.size)
+    }
+
+    func cgImage(isHDR: Bool, isAlphaFirst: Bool = true) -> CGImage? {
         vImage_CGImageFormat(
             bitsPerComponent: 8,
             bitsPerPixel: 8 * 4,
             colorSpace: isHDR ? CGColorSpace(name: CGColorSpace.itur_2100_PQ) ?? CGColorSpaceCreateDeviceRGB() : CGColorSpaceCreateDeviceRGB(),
-            bitmapInfo: CGBitmapInfo(rawValue: alphaInfo.rawValue)
+            bitmapInfo: CGBitmapInfo(rawValue: isAlphaFirst ? CGImageAlphaInfo.first.rawValue : CGImageAlphaInfo.last.rawValue)
         ).flatMap { format in
-            buffer.makeCGImage(cgImageFormat: format)
+            makeCGImage(cgImageFormat: format)
         }
     }
 }
 
-extension ASS_Image {
-    var imageRect: CGRect {
-        let origin = CGPoint(x: Int(dst_x), y: Int(dst_y))
-        let size = CGSize(width: Int(w), height: Int(h))
+@available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *)
+extension vImage.PixelBuffer<vImage.Interleaved8x4>: ImagePipelineType {
+    public static func process(images: [ASS_Image], boundingRect: CGRect, isHDR: Bool) -> CGImage? {
+        let buffers = images.lazy.compactMap { Self(image: $0, boundingRect: boundingRect) }
+        let destinationBuffer = buffers[0]
+        for buffer in buffers.dropFirst() {
+            destinationBuffer.alphaComposite(
+                .nonpremultiplied,
+                topLayer: buffer,
+                destination: destinationBuffer
+            )
+        }
+        return destinationBuffer.cgImage(isHDR: isHDR)
+    }
+}
 
-        return CGRect(origin: origin, size: size)
+extension ASS_Image {
+    var imageOrigin: CGPoint {
+        CGPoint(x: Int(dst_x), y: Int(dst_y))
+    }
+
+    var imageRect: CGRect {
+        let size = CGSize(width: Int(w), height: Int(h))
+        return CGRect(origin: imageOrigin, size: size)
     }
 
     /// Find all the linked images from an `ASS_Image`.
