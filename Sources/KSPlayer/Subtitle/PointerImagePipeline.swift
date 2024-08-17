@@ -14,7 +14,7 @@ public final class PointerImagePipeline: ImagePipelineType {
         self.height = height
     }
 
-    public init?(width: Int, height: Int, stride: Int, bitmap: UnsafePointer<UInt8>, palette: UnsafePointer<UInt8>) {
+    public init(width: Int, height: Int, stride: Int, bitmap: UnsafePointer<UInt8>, palette: UnsafePointer<UInt8>) {
         self.width = width
         self.height = height
         self.stride = stride
@@ -35,7 +35,7 @@ public final class PointerImagePipeline: ImagePipelineType {
     /// Pipeline that processed an `ASS_Image` into a ``ImagePipeline``
     /// by alpha blending in place all the layers one by one.
     ///
-    public init?(images: [ASS_Image], boundingRect: CGRect) {
+    public init(images: [ASS_Image], boundingRect: CGRect) {
         let width = Int(boundingRect.width)
         height = Int(boundingRect.height)
         self.width = width

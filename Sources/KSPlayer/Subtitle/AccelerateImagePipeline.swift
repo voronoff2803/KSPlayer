@@ -14,9 +14,8 @@ extension vImage.PixelBuffer<vImage.Interleaved8x4> {
         )
     }
 
-    init?(width: Int, height: Int, stride: Int, color: UInt32, bitmap: UnsafePointer<UInt8>, relativePoint: CGPoint, size: CGSize) {
-        guard let size = vImage.Size(exactly: size) else { return nil }
-        self.init(size: size, fillColor: (0, 0, 0, 0))
+    init(width: Int, height: Int, stride: Int, color: UInt32, bitmap: UnsafePointer<UInt8>, relativePoint: CGPoint, size: CGSize) {
+        self.init(size: vImage.Size(width: Int(size.width), height: Int(size.height)), fillColor: (0, 0, 0, 0))
         let red = UInt8((color >> 24) & 0xFF)
         let green = UInt8((color >> 16) & 0xFF)
         let blue = UInt8((color >> 8) & 0xFF)
@@ -43,8 +42,8 @@ extension vImage.PixelBuffer<vImage.Interleaved8x4> {
         }
     }
 
-    public init?(width: Int, height: Int, stride: Int, bitmap: UnsafePointer<UInt8>, palette: UnsafePointer<UInt8>) {
-        guard let size = vImage.Size(exactly: CGSize(width: width, height: height)) else { return nil }
+    public init(width: Int, height: Int, stride: Int, bitmap: UnsafePointer<UInt8>, palette: UnsafePointer<UInt8>) {
+        let size = vImage.Size(width: width, height: height)
         self.init(size: size, pixelFormat: vImage.Interleaved8x4.self)
         var bitmapPosition = 0
         let rowBytes = rowStride
@@ -62,7 +61,7 @@ extension vImage.PixelBuffer<vImage.Interleaved8x4> {
         }
     }
 
-    init?(image: ASS_Image, boundingRect: CGRect) {
+    init(image: ASS_Image, boundingRect: CGRect) {
         self.init(width: Int(image.w), height: Int(image.h), stride: Int(image.stride), color: image.color, bitmap: image.bitmap, relativePoint: image.imageOrigin.relative(to: boundingRect.origin), size: boundingRect.size)
     }
 
@@ -80,13 +79,14 @@ extension vImage.PixelBuffer<vImage.Interleaved8x4> {
 
 @available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *)
 extension vImage.PixelBuffer<vImage.Interleaved8x4>: ImagePipelineType {
-    public init?(images: [ASS_Image], boundingRect: CGRect) {
+    public init(images: [ASS_Image], boundingRect: CGRect) {
         guard let first = images.first else {
-            return nil
+            self.init(width: Int(boundingRect.width), height: Int(boundingRect.height))
+            return
         }
-        self.init(image: first, boundingRect: boundingRect)
-        let buffers = images.dropFirst().lazy.compactMap { Self(image: $0, boundingRect: boundingRect) }
-        for buffer in buffers {
+        self.init(image: images[0], boundingRect: boundingRect)
+        for image in images.dropFirst() {
+            let buffer = Self(image: image, boundingRect: boundingRect)
             alphaComposite(
                 .nonpremultiplied,
                 topLayer: buffer,

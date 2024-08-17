@@ -127,14 +127,14 @@ extension AssImageRenderer: KSSubtitleProtocol {
 
 /// Pipeline that processed an `ASS_Image` into a ``ProcessedImage`` that can be drawn on the screen.
 public protocol ImagePipelineType {
-    init?(images: [ASS_Image], boundingRect: CGRect)
-    init?(width: Int, height: Int, stride: Int, bitmap: UnsafePointer<UInt8>, palette: UnsafePointer<UInt8>)
+    init(images: [ASS_Image], boundingRect: CGRect)
+    init(width: Int, height: Int, stride: Int, bitmap: UnsafePointer<UInt8>, palette: UnsafePointer<UInt8>)
     func cgImage(isHDR: Bool, alphaInfo: CGImageAlphaInfo) -> CGImage?
 }
 
 public extension ImagePipelineType {
     static func process(images: [ASS_Image], boundingRect: CGRect, isHDR: Bool) -> CGImage? {
-        Self(images: images, boundingRect: boundingRect)?.cgImage(isHDR: isHDR, alphaInfo: .first)
+        Self(images: images, boundingRect: boundingRect).cgImage(isHDR: isHDR, alphaInfo: .first)
     }
 }
 
