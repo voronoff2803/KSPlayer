@@ -288,6 +288,7 @@ open class SubtitleModel: ObservableObject {
     public private(set) var parts = [SubtitlePart]()
     public var subtitleDelay = 0.0 // s
     public var isHDR = false
+    public var screenSize = CGSize.zero
     public var url: URL {
         didSet {
             subtitleDataSources.removeAll()
@@ -330,12 +331,13 @@ open class SubtitleModel: ObservableObject {
         }
     }
 
-    public func subtitle(currentTime: TimeInterval, size: CGSize) {
+    public func subtitle(currentTime: TimeInterval, playSize: CGSize, screenSize: CGSize) {
+        self.screenSize = screenSize
         Task { @MainActor in
             var newParts = [SubtitlePart]()
             if let subtile = selectedSubtitleInfo {
                 let currentTime = currentTime - subtile.delay - subtitleDelay
-                newParts = await subtile.search(for: currentTime, size: size, isHDR: isHDR)
+                newParts = await subtile.search(for: currentTime, size: playSize, isHDR: isHDR)
                 if newParts.isEmpty {
                     newParts = parts.filter { part in
                         part == currentTime

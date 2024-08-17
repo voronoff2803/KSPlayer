@@ -344,12 +344,12 @@ public extension CGSize {
     }
 
     // 维持原有的比率。但是宽高不能超过size
-    func within(size: CGSize?) -> CGSize {
-        guard let size, height != 0, width != 0 else {
+    func within(size: CGSize) -> CGSize {
+        guard height != 0, width != 0 else {
             return self
         }
         let aspectRatio = width / height
-        return size.height * aspectRatio < size.width ? CGSize(width: Int(size.width), height: Int(size.width / aspectRatio)) : CGSize(width: Int(size.height * aspectRatio), height: Int(size.height))
+        return size.width / size.height < aspectRatio ? CGSize(width: Int(size.width), height: Int(size.width / aspectRatio)) : CGSize(width: Int(size.height * aspectRatio), height: Int(size.height))
     }
 
     func convert(rect: CGRect, toSize: CGSize) -> CGRect {

@@ -220,7 +220,9 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
             if subtitleModel.isHDR != options.isHDR {
                 subtitleModel.isHDR = options.isHDR
             }
-            subtitleModel.subtitle(currentTime: currentTime, size: player.naturalSize.within(size: player.view?.frame.size))
+            if let view = player.view {
+                subtitleModel.subtitle(currentTime: currentTime, playSize: player.naturalSize.within(size: view.frame.size), screenSize: view.frame.size)
+            }
         }
         delegate?.player(layer: self, currentTime: currentTime, totalTime: player.duration)
         if player.playbackState == .playing, player.loadState == .playable, state == .buffering {

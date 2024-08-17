@@ -613,10 +613,7 @@ public struct VideoSubtitleView: View {
     private func subtitleView(part: SubtitlePart) -> some View {
         switch part.render {
         case let .left(info):
-            SubtitleLeftView(
-                info: info,
-                isHDR: model.isHDR
-            )
+            SubtitleLeftView(info: info, isHDR: model.isHDR, screenSize: model.screenSize)
         case let .right(text):
             SubtitleRightView(
                 textPosition: part.textPosition,
