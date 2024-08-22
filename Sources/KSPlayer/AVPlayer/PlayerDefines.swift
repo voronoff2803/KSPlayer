@@ -197,7 +197,8 @@ extension CapacityProtocol {
 }
 
 public struct LoadingState {
-    public let loadedTime: TimeInterval
+    // 预先加载了多少秒
+    public internal(set) var loadedTime: TimeInterval
     public let progress: TimeInterval
     public let packetCount: Int
     public let frameCount: Int
@@ -387,6 +388,7 @@ open class AbstractAVIOContext {
 }
 
 public protocol PreLoadProtocol {
+    // 预先加载了多少Byte
     var loadedSize: Int64 { get }
     func more() -> Int32
 }

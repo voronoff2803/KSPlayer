@@ -37,6 +37,13 @@ public struct TVOSSlide: UIViewRepresentable {
     public var isFocused: Bool
     public let onEditingChanged: (Bool) -> Void
     public typealias UIViewType = TVSlide
+    public init(value: Binding<Float>, bounds: ClosedRange<Float>, isFocused: FocusState<Bool>, onEditingChanged: @escaping (Bool) -> Void) {
+        self.value = value
+        self.bounds = bounds
+        _isFocused = isFocused
+        self.onEditingChanged = onEditingChanged
+    }
+
     public func makeUIView(context _: Context) -> UIViewType {
         TVSlide(value: value, bounds: bounds, onEditingChanged: onEditingChanged)
     }

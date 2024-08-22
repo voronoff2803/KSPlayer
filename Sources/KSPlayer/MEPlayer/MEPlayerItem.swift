@@ -872,11 +872,12 @@ extension MEPlayerItem: MediaPlayback {
 extension MEPlayerItem: CodecCapacityDelegate {
     func codecDidChangeCapacity() {
         let loadingState = options.playable(capacitys: videoAudioTracks, isFirst: isFirst, isSeek: isSeek)
-        if let preload = ioContext as? PreLoadProtocol, fileSize > 0, duration > 0 {
-            let loadedTime = min(1, Double(preload.loadedSize) / Double(fileSize)) * duration
-            var state = loadingState
-            delegate?.sourceDidChange(loadingState:
-                LoadingState(loadedTime: loadedTime - currentPlaybackTime, progress: loadingState.progress, packetCount: loadingState.packetCount, frameCount: loadingState.frameCount, isEndOfFile: loadingState.isEndOfFile, isPlayable: loadingState.isPlayable, isFirst: loadingState.isFirst, isSeek: loadingState.isSeek))
+        if let preload = ioContext as? PreLoadProtocol, fileSize > 0, duration > 0, preload.loadedSize > 0 {
+            var loadingState = loadingState
+            let loadedTime = Double(preload.loadedSize) * duration / Double(fileSize)
+            loadingState.loadedTime += loadedTime
+            loadingState.loadedTime = min(loadingState.loadedTime, duration - currentPlaybackTime)
+            delegate?.sourceDidChange(loadingState: loadingState)
         } else {
             delegate?.sourceDidChange(loadingState: loadingState)
         }
