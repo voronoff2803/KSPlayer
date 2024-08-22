@@ -390,6 +390,7 @@ open class AbstractAVIOContext {
 public protocol PreLoadProtocol {
     // 预先加载了多少Byte
     var loadedSize: Int64 { get }
+    var urlPos: Int64 { get }
     func more() -> Int32
 }
 

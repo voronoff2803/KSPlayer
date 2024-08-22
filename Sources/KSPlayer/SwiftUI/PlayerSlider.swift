@@ -46,8 +46,10 @@ struct PlayerSlider: View {
     func fullTrack() -> some View {
         Capsule()
             .fill(trackColor)
+            #if !os(tvOS)
             .frame(height: trackHeight)
             .frame(height: interactiveSize.height)
+            #endif
     }
 
     var body: some View {
@@ -173,9 +175,14 @@ private struct ProgressTrack: View {
     public var body: some View {
         GeometryReader { geometry in
             if let bufferValue {
-                bufferColor.mask(maskView(geometry: geometry, value: bufferValue.wrappedValue, offset: 0))
+                Capsule().fill(bufferColor).mask(maskView(geometry: geometry, value: bufferValue.wrappedValue, offset: 0))
             }
-            progressColor.mask(maskView(geometry: geometry, value: value.wrappedValue, offset: Float(thumbSize.width) / 2))
+            Capsule().fill(progressColor)
+            #if os(tvOS) // TV上面没有圆点，不需要间距
+                .mask(maskView(geometry: geometry, value: value.wrappedValue, offset: 0))
+            #else
+                .mask(maskView(geometry: geometry, value: value.wrappedValue, offset: Float(thumbSize.width) / 2))
+            #endif
         }
     }
 }
