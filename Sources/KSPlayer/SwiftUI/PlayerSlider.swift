@@ -8,7 +8,7 @@ import Foundation
 import SwiftUI
 
 @available(iOS 15, tvOS 15, macOS 12, *)
-struct PlayerSlider: View {
+public struct PlayerSlider: View {
     let value: Binding<Float>
     let bufferValue: State<Float>?
     let bounds: ClosedRange<Float>
@@ -19,7 +19,11 @@ struct PlayerSlider: View {
     // 圆点大小
     let thumbSize: CGSize = .init(width: 15, height: 15)
     // 交互面积，比圆点要大一些
+    #if os(tvOS)
+    let interactiveSize: CGSize = .init(width: 20, height: 20)
+    #else
     let interactiveSize: CGSize = .init(width: 25, height: 25)
+    #endif
     // 轨道高度
     let trackHeight: CGFloat = 5
 
@@ -46,13 +50,13 @@ struct PlayerSlider: View {
     func fullTrack() -> some View {
         Capsule()
             .fill(trackColor)
-            #if !os(tvOS)
+        #if !os(tvOS)
             .frame(height: trackHeight)
             .frame(height: interactiveSize.height)
-            #endif
+        #endif
     }
 
-    var body: some View {
+    public var body: some View {
         GeometryReader { geometry in
             // 整个进度条
             if dragFromAnyPosition {

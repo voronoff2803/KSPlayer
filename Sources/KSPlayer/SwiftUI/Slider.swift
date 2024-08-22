@@ -5,6 +5,7 @@
 //  Created by kintan on 2023/5/4.
 //
 
+import Foundation
 import SwiftUI
 
 #if os(tvOS)
@@ -49,14 +50,10 @@ public struct TVOSSlide: UIViewRepresentable {
     }
 
     public func updateUIView(_ view: UIViewType, context _: Context) {
-        if isFocused {
-            if view.processView.tintColor == .white {
-                view.processView.tintColor = .red
-            }
-        } else {
-            view.processView.tintColor = .white
+        if !isFocused {
             view.cancle()
         }
+        view.processView.tintColor = .green.withAlphaComponent(0.8)
         // 要加这个才会触发进度条更新
         let process = (value.wrappedValue - bounds.lowerBound) / (bounds.upperBound - bounds.lowerBound)
         if process != view.processView.progress {
