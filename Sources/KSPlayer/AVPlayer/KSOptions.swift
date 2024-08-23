@@ -253,27 +253,20 @@ open class KSOptions {
         let isEndOfFile = capacitys.allSatisfy(\.isEndOfFile)
         let loadedTime = capacitys.map(\.loadedTime).min() ?? 0
         let progress = preferredForwardBufferDuration == 0 ? 100 : loadedTime * 100.0 / preferredForwardBufferDuration
+        // 简化逻辑，不要frameCount为0就认为不能播放
         let isPlayable = capacitys.allSatisfy { capacity in
-            if capacity.isEndOfFile && capacity.packetCount == 0 {
-                return true
-            }
-            guard capacity.frameCount >= 2 else {
-                return false
-            }
             if capacity.isEndOfFile {
                 return true
             }
             if (syncDecodeVideo && capacity.mediaType == .video) || (syncDecodeAudio && capacity.mediaType == .audio) {
-                return true
+                if capacity.frameCount >= 2 {
+                    return true
+                }
             }
             if isFirst || isSeek {
                 // 让纯音频能更快的打开
                 if capacity.mediaType == .audio || isSecondOpen {
-                    if isFirst {
-                        return true
-                    } else {
-                        return capacity.loadedTime >= self.preferredForwardBufferDuration / 2
-                    }
+                    return capacity.loadedTime >= self.preferredForwardBufferDuration / 2
                 }
             }
             return capacity.loadedTime >= self.preferredForwardBufferDuration
