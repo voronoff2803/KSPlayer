@@ -102,7 +102,12 @@ public final class MEPlayerItem: Sendable {
         // metadata可能会实时变化。所以把它放在DynamicInfo里面
         toDictionary(self?.formatCtx?.pointee.metadata)
     } bytesRead: { [weak self] in
-        self?.pbArray.map(\.bytesRead).reduce(0, +) ?? 0
+        guard let self else { return 0 }
+        var bytesRead = self.pbArray.map(\.bytesRead).reduce(0, +) ?? 0
+        if let preload = self.ioContext as? PreLoadProtocol, preload.loadedSize > 0 {
+            bytesRead += preload.loadedSize
+        }
+        return bytesRead
     } audioBitrate: { [weak self] in
         Int(8 * (self?.audioTrack?.bitrate ?? 0))
     } videoBitrate: { [weak self] in
