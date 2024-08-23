@@ -89,7 +89,7 @@ class VideoToolboxDecode: DecodeProtocol {
                 tuple.0.deallocate()
             }
             /// tvOS切换app会导致硬解失败，并且只在这里返回错误，不会走到block里面，所以这里也要判断错误。
-            /// 而iOS是在block里面返回错误，不会在这里返回错误
+            /// 而iOS是在block里面返回错误，也会在这里返回错误
             if status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr || status == kVTVideoDecoderBadDataErr {
                 if isKeyFrame {
                     throw NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)

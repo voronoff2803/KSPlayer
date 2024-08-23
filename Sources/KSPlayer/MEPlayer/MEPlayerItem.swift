@@ -818,9 +818,12 @@ extension MEPlayerItem: MediaPlayback {
             Thread.current.name = (self.operationQueue.name ?? "") + "_close"
             self.allPlayerItemTracks.forEach { $0.shutdown() }
             KSLog("清空formatCtx")
-            self.ioContext?.close()
-            // 不要自己来释放pb。不然第二次播放同一个url会出问题
-//            self.formatCtx?.pointee.pb = nil
+            if let ioContext = self.ioContext {
+                ioContext.close()
+                /// 自定义io要释放pb，不然会内存泄漏
+                /// 非自定义io不要自己来释放pb。不然第二次播放同一个url会出问题
+                self.formatCtx?.pointee.pb = nil
+            }
             self.formatCtx?.pointee.interrupt_callback.opaque = nil
             self.formatCtx?.pointee.interrupt_callback.callback = nil
             avformat_close_input(&self.formatCtx)

@@ -36,14 +36,22 @@ class FFmpegDecode: DecodeProtocol {
     }
 
     func decodeFrame(from packet: Packet, completionHandler: @escaping (Result<MEFrame, Error>) -> Void) {
-        guard let codecContext, avcodec_send_packet(codecContext, packet.corePacket) == 0 else {
+        guard let codecContext else {
+            return
+        }
+        let status = avcodec_send_packet(codecContext, packet.corePacket)
+        guard status == 0 else {
             /**
-              有些视频(.m2ts)seek完之后, 就会一直报错，重新createContext，也是会报错一段时间。转为软解就不会报错一段时间了。
-              发现在seek的时候不要调用avcodec_flush_buffers就能解决这个问题。
-             经过实验还是不能转为软解，因为有的视频软解的话，会发烫严重。
-             所以视频卡顿一段还是可以接受的。并且可以用异步硬解，就可以解决这个问题了
-             **/
-            self.codecContext = try? packet.assetTrack.createContext(options: options)
+               有些视频(.m2ts)seek完之后, 就会一直报错，重新createContext，也是会报错一段时间。转为软解就不会报错一段时间了。
+               发现在seek的时候不要调用avcodec_flush_buffers就能解决这个问题。
+              经过实验还是不能转为软解，因为有的视频软解的话，会发烫严重。
+              所以视频卡顿一段还是可以接受的。并且可以用异步硬解，就可以解决这个问题了
+              硬解前后台切换的话，会保-1313558101 这个错误
+             如果在这里createContext的话，会导致内存泄漏，是先不createContext了
+              **/
+//            self.codecContext = try? packet.assetTrack.createContext(options: options)
+//            av_packet_unref(packet.corePacket)
+//            print(status)
             return
         }
         // 需要avcodec_send_packet之后，properties的值才会变成FF_CODEC_PROPERTY_CLOSED_CAPTIONS
