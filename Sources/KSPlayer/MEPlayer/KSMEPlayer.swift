@@ -52,6 +52,7 @@ public class KSMEPlayer: NSObject {
     // 现在xcode beta版本，会在_pipController crash。因为tvos目前也无法使用pip。所以先返回nil。
     @available(tvOS 14.0, *)
     public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? {
+        return nil
         _pipController as? any AVPictureInPictureController & KSPictureInPictureProtocol
     }
     #else
