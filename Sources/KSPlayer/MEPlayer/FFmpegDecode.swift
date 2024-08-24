@@ -50,8 +50,8 @@ class FFmpegDecode: DecodeProtocol {
               硬解前后台切换的话，视频会报错-1313558101
              频繁seek的话，音频会报错-1094995529
               **/
+//            avcodec_free_context(&self.codecContext)
 //            self.codecContext = try? packet.assetTrack.createContext(options: options)
-//            av_packet_unref(packet.corePacket)
 //            print(status)
             return
         }

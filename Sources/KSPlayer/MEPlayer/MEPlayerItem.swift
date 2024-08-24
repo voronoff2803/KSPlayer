@@ -820,12 +820,16 @@ extension MEPlayerItem: MediaPlayback {
             if let ioContext = self.ioContext {
                 ioContext.close()
             }
-            /// 不要自己来释放pb。不然第二次播放同一个url会出问题
-//            self.formatCtx?.pointee.pb = nil
             self.formatCtx?.pointee.interrupt_callback.opaque = nil
             self.formatCtx?.pointee.interrupt_callback.callback = nil
-            self.pbArray.removeAll()
             avformat_close_input(&self.formatCtx)
+            self.pbArray.forEach {
+                if var pb = $0.pb {
+                    av_freep(&pb.pointee.buffer)
+                    avio_context_free(&$0.pb)
+                }
+            }
+            self.pbArray.removeAll()
             avformat_close_input(&self.outputFormatCtx)
             self.duration = 0
             self.closeOperation = nil
@@ -1104,12 +1108,5 @@ private class PBClass {
 
     fileprivate func add(num: Int64) {
         add += num
-    }
-
-    deinit {
-        if var pb {
-            av_freep(&pb.pointee.buffer)
-            avio_context_free(&self.pb)
-        }
     }
 }
