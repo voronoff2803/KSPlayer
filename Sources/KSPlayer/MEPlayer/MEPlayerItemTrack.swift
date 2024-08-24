@@ -115,6 +115,8 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         }
         state = .closed
         outputRenderQueue.shutdown()
+        decoderMap.values.forEach { $0.shutdown() }
+        decoderMap.removeAll()
     }
 
     private var lastPacketBytes = Int32(0)
@@ -311,7 +313,8 @@ final class AsyncPlayerItemTrack<Frame: MEFrame>: SyncPlayerItemTrack<Frame> {
         if state == .idle {
             return
         }
-        super.shutdown()
+        state = .closed
+        outputRenderQueue.shutdown()
         packetQueue.shutdown()
     }
 }

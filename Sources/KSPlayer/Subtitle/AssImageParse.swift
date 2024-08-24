@@ -76,7 +76,7 @@ public final actor AssImageRenderer {
     }
 
     deinit {
-        currentTrack = nil
+        ass_free_track(currentTrack)
         ass_library_done(library)
         ass_renderer_done(renderer)
     }

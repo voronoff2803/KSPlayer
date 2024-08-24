@@ -46,8 +46,9 @@ class FFmpegDecode: DecodeProtocol {
                发现在seek的时候不要调用avcodec_flush_buffers就能解决这个问题。
               经过实验还是不能转为软解，因为有的视频软解的话，会发烫严重。
               所以视频卡顿一段还是可以接受的。并且可以用异步硬解，就可以解决这个问题了
-              硬解前后台切换的话，会保-1313558101 这个错误
              如果在这里createContext的话，会导致内存泄漏，是先不createContext了
+              硬解前后台切换的话，视频会报错-1313558101
+             频繁seek的话，音频会报错-1094995529
               **/
 //            self.codecContext = try? packet.assetTrack.createContext(options: options)
 //            av_packet_unref(packet.corePacket)
