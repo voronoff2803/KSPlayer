@@ -812,7 +812,6 @@ extension MEPlayerItem: MediaPlayback {
         state = .closed
         av_packet_free(&outputPacket)
         stopRecord()
-        pbArray.removeAll()
         // 故意循环引用。等结束了。才释放
         let closeOperation = BlockOperation {
             Thread.current.name = (self.operationQueue.name ?? "") + "_close"
@@ -825,6 +824,7 @@ extension MEPlayerItem: MediaPlayback {
 //            self.formatCtx?.pointee.pb = nil
             self.formatCtx?.pointee.interrupt_callback.opaque = nil
             self.formatCtx?.pointee.interrupt_callback.callback = nil
+            self.pbArray.removeAll()
             avformat_close_input(&self.formatCtx)
             avformat_close_input(&self.outputFormatCtx)
             self.duration = 0
