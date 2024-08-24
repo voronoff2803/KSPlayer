@@ -598,8 +598,10 @@ extension MEPlayerItem {
                 var increase = Int64(seekTime + startTime.seconds - time.seconds)
                 var seekFlags = options.seekFlags
                 let timeStamp: Int64
-                // todo 先不用seekByBytes来进行判断，因为有的ts走seekByBytes的话，那会seek不会精准，所以先关掉，下次遇到ts seek有问题的话在看下。
-                if false {
+                /// 自定义io的话，需要走seekByBytes，不然无法进行定位。
+                /// 但是正常的视频就  先不用seekByBytes来进行判断，
+                /// 因为有的ts走seekByBytes的话，那会seek不会精准，所以先关掉，下次遇到ts seek有问题的话在看下。
+                if ioContext != nil {
                     seekFlags |= AVSEEK_FLAG_BYTE
                     if fileSize > 0, duration > 0 {
                         timeStamp = Int64(Double(fileSize) * seekToTime / duration)
@@ -823,10 +825,10 @@ extension MEPlayerItem: MediaPlayback {
             self.formatCtx?.pointee.interrupt_callback.opaque = nil
             self.formatCtx?.pointee.interrupt_callback.callback = nil
             avformat_close_input(&self.formatCtx)
-            self.pbArray.forEach {
-                if var pb = $0.pb {
+            for item in self.pbArray {
+                if var pb = item.pb {
                     av_freep(&pb.pointee.buffer)
-                    avio_context_free(&$0.pb)
+                    avio_context_free(&item.pb)
                 }
             }
             self.pbArray.removeAll()
