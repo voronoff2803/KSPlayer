@@ -825,10 +825,16 @@ extension MEPlayerItem: MediaPlayback {
             self.formatCtx?.pointee.interrupt_callback.opaque = nil
             self.formatCtx?.pointee.interrupt_callback.callback = nil
             avformat_close_input(&self.formatCtx)
-            for item in self.pbArray {
-                if var pb = item.pb {
-                    av_freep(&pb.pointee.buffer)
-                    avio_context_free(&item.pb)
+            if self.ioContext != nil {
+                for item in self.pbArray {
+                    if var pb = item.pb {
+                        if pb.pointee.buffer != nil {
+                            av_freep(&pb.pointee.buffer)
+                        }
+                        if item.pb != nil {
+                            avio_context_free(&item.pb)
+                        }
+                    }
                 }
             }
             self.pbArray.removeAll()
