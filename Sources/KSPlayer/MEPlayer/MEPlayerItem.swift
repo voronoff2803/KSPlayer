@@ -601,7 +601,7 @@ extension MEPlayerItem {
                 /// 自定义io的话，需要走seekByBytes，不然无法进行定位。
                 /// 但是正常的视频就  先不用seekByBytes来进行判断，
                 /// 因为有的ts走seekByBytes的话，那会seek不会精准，所以先关掉，下次遇到ts seek有问题的话在看下。
-                if ioContext != nil {
+                if seekByBytes, ioContext != nil {
                     seekFlags |= AVSEEK_FLAG_BYTE
                     if fileSize > 0, duration > 0 {
                         timeStamp = Int64(Double(fileSize) * seekToTime / duration)
@@ -819,13 +819,11 @@ extension MEPlayerItem: MediaPlayback {
             Thread.current.name = (self.operationQueue.name ?? "") + "_close"
             self.allPlayerItemTracks.forEach { $0.shutdown() }
             KSLog("清空formatCtx")
-            if let ioContext = self.ioContext {
-                ioContext.close()
-            }
             self.formatCtx?.pointee.interrupt_callback.opaque = nil
             self.formatCtx?.pointee.interrupt_callback.callback = nil
             avformat_close_input(&self.formatCtx)
-            if self.ioContext != nil {
+            if let ioContext = self.ioContext {
+                ioContext.close()
                 for item in self.pbArray {
                     if var pb = item.pb {
                         if pb.pointee.buffer != nil {
