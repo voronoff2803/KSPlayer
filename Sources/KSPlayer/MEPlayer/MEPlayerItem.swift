@@ -103,11 +103,11 @@ public final class MEPlayerItem: Sendable {
         toDictionary(self?.formatCtx?.pointee.metadata)
     } bytesRead: { [weak self] in
         guard let self else { return 0 }
-        var bytesRead = self.pbArray.map(\.bytesRead).reduce(0, +) ?? 0
-        if let preload = self.ioContext as? PreLoadProtocol, preload.loadedSize > 0 {
-            bytesRead += preload.loadedSize
+        if self.state != .opening, let preload = self.ioContext as? PreLoadProtocol, preload.loadedSize > 0 {
+            return preload.urlPos
+        } else {
+            return self.pbArray.map(\.bytesRead).reduce(0, +) ?? 0
         }
-        return bytesRead
     } audioBitrate: { [weak self] in
         Int(8 * (self?.audioTrack?.bitrate ?? 0))
     } videoBitrate: { [weak self] in
