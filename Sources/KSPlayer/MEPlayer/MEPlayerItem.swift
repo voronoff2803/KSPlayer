@@ -245,6 +245,9 @@ extension MEPlayerItem {
             // 如果要自定义协议的话，那就用avio_alloc_context，对formatCtx.pointee.pb赋值
             formatCtx.pointee.pb = ioContext.getContext()
             pbArray.append(PBClass(pb: formatCtx.pointee.pb))
+            if ioContext is PreLoadProtocol {
+                options.seekUsePacketCache = false
+            }
         }
         defaultIOOpen = formatCtx.pointee.io_open
         // 处理m3u8这种有子url的情况。
@@ -623,6 +626,7 @@ extension MEPlayerItem {
                         }
                         timeStamp = position + increase
                     }
+                    //                avformat_flush(formatCtx)
                 } else {
                     increase *= Int64(AV_TIME_BASE)
                     timeStamp = Int64(time.seconds) * Int64(AV_TIME_BASE) + increase
