@@ -566,7 +566,7 @@ struct VideoTimeShowView: View {
                     Float(model.currentTime)
                 } set: { newValue, _ in
                     model.currentTime = Int(newValue)
-                }, bufferValue: .init(wrappedValue: Float(playerLayer.player.playableTime)), in: 0 ... Float(model.totalTime)) { onEditingChanged in
+                }, bufferValue: Float(playerLayer.player.playableTime), in: 0 ... Float(model.totalTime)) { onEditingChanged in
                     if onEditingChanged {
                         playerLayer.pause()
                     } else {
