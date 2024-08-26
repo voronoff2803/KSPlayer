@@ -84,6 +84,9 @@ extension AVCodecParameters {
             if lowres > 0 {
                 av_dict_set_int(&avOptions, "lowres", Int64(lowres), 0)
             }
+            if codec_type == AVMEDIA_TYPE_VIDEO {
+                codecContext.pointee.thread_count = Int32(options.videoSoftDecodeThreadCount)
+            }
         }
         if codec_type == AVMEDIA_TYPE_VIDEO, options?.hardwareDecode ?? false {
             //        "videotoolbox" "vulkan"

@@ -356,6 +356,7 @@ open class KSOptions {
     public static let displayEnumVRBox = VRBoxDisplayModel()
     @available(tvOS 14.0, *)
     public static var pictureInPictureType: (KSPictureInPictureProtocol & AVPictureInPictureController).Type = KSPictureInPictureController.self
+    public static var videoSoftDecodeThreadCount = 1
     public var isHDR = false
     public var display: DisplayEnum = displayEnumPlane
     public var videoDelay = 0.0 // s
@@ -369,7 +370,7 @@ open class KSOptions {
     public var videoDisable = false
     public var canStartPictureInPictureAutomaticallyFromInline = KSOptions.canStartPictureInPictureAutomaticallyFromInline
     public var automaticWindowResize = true
-
+    public var videoSoftDecodeThreadCount = KSOptions.videoSoftDecodeThreadCount
     open func preferredFrame(fps: Float) -> Bool {
         KSOptions.preferredFrame || fps > 61
     }
