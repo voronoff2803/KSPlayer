@@ -25,8 +25,11 @@ public struct Slider: View {
     }
 
     public var body: some View {
-        TVOSSlide(value: value, bounds: bounds, isFocused: _isFocused, onEditingChanged: onEditingChanged)
-            .focused($isFocused)
+        ZStack {
+            TVOSSlide(value: value, bounds: bounds, isFocused: _isFocused, onEditingChanged: onEditingChanged)
+                .focused($isFocused)
+            ProgressView(value: value.wrappedValue, total: bounds.upperBound)
+        }
     }
 }
 
@@ -50,22 +53,13 @@ public struct TVOSSlide: UIViewRepresentable {
     }
 
     public func updateUIView(_ view: UIViewType, context _: Context) {
-        if isFocused {
-            view.processView.progressTintColor = UIColor(PlayerSlider.focusProgressColor)
-        } else {
-            view.processView.progressTintColor = UIColor(PlayerSlider.progressColor)
+        if !isFocused {
             view.cancle()
-        }
-        // 要加这个才会触发进度条更新
-        let process = (value.wrappedValue - bounds.lowerBound) / (bounds.upperBound - bounds.lowerBound)
-        if process != view.processView.progress {
-            view.processView.progress = process
         }
     }
 }
 
 public class TVSlide: UIControl {
-    fileprivate let processView = UIProgressView()
     private var beganValue: Float
     private let onEditingChanged: (Bool) -> Void
     fileprivate var value: Binding<Float>
@@ -90,14 +84,6 @@ public class TVSlide: UIControl {
         ranges = bounds
         self.onEditingChanged = onEditingChanged
         super.init(frame: .zero)
-        processView.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(processView)
-        NSLayoutConstraint.activate([
-            processView.topAnchor.constraint(equalTo: topAnchor),
-            processView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            processView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            processView.bottomAnchor.constraint(equalTo: bottomAnchor),
-        ])
         let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(actionPanGesture(sender:)))
         addGestureRecognizer(panGestureRecognizer)
     }

@@ -48,15 +48,6 @@ public struct PlayerSlider: View {
         self.onEditingChanged = onEditingChanged
     }
 
-    func fullTrack() -> some View {
-        Capsule()
-            .fill(PlayerSlider.trackColor)
-        #if !os(tvOS)
-            .frame(height: PlayerSlider.trackHeight)
-            .frame(height: PlayerSlider.interactiveSize.height)
-        #endif
-    }
-
     public var body: some View {
         #if os(tvOS)
         ZStack {
@@ -67,40 +58,41 @@ public struct PlayerSlider: View {
         }
         #else
         GeometryReader { geometry in
-            // 整个进度条
-            if PlayerSlider.dragFromAnyPosition {
-                fullTrack()
-                    .background(.white.opacity(0.001)) // 需要一个背景，不然interactiveSize的触控范围不会生效
-                    .simultaneousGesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { gestureValue in
-                                let computedValue = valueFrom(
-                                    distance: Float(gestureValue.location.x),
-                                    availableDistance: Float(geometry.size.width),
-                                    bounds: bounds,
-                                    leadingOffset: Float(PlayerSlider.thumbSize.width) / 2,
-                                    trailingOffset: Float(PlayerSlider.thumbSize.width) / 2
-                                )
-                                value.wrappedValue = computedValue
-                                if !beginDrag {
-                                    beginDrag = true
-                                    onEditingChanged(true)
-                                }
-                            }
-                            .onEnded { _ in
-                                beginDrag = false
-                                onEditingChanged(false)
-                            }
-                    )
-
-            } else {
-                fullTrack()
-            }
             // 进度部分
             ProgressTrack(value: value, bufferValue: bufferValue, bounds: bounds, progressColor: PlayerSlider.progressColor)
-                .allowsHitTesting(false)
                 .frame(height: PlayerSlider.trackHeight)
                 .frame(height: PlayerSlider.interactiveSize.height)
+            #if os(macOS)
+                .background {
+                    // mac上面拖动进度条时整个窗口都会被拖动，这样可以临时解决，以后有更好的方法再改下
+                    Button {} label: {
+                        Color.clear
+                    }
+                }
+            #else
+                .background(.white.opacity(0.001)) // 需要一个背景，不然interactiveSize的触控范围不会生效
+            #endif
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { gestureValue in
+                            let computedValue = valueFrom(
+                                distance: Float(gestureValue.location.x),
+                                availableDistance: Float(geometry.size.width),
+                                bounds: bounds,
+                                leadingOffset: Float(PlayerSlider.thumbSize.width) / 2,
+                                trailingOffset: Float(PlayerSlider.thumbSize.width) / 2
+                            )
+                            value.wrappedValue = computedValue
+                            if !beginDrag {
+                                beginDrag = true
+                                onEditingChanged(true)
+                            }
+                        }
+                        .onEnded { _ in
+                            beginDrag = false
+                            onEditingChanged(false)
+                        }
+                )
             // 圆点
             Circle()
                 .fill(PlayerSlider.thumbColor)
@@ -140,14 +132,6 @@ public struct PlayerSlider: View {
                 )
         }
         .frame(height: PlayerSlider.interactiveSize.height)
-        #if os(macOS)
-            .background {
-                // mac上面拖动进度条时整个窗口都会被拖动，这样可以临时解决，以后有更好的方法再改下
-                Button {} label: {
-                    Color.clear
-                }
-            }
-        #endif
         #endif
     }
 }
@@ -184,6 +168,12 @@ private struct ProgressTrack: View {
                 .mask(maskView(geometry: geometry, value: value.wrappedValue, offset: Float(PlayerSlider.thumbSize.width) / 2))
             #endif
         }
+        .background(PlayerSlider.trackColor)
+        #if os(tvOS)
+            .cornerRadius(PlayerSlider.interactiveSize.height / 2)
+        #else
+            .cornerRadius(PlayerSlider.trackHeight)
+        #endif
     }
 }
 

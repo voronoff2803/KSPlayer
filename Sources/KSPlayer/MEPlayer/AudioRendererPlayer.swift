@@ -35,15 +35,16 @@ public class AudioRendererPlayer: AudioOutput {
         }
     }
 
-    public weak var renderSource: OutputRenderSourceDelegate?
-    private var periodicTimeObserver: Any?
-    private let renderer = AVSampleBufferAudioRenderer()
-    private let synchronizer = AVSampleBufferRenderSynchronizer()
-    private let serializationQueue = DispatchQueue(label: "ks.player.serialization.queue")
     var isPaused: Bool {
         synchronizer.rate == 0
     }
 
+    public weak var renderSource: OutputRenderSourceDelegate?
+    private var periodicTimeObserver: Any?
+    private var flushTime = true
+    private let renderer = AVSampleBufferAudioRenderer()
+    private let synchronizer = AVSampleBufferRenderSynchronizer()
+    private let serializationQueue = DispatchQueue(label: "ks.player.serialization.queue")
     public required init() {
         synchronizer.addRenderer(renderer)
         if #available(macOS 11.3, iOS 14.5, tvOS 14.5, *) {
@@ -63,24 +64,20 @@ public class AudioRendererPlayer: AudioOutput {
 
     public func play() {
         let time: CMTime
-        if #available(macOS 11.3, iOS 14.5, tvOS 14.5, *) {
+        if #available(macOS 11.3, iOS 14.5, tvOS 14.5, *), renderer.hasSufficientMediaDataForReliablePlaybackStart {
             // 判断是否有足够的缓存，有的话就用当前的时间。seek的话，需要清空缓存，这样才能取到最新的时间。
-            if renderer.hasSufficientMediaDataForReliablePlaybackStart {
-                time = synchronizer.currentTime()
-            } else {
-                if let currentRender = renderSource?.getAudioOutputRender() {
-                    time = currentRender.cmtime
-                } else {
-                    time = .zero
-                }
-            }
+            time = synchronizer.currentTime()
         } else {
-            if let currentRender = renderSource?.getAudioOutputRender() {
+            /// 连接蓝牙音响的话，hasSufficientMediaDataForReliablePlaybackStart会一直返回false,
+            /// 所以要兜底判断要不要从数据源头获取最新的时间，
+            if flushTime, let currentRender = renderSource?.getAudioOutputRender() {
+                flushTime = false
                 time = currentRender.cmtime
             } else {
-                time = .zero
+                time = synchronizer.currentTime()
             }
         }
+        // 一定要用setRate(_ rate: Float, time: CMTime)，只改rate是无法进行播放的
         synchronizer.setRate(playbackRate, time: time)
         // 要手动的调用下，这样才能及时的更新音频的时间
         renderSource?.setAudio(time: time, position: -1)
@@ -109,6 +106,7 @@ public class AudioRendererPlayer: AudioOutput {
 
     public func flush() {
         renderer.flush()
+        flushTime = true
     }
 
     private func request() {
@@ -138,6 +136,8 @@ public class AudioRendererPlayer: AudioOutput {
                 }
                 #endif
             }
+//            连接蓝牙音响的话， 要缓存100多秒isReadyForMoreMediaData才会返回false，非蓝牙音响只要1.3s就返回true了。还没找到解决办法
+//            let diff = render.seconds - synchronizer.currentTime().seconds
         }
     }
 }
