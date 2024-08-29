@@ -20,29 +20,29 @@ class SubtitleDecode: DecodeProtocol {
     private var startTime = TimeInterval(0)
     private var assParse: AssParse? = nil
     private var assImageRenderer: AssImageRenderer? = nil
-    private let displaySize: CGSize?
     private let isHDR: Bool
     private let isASS: Bool
     required init(assetTrack: FFmpegAssetTrack, options: KSOptions) {
         startTime = assetTrack.startTime.seconds
         isHDR = options.isHDR
-        displaySize = assetTrack.formatDescription?.displaySize
         isASS = assetTrack.codecpar.codec_id == AV_CODEC_ID_SSA || assetTrack.codecpar.codec_id == AV_CODEC_ID_ASS
         do {
             codecContext = try assetTrack.createContext(options: options)
-            if let codecContext, let pointer = codecContext.pointee.subtitle_header {
-                let subtitleHeader = String(cString: pointer)
-                // 所以文字字幕都会自动转为ass的格式，都会有subtitle_header。所以还要判断下字幕的类型
-                if KSOptions.isASSUseImageRender, isASS {
-                    assImageRenderer = AssImageRenderer()
-                    assetTrack.subtitleRender = assImageRenderer
-                    Task(priority: .high) {
-                        await assImageRenderer?.subtitle(header: subtitleHeader)
-                    }
-                } else {
-                    let assParse = AssParse()
-                    if assParse.canParse(scanner: Scanner(string: subtitleHeader)) {
-                        self.assParse = assParse
+            if let codecContext {
+                if let pointer = codecContext.pointee.subtitle_header {
+                    let subtitleHeader = String(cString: pointer)
+                    // 所以文字字幕都会自动转为ass的格式，都会有subtitle_header。所以还要判断下字幕的类型
+                    if KSOptions.isASSUseImageRender, isASS {
+                        assImageRenderer = AssImageRenderer()
+                        assetTrack.subtitleRender = assImageRenderer
+                        Task(priority: .high) {
+                            await assImageRenderer?.subtitle(header: subtitleHeader)
+                        }
+                    } else {
+                        let assParse = AssParse()
+                        if assParse.canParse(scanner: Scanner(string: subtitleHeader)) {
+                            self.assParse = assParse
+                        }
                     }
                 }
             }
@@ -80,7 +80,9 @@ class SubtitleDecode: DecodeProtocol {
         } else {
             end = start + duration
         }
-        var parts = text(subtitle: subtitle, start: start, end: end)
+        // init方法里面codecContext还没有宽高，需要等到这里才有。
+        let displaySize = CGSize(width: Int(codecContext.pointee.width), height: Int(codecContext.pointee.height))
+        var parts = text(subtitle: subtitle, start: start, end: end, displaySize: displaySize)
         /// 不用preSubtitleFrame来进行更新end。而是插入一个空的字幕来更新字幕。
         /// 因为字幕有可能不按顺序解码。这样就会导致end比start小，然后这个字幕就不会被清空了。
         if assImageRenderer == nil, parts.isEmpty {
@@ -107,7 +109,7 @@ class SubtitleDecode: DecodeProtocol {
         }
     }
 
-    private func text(subtitle: AVSubtitle, start: TimeInterval, end: TimeInterval) -> [SubtitlePart] {
+    private func text(subtitle: AVSubtitle, start: TimeInterval, end: TimeInterval, displaySize: CGSize) -> [SubtitlePart] {
         var parts = [SubtitlePart]()
         var images = [(CGRect, UIImage)]()
         var attributedString: NSMutableAttributedString?
@@ -144,7 +146,7 @@ class SubtitleDecode: DecodeProtocol {
             } else if rect.type == SUBTITLE_BITMAP {
                 if let bitmap = rect.data.0, let palette = rect.data.1 {
 //                    let start = CACurrentMediaTime()
-                    let image = PointerImagePipeline.init(width: Int(rect.w), height: Int(rect.h), stride: Int(rect.linesize.0), bitmap: bitmap, palette: palette)
+                    let image = PointerImagePipeline(width: Int(rect.w), height: Int(rect.h), stride: Int(rect.linesize.0), bitmap: bitmap, palette: palette)
                         .cgImage(isHDR: isHDR, alphaInfo: .first).flatMap { UIImage(cgImage: $0) }
 //                    print("image subtitle time:\(CACurrentMediaTime() - start)")
                     if let image {
@@ -158,7 +160,7 @@ class SubtitleDecode: DecodeProtocol {
             parts.append(SubtitlePart(start, end, attributedString: attributedString))
         }
         let boundingRect = images.map(\.0).boundingRect()
-        let displaySize = displaySize ?? CGSize(width: boundingRect.maxX + boundingRect.minX, height: boundingRect.maxY)
+//        let displaySize = displaySize ?? CGSize(width: boundingRect.maxX + boundingRect.minX, height: boundingRect.maxY)
         // 不合并图片，有返回每个图片的rect，可以自己控制显示位置。
         for image in images {
             // 有些图片字幕不会带屏幕宽高，所以就取字幕自身的宽高。
