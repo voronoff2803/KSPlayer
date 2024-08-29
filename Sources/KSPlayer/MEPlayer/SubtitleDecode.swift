@@ -144,7 +144,8 @@ class SubtitleDecode: DecodeProtocol {
             } else if rect.type == SUBTITLE_BITMAP {
                 if let bitmap = rect.data.0, let palette = rect.data.1 {
 //                    let start = CACurrentMediaTime()
-                    let image = KSOptions.imagePipelineType.init(width: Int(rect.w), height: Int(rect.h), stride: Int(rect.linesize.0), bitmap: bitmap, palette: palette).cgImage(isHDR: isHDR, alphaInfo: .last).flatMap { UIImage(cgImage: $0) }
+                    let image = PointerImagePipeline.init(width: Int(rect.w), height: Int(rect.h), stride: Int(rect.linesize.0), bitmap: bitmap, palette: palette)
+                        .cgImage(isHDR: isHDR, alphaInfo: .first).flatMap { UIImage(cgImage: $0) }
 //                    print("image subtitle time:\(CACurrentMediaTime() - start)")
                     if let image {
                         let imageRect = CGRect(x: Int(rect.x), y: Int(rect.y), width: Int(rect.w), height: Int(rect.h))

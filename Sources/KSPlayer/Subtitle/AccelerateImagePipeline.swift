@@ -53,7 +53,7 @@ extension vImage.PixelBuffer<vImage.Interleaved8x4> {
             let bufferPtr = bufferPtr.withMemoryRebound(to: UInt32.self) { $0 }
             loop(iterations: height) { _ in
                 loop(iterations: width) { x in
-                    bufferPtr[vImagePosition + x] = palette[Int(bitmap[bitmapPosition + x])]
+                    bufferPtr[vImagePosition + x] = palette[Int(bitmap[bitmapPosition + x])].bigEndian
                 }
                 vImagePosition += rowBytes
                 bitmapPosition += stride

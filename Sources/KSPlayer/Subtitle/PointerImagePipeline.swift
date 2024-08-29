@@ -25,7 +25,7 @@ public final class PointerImagePipeline: ImagePipelineType {
         let palette = palette.withMemoryRebound(to: UInt32.self, capacity: 256) { $0 }
         loop(iterations: height) { _ in
             loop(iterations: width) { x in
-                buffer[bitmapPosition + x] = palette[Int(bitmap[bitmapPosition + x])]
+                buffer[bitmapPosition + x] = palette[Int(bitmap[bitmapPosition + x])].bigEndian
             }
             bitmapPosition += stride
         }
