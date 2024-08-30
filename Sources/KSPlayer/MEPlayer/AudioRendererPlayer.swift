@@ -110,34 +110,36 @@ public class AudioRendererPlayer: AudioOutput {
     }
 
     private func request() {
-        while renderer.isReadyForMoreMediaData, !isPaused {
-            guard var render = renderSource?.getAudioOutputRender() else {
-                break
-            }
-            var array = [render]
-            let loopCount = Int32(render.audioFormat.sampleRate) / 20 / Int32(render.numberOfSamples) - 2
-            if loopCount > 0 {
-                for _ in 0 ..< loopCount {
-                    if let render = renderSource?.getAudioOutputRender() {
-                        array.append(render)
-                    }
-                }
-            }
-            if array.count > 1 {
-                render = AudioFrame(array: array)
-            }
-            if let sampleBuffer = render.toCMSampleBuffer() {
-                let channelCount = render.audioFormat.channelCount
-                renderer.audioTimePitchAlgorithm = channelCount > 2 ? .spectral : .timeDomain
-                renderer.enqueue(sampleBuffer)
-                #if !os(macOS)
-                if AVAudioSession.sharedInstance().preferredInputNumberOfChannels != channelCount {
-                    try? AVAudioSession.sharedInstance().setPreferredOutputNumberOfChannels(Int(channelCount))
-                }
-                #endif
-            }
-//            连接蓝牙音响的话， 要缓存100多秒isReadyForMoreMediaData才会返回false，非蓝牙音响只要1.3s就返回true了。还没找到解决办法
-//            let diff = render.seconds - synchronizer.currentTime().seconds
+        guard !isPaused, var render = renderSource?.getAudioOutputRender() else {
+            return
         }
+        var array = [render]
+        let loopCount = Int32(render.audioFormat.sampleRate) / 20 / Int32(render.numberOfSamples) - 2
+        if loopCount > 0 {
+            for _ in 0 ..< loopCount {
+                if let render = renderSource?.getAudioOutputRender() {
+                    array.append(render)
+                }
+            }
+        }
+        if array.count > 1 {
+            render = AudioFrame(array: array)
+        }
+        if let sampleBuffer = render.toCMSampleBuffer() {
+            let channelCount = render.audioFormat.channelCount
+            renderer.audioTimePitchAlgorithm = channelCount > 2 ? .spectral : .timeDomain
+            renderer.enqueue(sampleBuffer)
+            #if !os(macOS)
+            if AVAudioSession.sharedInstance().preferredInputNumberOfChannels != channelCount {
+                try? AVAudioSession.sharedInstance().setPreferredOutputNumberOfChannels(Int(channelCount))
+            }
+            #endif
+        }
+        /// 连接蓝牙音响的话， 要缓存100多秒isReadyForMoreMediaData才会返回false，
+        /// 非蓝牙音响只要1.3s就返回true了。还没找到解决办法
+//        if !renderer.isReadyForMoreMediaData {
+//            let diff = render.seconds - synchronizer.currentTime().seconds
+//            KSLog("[audio] AVSampleBufferAudioRenderer cache \(diff)")
+//        }
     }
 }
