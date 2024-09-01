@@ -594,7 +594,6 @@ extension MEPlayerItem {
                         self.seekingCompletionHandler = nil
                     }
                     state = .reading
-                    KSLog("seek use packet cache \(seekToTime)")
                     continue
                 }
                 let time = mainClock().time
@@ -674,33 +673,39 @@ extension MEPlayerItem {
     }
 
     private func seekUsePacketCache(seconds: Double) -> Bool {
-        if options.seekUsePacketCache {
-            var array = [(PlayerItemTrackProtocol, UInt)]()
-            if let track = videoTrack {
-                if let index = track.seekCache(time: seconds, needKeyFrame: true) {
-                    array.append((track, index))
-                } else {
-                    return false
-                }
-            }
-            if let track = audioTrack {
-                if let index = track.seekCache(time: seconds, needKeyFrame: false) {
-                    array.append((track, index))
-                } else {
-                    return false
-                }
-            }
-            for (track, index) in array {
-                track.updateCache(headIndex: index, time: seconds)
-            }
-            for track in assetTracks {
-                if let index = track.subtitle?.outputRenderQueue.seek(seconds: seconds) {
-                    track.subtitle?.outputRenderQueue.update(headIndex: index)
-                }
-            }
-            return true
+        guard options.seekUsePacketCache else {
+            return false
         }
-        return false
+        var log = "seek use packet cache \(seconds)"
+        var seconds = seconds
+        var array = [(PlayerItemTrackProtocol, UInt, TimeInterval)]()
+        if let track = videoTrack {
+            if let (index, time) = track.seekCache(time: seconds, needKeyFrame: true) {
+                // 需要更新下seek的时间，不然视频滞后音频的话，那画面会卡住
+                seconds = time
+                array.append((track, index, time))
+            } else {
+                return false
+            }
+        }
+        if let track = audioTrack {
+            if let (index, time) = track.seekCache(time: seconds, needKeyFrame: false) {
+                array.append((track, index, time))
+            } else {
+                return false
+            }
+        }
+        for (track, index, time) in array {
+            track.updateCache(headIndex: index, time: seconds)
+            log += " \(track.mediaType.rawValue) \(time)"
+        }
+        KSLog(log)
+        for track in assetTracks {
+            if let (index, _) = track.subtitle?.outputRenderQueue.seek(seconds: seconds) {
+                track.subtitle?.outputRenderQueue.update(headIndex: index)
+            }
+        }
+        return true
     }
 
     private func reading() -> Int32 {

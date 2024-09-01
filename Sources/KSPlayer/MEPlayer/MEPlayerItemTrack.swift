@@ -16,7 +16,7 @@ protocol PlayerItemTrackProtocol: CapacityProtocol, AnyObject {
     var delegate: CodecCapacityDelegate? { get set }
     func decode()
     func seek(time: TimeInterval)
-    func seekCache(time: TimeInterval, needKeyFrame: Bool) -> UInt?
+    func seekCache(time: TimeInterval, needKeyFrame: Bool) -> (UInt, TimeInterval)?
     func updateCache(headIndex: UInt, time: TimeInterval)
     func putPacket(packet: Packet)
 //    func getOutputRender<Frame: ObjectQueueItem>(where predicate: ((Frame) -> Bool)?) -> Frame?
@@ -103,7 +103,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         return outputFecthRender
     }
 
-    func seekCache(time _: TimeInterval, needKeyFrame _: Bool) -> UInt? {
+    func seekCache(time _: TimeInterval, needKeyFrame _: Bool) -> (UInt, TimeInterval)? {
         nil
     }
 
@@ -253,7 +253,7 @@ final class AsyncPlayerItemTrack<Frame: MEFrame>: SyncPlayerItemTrack<Frame> {
         operationQueue.addOperation(decodeOperation)
     }
 
-    override func seekCache(time: TimeInterval, needKeyFrame: Bool) -> UInt? {
+    override func seekCache(time: TimeInterval, needKeyFrame: Bool) -> (UInt, TimeInterval)? {
         packetQueue.seek(seconds: time, needKeyFrame: needKeyFrame)
     }
 

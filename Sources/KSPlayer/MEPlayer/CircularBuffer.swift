@@ -141,7 +141,7 @@ public class CircularBuffer<Item: ObjectQueueItem> {
         return result
     }
 
-    public func seek(seconds: Double, needKeyFrame: Bool = false) -> UInt? {
+    public func seek(seconds: Double, needKeyFrame: Bool = false) -> (UInt, TimeInterval)? {
         condition.lock()
         defer { condition.unlock() }
         var i = headIndex
@@ -153,19 +153,19 @@ public class CircularBuffer<Item: ObjectQueueItem> {
                     if item.seconds >= seconds {
                         if needKeyFrame {
                             if let packet = item as? Packet, packet.isKeyFrame {
-                                return i
+                                return (i, packet.seconds)
                             } else {
                                 i -= 1
                                 while i > headIndex {
                                     if let packet = _buffer[Int(i & mask)] as? Packet, packet.isKeyFrame {
-                                        return i
+                                        return (i, packet.seconds)
                                     }
                                     i -= 1
                                 }
                                 return nil
                             }
                         } else {
-                            return i
+                            return (i, item.seconds)
                         }
                     }
                     i += 1
@@ -175,10 +175,10 @@ public class CircularBuffer<Item: ObjectQueueItem> {
                     if item.seconds <= seconds {
                         if needKeyFrame {
                             if let packet = item as? Packet, packet.isKeyFrame {
-                                return i
+                                return (i, packet.seconds)
                             }
                         } else {
-                            return i
+                            return (i, item.seconds)
                         }
                     }
                     i -= 1
