@@ -193,6 +193,7 @@ private extension KSMEPlayer {
                 self.audioOutput.pause()
                 self.videoOutput?.pause()
             } else {
+                self.playerItem.play()
                 self.audioOutput.play()
                 self.videoOutput?.play()
             }

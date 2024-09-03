@@ -431,36 +431,37 @@ open class KSOptions {
         #endif
     }
 
+    private var videoClockDelayCount = 0
     open func videoClockSync(main: KSClock, nextVideoTime: TimeInterval, fps: Double, frameCount: Int) -> (Double, ClockProcessType) {
         let desire = main.getTime() - videoDelay
         let diff = nextVideoTime - desire
-        //        KSLog("[video] video diff \(diff) nextVideoTime \(nextVideoTime) main \(main.time.seconds)")
+//        KSLog("[video] video diff \(diff) nextVideoTime \(nextVideoTime) main \(main.time.seconds)")
         if diff >= 1 / fps / 2 {
             return (diff, .remain)
         } else {
             if diff < -4 / fps {
-                let log = "[video] video delay=\(diff), clock=\(desire), frameCount=\(frameCount)"
-                if frameCount == 1 {
-                    if diff < -2 {
+                videoClockDelayCount += 1
+                /// 之前有一次因为mainClock的时间戳不准，导致diff很大，所以这边要判断下delay的次数在做seek、dropGOPPacket、flush处理，避免误伤。
+                let log = "[video] video delay=\(diff), clock=\(desire), frameCount=\(frameCount) delay count=\(videoClockDelayCount)"
+
+                if diff < -8, videoClockDelayCount % 80 == 0 {
+                    KSLog("\(log) seek video track")
+                    return (diff, .seek)
+                }
+                if diff < -1, videoClockDelayCount % 10 == 0 {
+                    if frameCount == 1 {
                         KSLog("\(log) drop gop Packet")
                         return (diff, .dropGOPPacket)
                     } else {
-                        return (diff, .next)
-                    }
-                } else {
-                    if diff < -8 {
-                        KSLog("\(log) seek video track")
-                        return (diff, .seek)
-                    }
-                    if diff < -1 {
                         KSLog("\(log) flush video track")
                         return (diff, .flush)
                     }
-                    let count = Int(-diff * fps / 4.0)
-                    KSLog("\(log) drop \(count) frame")
-                    return (diff, .dropFrame(count: count))
                 }
+                let count = Int(-diff * fps / 4.0)
+                KSLog("\(log) drop \(count) frame")
+                return (diff, .dropFrame(count: count))
             } else {
+                videoClockDelayCount = 0
                 return (diff, .next)
             }
         }

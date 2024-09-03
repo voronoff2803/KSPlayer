@@ -772,6 +772,20 @@ extension MEPlayerItem {
         return readResult
     }
 
+    func play() {
+        /// 这边还是要调用下播放，更新clock里面的时间。
+        /// 不然如果音频先渲染的话，那音视频同步算法就无法取到正确的时间戳。到时误丢数据
+        /// 暂停会导致getTime变大，所以要用time更新下时间戳
+        /// seek之后返回的音频和视频的时间戳跟seek的时间戳有可能会差了10s，所以要取当前的视频帧的时间来更新time
+        /// 这边优先取视频时钟，因为视频会优先展示一帧
+        var time = videoClock.time
+        if time == startTime {
+            time = audioClock.time
+        }
+        audioClock.time = time
+        videoClock.time = time
+    }
+
     private func pause() {
         if state == .reading {
             state = .paused
