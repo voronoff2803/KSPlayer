@@ -193,7 +193,14 @@ private extension KSMEPlayer {
                 self.audioOutput.pause()
                 self.videoOutput?.pause()
             } else {
-                self.playerItem.play()
+                if let frame = self.playerItem.getAudioOutputRender() {
+                    /// 这边还是要调用下音频播放，更新clock里面的时间。
+                    /// 不然如果音频没有先渲染的话，那音视频同步算法就无法取到正确的时间戳。导致误丢数据
+                    /// 暂停会导致getTime变大，所以要用time更新下时间戳
+                    /// seek之后返回的音频和视频的时间戳跟seek的时间戳有可能会差了10s，
+                    /// 有时候加载很快，视频帧无法优先展示一帧。所以要取最新的音频时间来更新time
+                    playerItem.setAudio(time: frame.cmtime, position: -1)
+                }
                 self.audioOutput.play()
                 self.videoOutput?.play()
             }
@@ -483,7 +490,10 @@ extension KSMEPlayer: MediaPlayerProtocol {
         /// 因为硬解进入前台会失败。如果视频 i 帧间隔比较长，那画面会卡比较久。所以要seek让页面不会卡住。
         /// 过滤掉直播流或是不能seek的视频
         if playerItem.seekable, duration > 0, options.hardwareDecode {
-            seek(time: currentPlaybackTime) { _ in }
+            seek(time: currentPlaybackTime) { [weak self] _ in
+                guard let self else { return }
+                self.playbackState = .paused
+            }
         }
     }
 
