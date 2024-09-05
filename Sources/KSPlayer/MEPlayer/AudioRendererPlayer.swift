@@ -79,6 +79,7 @@ public class AudioRendererPlayer: AudioOutput {
         }
         // 一定要用setRate(_ rate: Float, time: CMTime)，只改rate是无法进行播放的
         synchronizer.setRate(playbackRate, time: time)
+        renderSource?.setAudio(time: time, position: -1)
         renderer.requestMediaDataWhenReady(on: serializationQueue) { [weak self] in
             guard let self else {
                 return

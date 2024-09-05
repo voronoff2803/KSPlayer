@@ -213,6 +213,12 @@ public class AudioEnginePlayer: AudioOutput {
         if !engine.isRunning {
             do {
                 try engine.start()
+                if currentRender == nil {
+                    currentRender = renderSource?.getAudioOutputRender()
+                }
+                if let currentRender {
+                    renderSource?.setAudio(time: currentRender.cmtime, position: -1)
+                }
             } catch {
                 KSLog(error)
             }

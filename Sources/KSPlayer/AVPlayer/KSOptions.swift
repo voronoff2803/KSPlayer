@@ -457,7 +457,13 @@ open class KSOptions {
                         return (diff, .flush)
                     }
                 }
-                let count = Int(-diff * fps / 4.0)
+                let count: Int
+                if videoClockDelayCount == 1 {
+                    // 第一次delay的话，就先只丢一帧。防止seek之后第一次播放丢太多帧
+                    count = 1
+                } else {
+                    count = Int(-diff * fps / 4.0)
+                }
                 KSLog("\(log) drop \(count) frame")
                 return (diff, .dropFrame(count: count))
             } else {

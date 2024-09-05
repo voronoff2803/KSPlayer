@@ -28,6 +28,12 @@ public final class AudioUnitPlayer: AudioOutput {
         if !isPlaying {
             isPlaying = true
             AudioOutputUnitStart(audioUnitForOutput)
+            if currentRender == nil {
+                currentRender = renderSource?.getAudioOutputRender()
+            }
+            if let currentRender {
+                renderSource?.setAudio(time: currentRender.cmtime, position: -1)
+            }
         }
     }
 
