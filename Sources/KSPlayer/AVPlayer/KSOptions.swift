@@ -318,9 +318,14 @@ open class KSOptions {
     public var subtitleTimeInterval = 0.1
     open func wantedSubtitle(tracks: [MediaPlayerTrack]) -> MediaPlayerTrack? {
         if autoSelectEmbedSubtitle {
-            return tracks.first {
+            let first = tracks.first {
                 $0.language == Locale.currentLanguage
             } ?? tracks.first
+            // 不要默认选中dvb_teletext
+            if let track = first as? FFmpegAssetTrack, track.isDVBTeletext {
+                return nil
+            }
+            return first
         } else {
             return nil
         }

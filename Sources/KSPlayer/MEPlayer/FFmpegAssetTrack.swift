@@ -301,6 +301,10 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
         }
     }
 
+    public var isDVBTeletext: Bool {
+        codecpar.codec_id == AV_CODEC_ID_DVB_TELETEXT
+    }
+
     deinit {}
 }
 
