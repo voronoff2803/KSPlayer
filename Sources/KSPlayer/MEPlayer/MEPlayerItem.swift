@@ -580,9 +580,15 @@ extension MEPlayerItem {
                     let size = preload.more()
                     if size > 0 {
                         continue
+                    } else {
+                        // more有可能要等很久才返回,所以这里要判断下状态
+                        if state == .paused {
+                            condition.wait()
+                        }
                     }
+                } else {
+                    condition.wait()
                 }
-                condition.wait()
             }
             if state == .seeking {
                 let seekToTime = seekTime
