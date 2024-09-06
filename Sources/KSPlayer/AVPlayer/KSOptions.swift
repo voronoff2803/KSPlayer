@@ -263,6 +263,9 @@ open class KSOptions {
                     return true
                 }
             }
+            guard capacity.frameCount >= 2 else {
+                return false
+            }
             if isFirst || isSeek {
                 // 让纯音频能更快的打开
                 if capacity.mediaType == .audio || isSecondOpen {

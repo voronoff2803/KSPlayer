@@ -61,6 +61,7 @@ class VideoToolboxDecode: DecodeProtocol {
                     return
                 }
                 guard status == noErr else {
+                    KSLog("[vidoe] videoToolbox decode block error \(status) isKeyFrame: \(isKeyFrame)")
                     if status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr || status == kVTVideoDecoderBadDataErr {
                         // tvos在这边抛出NSError的话，会crash。所以就先不切换了解码器了。看下会怎么样
                         // 这个地方同步解码只会调用一次，但是异步解码，会调用多次。所以用状态来判断。
@@ -91,12 +92,12 @@ class VideoToolboxDecode: DecodeProtocol {
             /// tvOS切换app会导致硬解失败，并且只在这里返回错误，不会走到block里面，所以这里也要判断错误。
             /// 而iOS是在block里面返回错误，也会在这里返回错误
             if status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr || status == kVTVideoDecoderBadDataErr {
-                if isKeyFrame {
-                    throw NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
-                } else {
-                    // 解决从后台切换到前台，解码失败的问题
-                    session = DecompressionSession(assetTrack: session.assetTrack, options: options)!
-                }
+                KSLog("[vidoe] videoToolbox decode error \(status) isKeyFrame: \(isKeyFrame)")
+                // 从后台切换到前台会报错-12903，关键帧也会。所以要重建session
+                session = DecompressionSession(assetTrack: session.assetTrack, options: options)!
+//                if isKeyFrame {
+//                    throw NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
+//                }
             }
         } catch {
             completionHandler(.failure(error))
