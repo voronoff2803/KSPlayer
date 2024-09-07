@@ -94,7 +94,9 @@ public class TVSlide: UIControl {
     }
 
     public func cancle() {
-        timer.fireDate = Date.distantFuture
+        if timer.fireDate == .distantPast {
+            timer.fireDate = .distantFuture
+        }
     }
 
     override open func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
@@ -106,17 +108,20 @@ public class TVSlide: UIControl {
             moveDirection = .left
             pressTime = CACurrentMediaTime()
             onEditingChanged(true)
-            timer.fireDate = Date.distantPast
+            timer.fireDate = .distantPast
         case .rightArrow:
             moveDirection = .right
             pressTime = CACurrentMediaTime()
             onEditingChanged(true)
-            timer.fireDate = Date.distantPast
+            timer.fireDate = .distantPast
         case .select:
-            timer.fireDate = Date.distantFuture
+            timer.fireDate = .distantFuture
             onEditingChanged(false)
         default:
-            timer.fireDate = Date.distantFuture
+            timer.fireDate = .distantFuture
+            if !KSOptions.seekRequireConfirmation {
+                onEditingChanged(false)
+            }
             super.pressesBegan(presses, with: event)
         }
     }
@@ -124,7 +129,7 @@ public class TVSlide: UIControl {
     @objc private func actionPanGesture(sender: UIPanGestureRecognizer) {
         switch sender.state {
         case .began, .possible:
-            timer.fireDate = Date.distantFuture
+            timer.fireDate = .distantFuture
             beganValue = value.wrappedValue
             onEditingChanged(true)
         case .changed:
@@ -138,6 +143,9 @@ public class TVSlide: UIControl {
             }
         case .ended:
             beganValue = value.wrappedValue
+            if !KSOptions.seekRequireConfirmation {
+                onEditingChanged(false)
+            }
         case .cancelled, .failed:
 //            value.wrappedValue = beganValue
             break
