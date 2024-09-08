@@ -294,8 +294,14 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
         }
         set {
             var discard = newValue ? AVDISCARD_DEFAULT : AVDISCARD_ALL
-            if mediaType == .subtitle, !isImageSubtitle {
-                discard = AVDISCARD_DEFAULT
+            if mediaType == .subtitle {
+                if isImageSubtitle {
+                    if !isEnabled {
+                        subtitle?.outputRenderQueue.flush()
+                    }
+                } else {
+                    discard = AVDISCARD_DEFAULT
+                }
             }
             stream?.pointee.discard = discard
         }

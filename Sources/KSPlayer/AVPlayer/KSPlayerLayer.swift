@@ -276,6 +276,12 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
             completion(false)
         }
         if player.isReadyToPlay, player.seekable {
+            if abs(time - player.currentPlaybackTime) < 1 {
+                if autoPlay {
+                    play()
+                }
+                return
+            }
             player.seek(time: time) { [weak self] finished in
                 guard let self else { return }
                 if finished, autoPlay {
