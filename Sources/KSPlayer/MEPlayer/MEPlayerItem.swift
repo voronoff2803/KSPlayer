@@ -59,22 +59,27 @@ public final class MEPlayerItem: Sendable {
     }
 
     public var currentPlaybackTime: TimeInterval {
-        if state == .seeking {
-            return seekTime
-        } else {
-            let time = (mainClock().time - startTime).seconds
-            if time > duration {
-                duration = time
-            }
-            return time
-        }
+        state == .seeking ? seekTime : (mainClock().time - startTime).seconds
     }
 
     private var seekTime = TimeInterval(0)
     private var startTime = CMTime.zero
     // duration 不用在减去startTime了
+    private var initDuration: TimeInterval = 0 {
+        didSet {
+            duration = initDuration
+        }
+    }
+
+    private var initFileSize: Int64 = 0 {
+        didSet {
+            fileSize = initFileSize
+        }
+    }
+
     public private(set) var duration: TimeInterval = 0
     public private(set) var fileSize: Int64 = 0
+
     public private(set) var naturalSize = CGSize.one
     private var error: NSError? {
         didSet {
@@ -343,9 +348,9 @@ extension MEPlayerItem {
             videoClock.time = startTime
             audioClock.time = startTime
         }
-        duration = TimeInterval(max(formatCtx.pointee.duration, 0) / Int64(AV_TIME_BASE))
+        initDuration = TimeInterval(max(formatCtx.pointee.duration, 0) / Int64(AV_TIME_BASE))
         dynamicInfo.byteRate = formatCtx.pointee.bit_rate / 8
-        fileSize = avio_size(formatCtx.pointee.pb)
+        initFileSize = avio_size(formatCtx.pointee.pb)
         createCodec(formatCtx: formatCtx)
         if formatCtx.pointee.nb_chapters > 0 {
             chapters.removeAll()
@@ -500,7 +505,7 @@ extension MEPlayerItem {
                 naturalSize = abs(rotation - 90) <= 1 || abs(rotation - 270) <= 1 ? first.naturalSize.reverse : first.naturalSize
                 options.process(assetTrack: first)
                 options.isHDR = first.dynamicRange?.isHDR ?? false
-                let frameCapacity = options.videoFrameMaxCount(fps: first.nominalFrameRate, naturalSize: naturalSize, isLive: duration == 0)
+                let frameCapacity = options.videoFrameMaxCount(fps: first.nominalFrameRate, naturalSize: naturalSize, isLive: initDuration == 0)
                 let track = options.syncDecodeVideo ? SyncPlayerItemTrack<VideoVTBFrame>(mediaType: .video, frameCapacity: frameCapacity, options: options) : AsyncPlayerItemTrack<VideoVTBFrame>(mediaType: .video, frameCapacity: frameCapacity, options: options)
                 track.delegate = self
                 allPlayerItemTracks.append(track)
@@ -564,9 +569,9 @@ extension MEPlayerItem {
                 let timestamp: Int64
                 let time = startTime + CMTime(seconds: options.startPlayTime)
                 if seekByBytes {
-                    if fileSize > 0, duration > 0 {
+                    if initFileSize > 0, initDuration > 0 {
                         flags |= AVSEEK_FLAG_BYTE
-                        timestamp = Int64(Double(fileSize) * options.startPlayTime / duration)
+                        timestamp = Int64(Double(initFileSize) * options.startPlayTime / initDuration)
                     } else {
                         timestamp = time.value
                     }
@@ -583,6 +588,12 @@ extension MEPlayerItem {
         }
         allPlayerItemTracks.forEach { $0.decode() }
         while [MESourceState.paused, .seeking, .reading].contains(state) {
+            if let formatCtx {
+                fileSize = avio_size(formatCtx.pointee.pb)
+                if fileSize != initFileSize, initFileSize != 0 {
+                    duration = Double(fileSize) / Double(initFileSize) * initDuration
+                }
+            }
             if state == .paused {
                 if let preload = ioContext as? PreLoadProtocol {
                     let size = preload.more()
@@ -617,7 +628,6 @@ extension MEPlayerItem {
                 /// 因为有的ts走seekByBytes的话，那会seek不会精准，自定义io的直播流和点播也会有有问题，所以先关掉，下次遇到ts seek有问题的话在看下。
                 if false, seekByBytes, let formatCtx {
                     seekFlags |= AVSEEK_FLAG_BYTE
-                    let fileSize = avio_size(formatCtx.pointee.pb)
                     if fileSize > 0, duration > 0 {
                         timeStamp = Int64(Double(fileSize) * seekToTime / duration)
                     } else {
@@ -808,7 +818,7 @@ extension MEPlayerItem: MediaPlayback {
         }
         var seekable = true
         if let ioContext = formatCtx.pointee.pb {
-            seekable = ioContext.pointee.seekable > 0 || duration != 0
+            seekable = ioContext.pointee.seekable > 0 || initDuration != 0
         }
         return seekable
     }
@@ -859,7 +869,6 @@ extension MEPlayerItem: MediaPlayback {
             }
             self.pbArray.removeAll()
             avformat_close_input(&self.outputFormatCtx)
-            self.duration = 0
             self.closeOperation = nil
             self.operationQueue.cancelAllOperations()
         }
