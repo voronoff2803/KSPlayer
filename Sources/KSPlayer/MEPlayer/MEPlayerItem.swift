@@ -59,7 +59,15 @@ public final class MEPlayerItem: Sendable {
     }
 
     public var currentPlaybackTime: TimeInterval {
-        state == .seeking ? seekTime : (mainClock().time - startTime).seconds
+        if state == .seeking {
+            return seekTime
+        } else {
+            let time = (mainClock().time - startTime).seconds
+            if time > duration {
+                duration = time
+            }
+            return time
+        }
     }
 
     private var seekTime = TimeInterval(0)
@@ -606,15 +614,14 @@ extension MEPlayerItem {
                 var increase = Int64(seekTime + startTime.seconds - time.seconds)
                 var seekFlags = options.seekFlags
                 let timeStamp: Int64
-                /// 自定义io的话，需要走seekByBytes，不然无法进行定位。
-                /// 但是正常的视频就  先不用seekByBytes来进行判断，
-                /// 因为有的ts走seekByBytes的话，那会seek不会精准，所以先关掉，下次遇到ts seek有问题的话在看下。
-                if seekByBytes, ioContext != nil {
+                /// 因为有的ts走seekByBytes的话，那会seek不会精准，自定义io的直播流和点播也会有有问题，所以先关掉，下次遇到ts seek有问题的话在看下。
+                if false, seekByBytes, let formatCtx {
                     seekFlags |= AVSEEK_FLAG_BYTE
+                    let fileSize = avio_size(formatCtx.pointee.pb)
                     if fileSize > 0, duration > 0 {
                         timeStamp = Int64(Double(fileSize) * seekToTime / duration)
                     } else {
-                        var byteRate = (formatCtx?.pointee.bit_rate ?? 0) / 8
+                        var byteRate = formatCtx.pointee.bit_rate / 8
                         if byteRate == 0 {
                             byteRate = dynamicInfo.byteRate
                         }
@@ -627,7 +634,7 @@ extension MEPlayerItem {
                             position = audioClock.position
                         }
                         if position < 0 {
-                            position = avio_tell(formatCtx?.pointee.pb)
+                            position = avio_tell(formatCtx.pointee.pb)
                         }
                         timeStamp = position + increase
                     }
