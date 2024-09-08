@@ -1046,6 +1046,7 @@
       }
     },
     "Stream Type" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

@@ -642,6 +642,7 @@ struct VideoSettingView: View {
                     }
                     LabeledContent("Video Type".localized, value: (videoTracks.first { $0.isEnabled }?.dynamicRange ?? .sdr).description)
                     LabeledContent("Stream Type".localized, value: (videoTracks.first { $0.isEnabled }?.fieldOrder ?? .progressive).description)
+                    LabeledContent("Decode Type".localized, value: playerLayer.options.decodeType.rawValue)
                 }
                 TextField("Subtitle delay".localized, value: Binding {
                     playerLayer.subtitleModel.subtitleDelay

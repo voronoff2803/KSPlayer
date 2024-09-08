@@ -373,6 +373,7 @@ open class KSOptions {
     public var videoAdaptable = true
     public var videoFilters = [String]()
     public var syncDecodeVideo = false
+    public internal(set) var decodeType = DecodeType.asynchronousHardware
     public var hardwareDecode = KSOptions.hardwareDecode
     public var asynchronousDecompression = KSOptions.asynchronousDecompression
     public var videoDisable = false

@@ -524,6 +524,7 @@ public struct KSClock {
 
 public enum DecodeType: String {
     case soft
-    case videotoolbox
+    case hardware
+    case asynchronousHardware
     case vulka
 }

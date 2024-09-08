@@ -56,7 +56,7 @@ class FFmpegDecode: DecodeProtocol {
             return
         }
         // 需要avcodec_send_packet之后，properties的值才会变成FF_CODEC_PROPERTY_CLOSED_CAPTIONS
-        if packet.assetTrack.mediaType == .video {
+        if codecContext.pointee.codec_type == AVMEDIA_TYPE_VIDEO {
             if Int32(codecContext.pointee.properties) & FF_CODEC_PROPERTY_CLOSED_CAPTIONS != 0, packet.assetTrack.closedCaptionsTrack == nil {
                 var codecpar = AVCodecParameters()
                 codecpar.codec_type = AVMEDIA_TYPE_SUBTITLE
@@ -151,6 +151,9 @@ class FFmpegDecode: DecodeProtocol {
                 }
                 filter.filter(options: options, inputFrame: inputFrame) { avframe in
                     do {
+                        if codecContext.pointee.codec_type == AVMEDIA_TYPE_VIDEO {
+                            options.decodeType = avframe.pointee.format == AV_PIX_FMT_VIDEOTOOLBOX.rawValue ? .hardware : .soft
+                        }
                         var frame = try frameChange.change(avframe: avframe)
                         if let videoFrame = frame as? VideoVTBFrame {
                             if displayData != nil || contentData != nil || ambientViewingEnvironment != nil {
