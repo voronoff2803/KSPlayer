@@ -350,6 +350,7 @@ extension MEPlayerItem {
         }
         initDuration = TimeInterval(max(formatCtx.pointee.duration, 0) / Int64(AV_TIME_BASE))
         dynamicInfo.byteRate = formatCtx.pointee.bit_rate / 8
+        // 尽量少调用avio_size，这个会调用fileSize，可能会触发网络请求
         initFileSize = avio_size(formatCtx.pointee.pb)
         createCodec(formatCtx: formatCtx)
         if formatCtx.pointee.nb_chapters > 0 {
@@ -588,12 +589,6 @@ extension MEPlayerItem {
         }
         allPlayerItemTracks.forEach { $0.decode() }
         while [MESourceState.paused, .seeking, .reading].contains(state) {
-            if let formatCtx {
-                fileSize = avio_size(formatCtx.pointee.pb)
-                if fileSize != initFileSize, initFileSize != 0 {
-                    duration = Double(fileSize) / Double(initFileSize) * initDuration
-                }
-            }
             if state == .paused {
                 if let preload = ioContext as? PreLoadProtocol {
                     let size = preload.more()
@@ -920,14 +915,19 @@ extension MEPlayerItem: MediaPlayback {
 extension MEPlayerItem: CodecCapacityDelegate {
     func codecDidChangeCapacity() {
         let loadingState = options.playable(capacitys: videoAudioTracks, isFirst: isFirst, isSeek: isSeek)
-        if let preload = ioContext as? PreLoadProtocol, fileSize > 0, duration > 0, preload.loadedSize > 0 {
+        if let preload = ioContext as? PreLoadProtocol, initFileSize > 0, initDuration > 0, preload.loadedSize > 0 {
             var loadingState = loadingState
-            if preload.urlPos == fileSize {
-                loadingState.loadedTime = duration - currentPlaybackTime
+            if preload.urlPos == initFileSize {
+                loadingState.loadedTime = initDuration - currentPlaybackTime
             } else {
-                let loadedTime = Double(preload.loadedSize) * duration / Double(fileSize)
+                let loadedTime = Double(preload.loadedSize) * initDuration / Double(initFileSize)
                 loadingState.loadedTime += loadedTime
-                loadingState.loadedTime = min(loadingState.loadedTime, duration - currentPlaybackTime)
+                if preload.urlPos > initFileSize {
+                    fileSize = preload.urlPos
+                    duration = loadingState.loadedTime + currentPlaybackTime
+                } else {
+                    loadingState.loadedTime = min(loadingState.loadedTime, duration - currentPlaybackTime)
+                }
             }
             delegate?.sourceDidChange(loadingState: loadingState)
         } else {
