@@ -186,6 +186,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
             player.pipController?.contentSource = nil
         }
         subtitleVC.view.removeFromSuperview()
+        subtitleModel.selectedSubtitleInfo = nil
         player.shutdown()
         options.playerLayerDeinit()
     }

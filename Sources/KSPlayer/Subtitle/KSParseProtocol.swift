@@ -239,6 +239,10 @@ extension String {
                 }
                 attributedStr.append(NSAttributedString(string: String(string), attributes: attributes))
             }
+            // 如果最后有换行符的话，那需要补上，因为split会把最后的换行符去掉，不会返回一个空的字符串
+            if hasSuffix("\n") {
+                attributedStr.append(NSAttributedString(string: String("\n")))
+            }
             return attributedStr
         }
         var fontName: String?

@@ -70,7 +70,7 @@ public protocol SubtitlePartProtocol: Equatable {
     func isEqual(time: TimeInterval) -> Bool
 }
 
-public struct TextPosition {
+public struct TextPosition: Equatable {
     public var verticalAlign: VerticalAlignment = .bottom
     public var horizontalAlign: HorizontalAlignment = .center
     public var leftMargin: CGFloat = 0
@@ -283,7 +283,7 @@ open class SubtitleModel: ObservableObject {
 
     private var subtitleDataSources = [SubtitleDataSource]()
     @Published
-    public private(set) var subtitleInfos = [any SubtitleInfo]()
+    public private(set) var subtitleInfos: [any SubtitleInfo] = KSOptions.audioRecognizes
     @Published
     public private(set) var parts = [SubtitlePart]()
     public var subtitleDelay = 0.0 // s
@@ -341,6 +341,32 @@ open class SubtitleModel: ObservableObject {
                 if newParts.isEmpty {
                     newParts = parts.filter { part in
                         part == currentTime
+                    }
+                } else {
+                    // 对于文本字幕，如果是同一时间有多个的话，并且位置一样的话，那就进行合并换行，防止文字重叠。
+                    if newParts.count > 1 {
+                        let start = newParts[0].start
+                        let end = newParts[0].end
+                        let textPosition = newParts[0].textPosition
+                        let texts = newParts.compactMap { part in
+                            if part.start == start, part.end == end, part.textPosition == textPosition {
+                                return part.render.right
+                            } else {
+                                return nil
+                            }
+                        }
+                        if texts.count == newParts.count {
+                            let str = NSMutableAttributedString()
+                            loop(iterations: texts.count) { i in
+                                if i > 0 {
+                                    str.append(NSAttributedString(string: "\n"))
+                                }
+                                str.append(texts[i])
+                            }
+                            let par = SubtitlePart(start, end, attributedString: str)
+                            par.textPosition = textPosition
+                            newParts = [par]
+                        }
                     }
                 }
             }
