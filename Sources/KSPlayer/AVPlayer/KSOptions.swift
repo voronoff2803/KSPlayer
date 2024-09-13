@@ -301,6 +301,7 @@ open class KSOptions {
 
     static let fontsDir = URL(fileURLWithPath: NSTemporaryDirectory() + "fontsDir")
     public static var isASSUseImageRender = false
+    public static var isSRTUseImageRender = false
     // 丢弃掉字幕自带的样式，用自定义的样式
     public static var stripSubtitleStyle = true
     public static var textColor: Color = .white

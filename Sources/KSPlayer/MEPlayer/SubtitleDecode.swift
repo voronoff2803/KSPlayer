@@ -32,7 +32,7 @@ class SubtitleDecode: DecodeProtocol {
                 if let pointer = codecContext.pointee.subtitle_header {
                     let subtitleHeader = String(cString: pointer)
                     // 所以文字字幕都会自动转为ass的格式，都会有subtitle_header。所以还要判断下字幕的类型
-                    if KSOptions.isASSUseImageRender, isASS {
+                    if (KSOptions.isASSUseImageRender && isASS) || KSOptions.isSRTUseImageRender {
                         assImageRenderer = AssImageRenderer()
                         assetTrack.subtitleRender = assImageRenderer
                         Task(priority: .high) {

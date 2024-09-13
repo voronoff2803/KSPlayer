@@ -16,6 +16,12 @@ import AppKit
 
 public final class AssImageParse: KSParseProtocol {
     public func canParse(scanner: Scanner) -> Bool {
+//        if KSOptions.isSRTUseImageRender {
+//            return true
+//        }
+        guard KSOptions.isASSUseImageRender else {
+            return false
+        }
         guard scanner.scanString("[Script Info]") != nil else {
             return false
         }

@@ -18,13 +18,7 @@ public protocol KSParseProtocol {
 }
 
 public extension KSOptions {
-    static var subtitleParses: [KSParseProtocol] = {
-        if KSOptions.isASSUseImageRender {
-            [AssImageParse(), AssParse(), VTTParse(), SrtParse()]
-        } else {
-            [AssParse(), VTTParse(), SrtParse()]
-        }
-    }()
+    static var subtitleParses: [KSParseProtocol] = [AssImageParse(), AssParse(), VTTParse(), SrtParse()]
 }
 
 public extension String {}

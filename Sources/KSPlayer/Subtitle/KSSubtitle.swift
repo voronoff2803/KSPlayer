@@ -342,11 +342,10 @@ open class SubtitleModel: ObservableObject {
                         part == currentTime
                     }
                 } else {
-                    let oldParts = parts.filter { part in
-                        part == currentTime && part.end != .infinity
-                    }
-                    if oldParts.count > 0 {
-                        newParts.insert(contentsOf: oldParts, at: 0)
+                    for part in parts {
+                        if part == currentTime, part.end != .infinity, newParts.allSatisfy({ $0 != part }) {
+                            newParts.append(part)
+                        }
                     }
                 }
             }
@@ -397,7 +396,7 @@ extension [SubtitlePart] {
         // 对于文本字幕，如果是同一时间有多个的话，并且位置一样的话，那就进行合并换行，防止文字重叠。
         if count > 1 {
             let textPosition = self[0].render.right?.1
-            let texts = compactMap { part in
+            var texts = compactMap { part in
                 if let right = part.render.right, right.1 == textPosition {
                     return right.0
                 } else {
@@ -405,6 +404,7 @@ extension [SubtitlePart] {
                 }
             }
             if texts.count == count {
+                texts.reverse()
                 let str = NSMutableAttributedString()
                 loop(iterations: texts.count) { i in
                     if i > 0 {
