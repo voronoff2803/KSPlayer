@@ -155,8 +155,7 @@ public class AssParse: KSParseProtocol {
         }
         text = text.replacingOccurrences(of: "\\N", with: "\n")
         text = text.replacingOccurrences(of: "\\n", with: "\n")
-        let part = SubtitlePart(start, end, attributedString: text.build(textPosition: &textPosition, attributed: attributes))
-        part.textPosition = textPosition
+        let part = SubtitlePart(start, end, attributedString: text.build(textPosition: &textPosition, attributed: attributes), textPosition: textPosition)
         return part
     }
 }

@@ -16,8 +16,8 @@ public struct VideoSubtitleView: View {
 
     public var body: some View {
         ZStack {
-            ForEach(model.parts) { part in
-                subtitleView(part: part)
+            ForEach(model.parts.merge()) { render in
+                subtitleView(render: render)
             }
         }
         // 禁止字幕视图交互，以免抢占视图的点击事件或其它手势事件
@@ -26,15 +26,12 @@ public struct VideoSubtitleView: View {
     }
 
     @ViewBuilder
-    private func subtitleView(part: SubtitlePart) -> some View {
-        switch part.render {
+    private func subtitleView(render: Either<SubtitleImageInfo, (NSAttributedString, TextPosition?)>) -> some View {
+        switch render {
         case let .left(info):
             SubtitleLeftView(info: info, isHDR: model.isHDR, screenSize: model.screenSize)
-        case let .right(text):
-            SubtitleRightView(
-                textPosition: part.textPosition,
-                text: text
-            )
+        case let .right(text, textPosition):
+            SubtitleRightView(textPosition: textPosition, text: text)
         }
     }
 }

@@ -25,8 +25,7 @@ public struct SubtitleImageInfo {
 public class SubtitlePart: CustomStringConvertible, Identifiable, SubtitlePartProtocol {
     public var start: TimeInterval
     public var end: TimeInterval
-    public var textPosition: TextPosition?
-    public var render: Either<SubtitleImageInfo, NSAttributedString>
+    public var render: Either<SubtitleImageInfo, (NSAttributedString, TextPosition?)>
     public var description: String {
         "Subtile Group ==========\nstart: \(start)\nend:\(end)\ntext:\(String(describing: render))"
     }
@@ -38,10 +37,10 @@ public class SubtitlePart: CustomStringConvertible, Identifiable, SubtitlePartPr
         self.init(start, end, attributedString: NSAttributedString(string: text))
     }
 
-    public init(_ start: TimeInterval, _ end: TimeInterval, attributedString: NSAttributedString) {
+    public init(_ start: TimeInterval, _ end: TimeInterval, attributedString: NSAttributedString, textPosition: TextPosition? = nil) {
         self.start = start
         self.end = end
-        render = .right(attributedString)
+        render = .right((attributedString, textPosition))
     }
 
     public init(_ start: TimeInterval, _ end: TimeInterval, image: SubtitleImageInfo) {
@@ -50,7 +49,7 @@ public class SubtitlePart: CustomStringConvertible, Identifiable, SubtitlePartPr
         render = .left(image)
     }
 
-    public init(_ start: TimeInterval, _ end: TimeInterval, render: Either<SubtitleImageInfo, NSAttributedString>) {
+    public init(_ start: TimeInterval, _ end: TimeInterval, render: Either<SubtitleImageInfo, (NSAttributedString, TextPosition?)>) {
         self.start = start
         self.end = end
         self.render = render
@@ -70,7 +69,7 @@ public protocol SubtitlePartProtocol: Equatable {
     func isEqual(time: TimeInterval) -> Bool
 }
 
-public struct TextPosition: Equatable {
+public struct TextPosition: Equatable, Hashable {
     public var verticalAlign: VerticalAlignment = .bottom
     public var horizontalAlign: HorizontalAlignment = .center
     public var leftMargin: CGFloat = 0
@@ -129,7 +128,7 @@ public struct TextPosition: Equatable {
 
 extension SubtitlePart: Comparable {
     public static func == (left: SubtitlePart, right: SubtitlePart) -> Bool {
-        left.start == right.start && left.end == right.end && left.render.right == right.render.right
+        left.start == right.start && left.end == right.end
     }
 
     public static func < (left: SubtitlePart, right: SubtitlePart) -> Bool {
@@ -343,30 +342,11 @@ open class SubtitleModel: ObservableObject {
                         part == currentTime
                     }
                 } else {
-                    // 对于文本字幕，如果是同一时间有多个的话，并且位置一样的话，那就进行合并换行，防止文字重叠。
-                    if newParts.count > 1 {
-                        let start = newParts[0].start
-                        let end = newParts[0].end
-                        let textPosition = newParts[0].textPosition
-                        let texts = newParts.compactMap { part in
-                            if part.start == start, part.end == end, part.textPosition == textPosition {
-                                return part.render.right
-                            } else {
-                                return nil
-                            }
-                        }
-                        if texts.count == newParts.count {
-                            let str = NSMutableAttributedString()
-                            loop(iterations: texts.count) { i in
-                                if i > 0 {
-                                    str.append(NSAttributedString(string: "\n"))
-                                }
-                                str.append(texts[i])
-                            }
-                            let par = SubtitlePart(start, end, attributedString: str)
-                            par.textPosition = textPosition
-                            newParts = [par]
-                        }
+                    let oldParts = parts.filter { part in
+                        part == currentTime && part.end != .infinity
+                    }
+                    if oldParts.count > 0 {
+                        newParts.insert(contentsOf: oldParts, at: 0)
                     }
                 }
             }
@@ -408,6 +388,44 @@ open class SubtitleModel: ObservableObject {
             }
         } else if let dataSource = dataSource as? (any EmbedSubtitleDataSource) {
             subtitleInfos.append(contentsOf: dataSource.infos)
+        }
+    }
+}
+
+extension [SubtitlePart] {
+    func merge() -> [Either<SubtitleImageInfo, (NSAttributedString, TextPosition?)>] {
+        // 对于文本字幕，如果是同一时间有多个的话，并且位置一样的话，那就进行合并换行，防止文字重叠。
+        if count > 1 {
+            let textPosition = self[0].render.right?.1
+            let texts = compactMap { part in
+                if let right = part.render.right, right.1 == textPosition {
+                    return right.0
+                } else {
+                    return nil
+                }
+            }
+            if texts.count == count {
+                let str = NSMutableAttributedString()
+                loop(iterations: texts.count) { i in
+                    if i > 0 {
+                        str.append(NSAttributedString(string: "\n"))
+                    }
+                    str.append(texts[i])
+                }
+                return [Either.right((str, textPosition))]
+            }
+        }
+        return map(\.render)
+    }
+}
+
+extension Either<SubtitleImageInfo, (NSAttributedString, TextPosition?)>: Identifiable {
+    public var id: Int {
+        switch self {
+        case let .left(info):
+            return info.rect.hashValue
+        case let .right(str, _):
+            return str.hashValue
         }
     }
 }
