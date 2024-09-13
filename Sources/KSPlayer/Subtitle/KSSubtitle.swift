@@ -419,6 +419,27 @@ extension [SubtitlePart] {
     }
 }
 
+extension CGRect: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(origin)
+        hasher.combine(size)
+    }
+}
+
+extension CGPoint: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(x)
+        hasher.combine(y)
+    }
+}
+
+extension CGSize: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(width)
+        hasher.combine(height)
+    }
+}
+
 extension Either<SubtitleImageInfo, (NSAttributedString, TextPosition?)>: Identifiable {
     public var id: Int {
         switch self {
