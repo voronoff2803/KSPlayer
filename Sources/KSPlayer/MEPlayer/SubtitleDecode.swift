@@ -30,9 +30,11 @@ class SubtitleDecode: DecodeProtocol {
             codecContext = try assetTrack.createContext(options: options)
             if let codecContext {
                 if let pointer = codecContext.pointee.subtitle_header {
-                    var subtitleHeader = String(cString: pointer)
-                    if !isASS {
-                        subtitleHeader = subtitleHeader.replacingOccurrences(of: "Style: Default,Arial,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,10,1", with: KSOptions.assStyle)
+                    let subtitleHeader: String
+                    if isASS {
+                        subtitleHeader = String(cString: pointer)
+                    } else {
+                        subtitleHeader = String(cString: pointer).replacingOccurrences(of: "Style: Default,Arial,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,10,1", with: KSOptions.assStyle)
                     }
                     // 所以文字字幕都会自动转为ass的格式，都会有subtitle_header。所以还要判断下字幕的类型
                     if (KSOptions.isASSUseImageRender && isASS) || KSOptions.isSRTUseImageRender {
