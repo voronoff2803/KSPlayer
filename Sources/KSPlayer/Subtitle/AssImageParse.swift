@@ -15,17 +15,18 @@ import AppKit
 #endif
 
 public final class AssImageParse: KSParseProtocol {
+    private var isSrt = false
     public func canParse(scanner: Scanner) -> Bool {
-//        if KSOptions.isSRTUseImageRender {
-//            return true
-//        }
-        guard KSOptions.isASSUseImageRender else {
-            return false
+        if KSOptions.isSRTUseImageRender, scanner.string.contains(" --> ") {
+            scanner.charactersToBeSkipped = nil
+            isSrt = true
+            scanner.scanString("WEBVTT")
+            return true
         }
-        guard scanner.scanString("[Script Info]") != nil else {
-            return false
+        if KSOptions.isASSUseImageRender, scanner.scanString("[Script Info]") != nil {
+            return true
         }
-        return true
+        return false
     }
 
     public func parsePart(scanner _: Scanner) -> SubtitlePart? {
@@ -33,7 +34,13 @@ public final class AssImageParse: KSParseProtocol {
     }
 
     public func parse(scanner: Scanner) -> KSSubtitleProtocol {
-        AssImageRenderer(content: scanner.string)
+        let content: String
+        if isSrt {
+            content = scanner.changeToAss()
+        } else {
+            content = scanner.string
+        }
+        return AssImageRenderer(content: content)
     }
 }
 
