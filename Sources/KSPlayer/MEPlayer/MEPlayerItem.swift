@@ -95,7 +95,12 @@ public final class MEPlayerItem: Sendable {
             case .opened:
                 delegate?.sourceDidOpened()
             case .reading:
-                timer.fireDate = Date.distantPast
+                DispatchQueue.global().async { [unowned self] in
+                    timer.tolerance = 0.02
+                    timer.fireDate = Date.distantPast
+                    RunLoop.current.add(timer, forMode: .default)
+                    RunLoop.current.run()
+                }
             case .closed:
                 timer.invalidate()
             case .failed:
@@ -107,7 +112,7 @@ public final class MEPlayerItem: Sendable {
         }
     }
 
-    private lazy var timer: Timer = .scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
+    private lazy var timer: Timer = .init(timeInterval: 0.05, repeats: true) { [weak self] _ in
         self?.codecDidChangeCapacity()
     }
 
@@ -180,7 +185,6 @@ public final class MEPlayerItem: Sendable {
     public init(url: URL, options: KSOptions) {
         self.url = url
         self.options = options
-        timer.fireDate = Date.distantFuture
         operationQueue.name = "KSPlayer_" + String(describing: self).components(separatedBy: ".").last!
         operationQueue.maxConcurrentOperationCount = 1
         operationQueue.qualityOfService = .userInteractive
@@ -915,7 +919,7 @@ extension MEPlayerItem: MediaPlayback {
 extension MEPlayerItem: CodecCapacityDelegate {
     func codecDidChangeCapacity() {
         let loadingState = options.playable(capacitys: videoAudioTracks, isFirst: isFirst, isSeek: isSeek)
-        if let preload = ioContext as? PreLoadProtocol, initFileSize > 0, initDuration > 0, preload.loadedSize > 0 {
+        if let preload = ioContext as? PreLoadProtocol, initFileSize > 0, initDuration > 0 {
             var loadingState = loadingState
             if preload.urlPos == initFileSize {
                 loadingState.loadedTime = initDuration - currentPlaybackTime
