@@ -19,9 +19,22 @@ extension FFmpegAssetTrack: KSSubtitleProtocol {
         if let subtitleRender {
             return await subtitleRender.search(for: time, size: size, isHDR: isHDR)
         }
-        return subtitle?.outputRenderQueue.search { item -> Bool in
+        let parts = subtitle?.outputRenderQueue.search { item -> Bool in
             item.part.isEqual(time: time)
-        }.map(\.part) ?? []
+        }.map(\.part)
+        if let parts {
+            /// pgssub字幕会没有结束时间，所以会插入空的字幕，但是空的字幕有可能跟非空的字幕在同一个数组里面
+            /// 这样非空字幕就无法清除了。所以这边需要更新下字幕的结束时间。（字幕有进行了排序了）
+            var prePart: SubtitlePart?
+            for part in parts {
+                if let prePart, prePart.end == .infinity {
+                    prePart.end = part.start
+                }
+                prePart = part
+            }
+            return parts
+        }
+        return []
     }
 }
 
