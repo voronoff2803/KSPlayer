@@ -321,6 +321,7 @@ struct VideoControllerView: View {
             }
             if config.isMaskShow {
                 VideoTimeShowView(config: config, model: config.timemodel, timeFont: .caption2)
+                    .focused($focusableView, equals: .controller)
             }
             #elseif os(macOS)
             Spacer()
