@@ -15,11 +15,9 @@ import AppKit
 #endif
 
 public final class AssImageParse: KSParseProtocol {
-    private var isSrt = false
     public func canParse(scanner: Scanner) -> Bool {
         if KSOptions.isSRTUseImageRender, scanner.string.contains(" --> ") {
             scanner.charactersToBeSkipped = nil
-            isSrt = true
             scanner.scanString("WEBVTT")
             return true
         }
@@ -35,7 +33,7 @@ public final class AssImageParse: KSParseProtocol {
 
     public func parse(scanner: Scanner) -> KSSubtitleProtocol {
         let content: String
-        if isSrt {
+        if scanner.string.contains(" --> ") {
             content = scanner.changeToAss()
         } else {
             content = scanner.string
