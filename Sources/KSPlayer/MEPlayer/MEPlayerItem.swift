@@ -468,8 +468,8 @@ extension MEPlayerItem {
                             var fontsDir = KSOptions.fontsDir
                             try? FileManager.default.createDirectory(at: fontsDir, withIntermediateDirectories: true)
                             fontsDir.appendPathComponent(filename)
-                            let result = CTFontManagerRegisterFontsForURL(fontsDir as CFURL, .process, nil)
                             try? data.write(to: fontsDir)
+                            let result = CTFontManagerRegisterFontsForURL(fontsDir as CFURL, .process, nil)
                         }
                     }
                 }
