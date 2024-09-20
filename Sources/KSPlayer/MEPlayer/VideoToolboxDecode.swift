@@ -150,7 +150,8 @@ class DecompressionSession {
         ]
         var session: VTDecompressionSession?
         // swiftlint:disable line_length
-        let status = VTDecompressionSessionCreate(allocator: kCFAllocatorDefault, formatDescription: formatDescription, decoderSpecification: CMFormatDescriptionGetExtensions(formatDescription), imageBufferAttributes: attributes, outputCallback: nil, decompressionSessionOut: &session)
+        // 一定要用kCFAllocatorNull才不会在seek的时候花屏，其他的函数还是要用kCFAllocatorDefault，不然会有问题
+        let status = VTDecompressionSessionCreate(allocator: kCFAllocatorNull, formatDescription: formatDescription, decoderSpecification: CMFormatDescriptionGetExtensions(formatDescription), imageBufferAttributes: attributes, outputCallback: nil, decompressionSessionOut: &session)
         // swiftlint:enable line_length
         guard status == noErr, let decompressionSession = session else {
             return nil
