@@ -214,14 +214,15 @@ private extension KSMEPlayer {
 
     #if !os(macOS)
     @objc private func audioRouteChange(notification: Notification) {
-        KSLog("[audio] audioRouteChange")
         guard let reason = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt else {
             return
         }
-//        let routeChangeReason = AVAudioSession.RouteChangeReason(rawValue: reason)
-//        guard [AVAudioSession.RouteChangeReason.newDeviceAvailable, .oldDeviceUnavailable, .routeConfigurationChange].contains(routeChangeReason) else {
-//            return
-//        }
+        let routeChangeReason = AVAudioSession.RouteChangeReason(rawValue: reason)
+        KSLog("[audio] audioRouteChange \(routeChangeReason)")
+        // 有电话进来会上报categoryChange
+        guard [AVAudioSession.RouteChangeReason.newDeviceAvailable, .oldDeviceUnavailable, .routeConfigurationChange].contains(routeChangeReason) else {
+            return
+        }
         for track in tracks(mediaType: .audio) {
             (track as? FFmpegAssetTrack)?.audioDescriptor?.updateAudioFormat()
         }

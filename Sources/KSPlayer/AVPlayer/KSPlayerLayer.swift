@@ -440,17 +440,20 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         else {
             return
         }
+        KSLog("[audio] audioInterrupted \(type)")
         switch type {
         case .began:
             pause()
 
         case .ended:
             // An interruption ended. Resume playback, if appropriate.
-
             guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
             let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
             if options.contains(.shouldResume) {
-                play()
+                // 一定要延迟下播放，不然播放会没有声音
+                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.8) { [weak self] in
+                    self?.play()
+                }
             }
 
         default:
