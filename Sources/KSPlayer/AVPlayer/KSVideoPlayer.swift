@@ -169,6 +169,7 @@ extension KSVideoPlayer: UIViewRepresentable {
         public var playerLayer: KSComplexPlayerLayer? {
             didSet {
                 oldValue?.delegate = nil
+                oldValue?.stop()
                 if #available(tvOS 14.0, *), oldValue?.player.pipController?.isPictureInPictureActive == true {
                     return
                 }
@@ -275,7 +276,9 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
         } else if state == .bufferFinished {
             isMaskShow = false
         } else {
-            isMaskShow = true
+            if state != .preparing, !isMaskShow {
+                isMaskShow = true
+            }
             #if canImport(UIKit)
             if state == .preparing, let view = layer.player.view {
                 let swipeDown = UISwipeGestureRecognizer(target: self, action: #selector(swipeGestureAction(_:)))

@@ -303,7 +303,6 @@ open class SubtitleModel: ObservableObject {
         }
     }
 
-    @Published
     public var selectedSubtitleInfo: SubtitleInfo? {
         didSet {
             oldValue?.isEnabled = false

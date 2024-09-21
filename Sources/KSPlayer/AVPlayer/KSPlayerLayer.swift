@@ -181,15 +181,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         #endif
     }
 
-    deinit {
-        if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
-            player.pipController?.contentSource = nil
-        }
-        subtitleVC.view.removeFromSuperview()
-        subtitleModel.selectedSubtitleInfo = nil
-        player.shutdown()
-        options.playerLayerDeinit()
-    }
+    deinit {}
 
     public func set(url: URL, options: KSOptions) {
         self.options = options
@@ -269,7 +261,13 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     public func stop() {
         KSLog("stop Player")
         state = .initialized
+        if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
+            player.pipController?.contentSource = nil
+        }
+        subtitleVC.view.removeFromSuperview()
+        subtitleModel.selectedSubtitleInfo = nil
         player.shutdown()
+        options.playerLayerDeinit()
     }
 
     open func seek(time: TimeInterval, autoPlay: Bool, completion: @escaping ((Bool) -> Void)) {
@@ -585,7 +583,8 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
         }
     }
 
-    deinit {
+    override public func stop() {
+        super.stop()
         NotificationCenter.default.removeObserver(self)
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
         MPRemoteCommandCenter.shared().playCommand.removeTarget(nil)

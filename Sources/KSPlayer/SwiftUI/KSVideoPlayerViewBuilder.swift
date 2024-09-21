@@ -8,8 +8,9 @@
 import SwiftUI
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
+@MainActor
 public enum KSVideoPlayerViewBuilder {
-    @MainActor
+    @ViewBuilder
     static func contentModeButton(config: KSVideoPlayer.Coordinator) -> some View {
         Button {
             config.isScaleAspectFill.toggle()
@@ -18,7 +19,7 @@ public enum KSVideoPlayerViewBuilder {
         }
     }
 
-    @MainActor
+    @ViewBuilder
     static func subtitleButton(config: KSVideoPlayer.Coordinator) -> some View {
         MenuView(selection: Binding {
             config.playerLayer?.subtitleModel.selectedSubtitleInfo?.subtitleID
@@ -40,7 +41,7 @@ public enum KSVideoPlayerViewBuilder {
         }
     }
 
-    @MainActor
+    @ViewBuilder
     static func playbackRateButton(playbackRate: Binding<Float>) -> some View {
         MenuView(selection: playbackRate) {
             ForEach([0.5, 1.0, 1.25, 1.5, 2.0] as [Float]) { value in
@@ -53,7 +54,7 @@ public enum KSVideoPlayerViewBuilder {
         }
     }
 
-    @MainActor
+    @ViewBuilder
     static func titleView(title: String, config: KSVideoPlayer.Coordinator) -> some View {
         Group {
             Text(title)
@@ -63,7 +64,7 @@ public enum KSVideoPlayerViewBuilder {
         }
     }
 
-    @MainActor
+    @ViewBuilder
     static func muteButton(config: KSVideoPlayer.Coordinator) -> some View {
         Button {
             config.isMuted.toggle()
@@ -72,6 +73,7 @@ public enum KSVideoPlayerViewBuilder {
         }
     }
 
+    @ViewBuilder
     static func infoButton(showVideoSetting: Binding<Bool>) -> some View {
         Button {
             showVideoSetting.wrappedValue.toggle()
@@ -84,7 +86,7 @@ public enum KSVideoPlayerViewBuilder {
         #endif
     }
 
-    @MainActor
+    @ViewBuilder
     static func recordButton(config: KSVideoPlayer.Coordinator) -> some View {
         Button {
             config.isRecord.toggle()
@@ -113,7 +115,6 @@ public extension KSVideoPlayerViewBuilder {
         #endif
     }
 
-    @MainActor
     @ViewBuilder
     static func backwardButton(config: KSVideoPlayer.Coordinator) -> some View {
         if config.playerLayer?.player.seekable ?? false {
@@ -128,7 +129,6 @@ public extension KSVideoPlayerViewBuilder {
         }
     }
 
-    @MainActor
     @ViewBuilder
     static func forwardButton(config: KSVideoPlayer.Coordinator) -> some View {
         if config.playerLayer?.player.seekable ?? false {
@@ -143,7 +143,7 @@ public extension KSVideoPlayerViewBuilder {
         }
     }
 
-    @MainActor
+    @ViewBuilder
     static func playButton(config: KSVideoPlayer.Coordinator) -> some View {
         Button {
             if config.state.isPlaying {

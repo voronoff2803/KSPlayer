@@ -42,7 +42,8 @@ open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
     public typealias ControllerDelegate = PlayerControllerDelegate
     public var playerLayer: KSComplexPlayerLayer? {
         didSet {
-            playerLayer?.delegate = self
+            oldValue?.delegate = nil
+            oldValue?.stop()
         }
     }
 
@@ -142,14 +143,14 @@ open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
     }
 
     open func resetPlayer() {
-        pause()
+        playerLayer = nil
         totalTime = 0.0
     }
 
     open func set(url: URL, options: KSOptions) {
         toolBar.currentTime = 0
         totalTime = 0
-        playerLayer = KSComplexPlayerLayer(url: url, options: options)
+        playerLayer = KSComplexPlayerLayer(url: url, options: options, delegate: self)
     }
 
     // MARK: - KSSliderDelegate
