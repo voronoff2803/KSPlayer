@@ -32,13 +32,13 @@ public final class AudioGraphPlayer: AudioOutput, AudioDynamicsProcessor {
     }
 
     public func play() {
-        AUGraphStart(graph)
         if currentRender == nil {
             currentRender = renderSource?.getAudioOutputRender()
         }
         if let currentRender {
             renderSource?.setAudio(time: currentRender.cmtime, position: -1)
         }
+        AUGraphStart(graph)
     }
 
     public func pause() {

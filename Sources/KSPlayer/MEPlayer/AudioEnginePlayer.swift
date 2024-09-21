@@ -212,13 +212,13 @@ public class AudioEnginePlayer: AudioOutput {
     public func play() {
         if !engine.isRunning {
             do {
-                try engine.start()
                 if currentRender == nil {
                     currentRender = renderSource?.getAudioOutputRender()
                 }
                 if let currentRender {
                     renderSource?.setAudio(time: currentRender.cmtime, position: -1)
                 }
+                try engine.start()
             } catch {
                 KSLog(error)
             }

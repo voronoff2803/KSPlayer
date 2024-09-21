@@ -190,16 +190,17 @@ private extension KSMEPlayer {
             guard let self else { return }
             let isPaused = !(self.playbackState == .playing && self.loadState == .playable)
             if isPaused {
-                self.audioOutput.pause()
                 self.videoOutput?.pause()
+                self.audioOutput.pause()
             } else {
+                // 要先调用video的play。这样才能减少seek之后，声音出来了，但是画面还卡住的概率。
+                self.videoOutput?.play()
                 /// audioOutput 要手动的调用setAudio(time下，这样才能及时的更新音频的时间
                 /// 不然如果音频没有先渲染的话，那音视频同步算法就无法取到正确的时间戳。导致误丢数据
                 /// 暂停会导致getTime变大，所以要用time更新下时间戳
                 /// seek之后返回的音频和视频的时间戳跟seek的时间戳有可能会差了10s，
                 /// 有时候加载很快，视频帧无法优先展示一帧。所以要取最新的音频时间来更新time
                 self.audioOutput.play()
-                self.videoOutput?.play()
             }
             self.delegate?.changeLoadState(player: self)
         }
@@ -303,7 +304,7 @@ extension KSMEPlayer: MEPlayerDelegate {
                 }
             }
         } else {
-            if loadingState.isFirst || loadingState.isSeek {
+            if loadingState.isFirst {
                 runOnMainThread { [weak self] in
                     // 在主线程更新进度
                     if let videoOutput = self?.videoOutput, videoOutput.pixelBuffer == nil {
