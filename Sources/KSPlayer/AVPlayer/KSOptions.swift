@@ -251,9 +251,10 @@ open class KSOptions {
         let packetCount = capacitys.map(\.packetCount).min() ?? 0
         let frameCount = capacitys.map(\.frameCount).min() ?? 0
         let isEndOfFile = capacitys.allSatisfy(\.isEndOfFile)
-        let loadedTime = capacitys.map(\.loadedTime).min() ?? 0
+        /// 这边要用最大值，因为有的视频可能音频达到15秒了，但是视频已经100多秒了，导致内存暴涨。
+        /// isPlayable已经保证能够有足够的缓存用于播放了
+        let loadedTime = capacitys.map(\.loadedTime).max() ?? 0
         let progress = preferredForwardBufferDuration == 0 ? 100 : loadedTime * 100.0 / preferredForwardBufferDuration
-        // 简化逻辑，不要frameCount为0就认为不能播放
         let isPlayable = capacitys.allSatisfy { capacity in
             if capacity.isEndOfFile {
                 return true
@@ -263,9 +264,11 @@ open class KSOptions {
                     return true
                 }
             }
-            guard capacity.frameCount >= capacity.frameMaxCount / 2 else {
-                return false
-            }
+            /// 高码率或者倍速播放的时候，会触发频繁的丢帧，导致frameCount的值为1的，
+            /// 所以就会加载过多的packet，导致内存暴涨，改成capacity.frameCount >= 1 也不行，所以先去掉这个判断。
+//            guard capacity.frameCount >= capacity.frameMaxCount / 2 else {
+//                return false
+//            }
             if isFirst || isSeek {
                 if isSecondOpen {
                     return capacity.loadedTime >= self.preferredForwardBufferDuration / 2
