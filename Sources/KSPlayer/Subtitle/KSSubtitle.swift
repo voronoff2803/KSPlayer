@@ -62,6 +62,13 @@ public class SubtitlePart: CustomStringConvertible, Identifiable, SubtitlePartPr
     public func isEqual(time: TimeInterval) -> Bool {
         start <= time && end >= time
     }
+
+    public var isEmpty: Bool {
+        if let right = render.right, right.0.string.isEmpty {
+            return true
+        }
+        return false
+    }
 }
 
 public protocol SubtitlePartProtocol: Equatable {
@@ -340,7 +347,8 @@ open class SubtitleModel: ObservableObject {
                     newParts = parts.filter { part in
                         part == currentTime
                     }
-                } else {
+                } else if newParts.allSatisfy { !$0.isEmpty } {
+                    // 如果当前的字幕里面有空字幕的话，那就不要跟之前的字幕合并了。可以认为空字幕就是一个终止的信号。
                     for part in parts {
                         if part == currentTime, part.end != .infinity, newParts.allSatisfy({ $0 != part }) {
                             newParts.append(part)
