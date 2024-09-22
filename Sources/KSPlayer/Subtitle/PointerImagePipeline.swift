@@ -14,7 +14,7 @@ public final class PointerImagePipeline: ImagePipelineType {
         self.height = height
     }
 
-    public init(width: Int, height: Int, stride: Int, bitmap: UnsafePointer<UInt8>, palette: UnsafePointer<UInt8>) {
+    public init(width: Int, height: Int, stride: Int, bitmap: UnsafePointer<UInt8>, palette: UnsafePointer<UInt32>) {
         self.width = width
         self.height = height
         self.stride = stride
@@ -22,7 +22,6 @@ public final class PointerImagePipeline: ImagePipelineType {
         let buffer = UnsafeMutablePointer<UInt32>.allocate(capacity: bufferCapacity)
         buffer.initialize(repeating: 0, count: bufferCapacity)
         var bitmapPosition = 0
-        let palette = palette.withMemoryRebound(to: UInt32.self, capacity: 256) { $0 }
         loop(iterations: height) { _ in
             loop(iterations: width) { x in
                 buffer[bitmapPosition + x] = palette[Int(bitmap[bitmapPosition + x])].bigEndian

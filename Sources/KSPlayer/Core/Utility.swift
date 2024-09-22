@@ -372,6 +372,10 @@ func * (left: CGSize, right: CGFloat) -> CGSize {
     CGSize(width: left.width * right, height: left.height * right)
 }
 
+func * (left: CGSize, right: (CGFloat, CGFloat)) -> CGSize {
+    CGSize(width: left.width * right.0, height: left.height * right.1)
+}
+
 func / (left: CGSize, right: CGFloat) -> CGSize {
     CGSize(width: left.width / right, height: left.height / right)
 }
@@ -380,11 +384,19 @@ func * (left: CGPoint, right: CGFloat) -> CGPoint {
     CGPoint(x: left.x * right, y: left.y * right)
 }
 
+func * (left: CGPoint, right: (CGFloat, CGFloat)) -> CGPoint {
+    CGPoint(x: left.x * right.0, y: left.y * right.1)
+}
+
 func / (left: CGPoint, right: CGFloat) -> CGPoint {
     CGPoint(x: left.x / right, y: left.y / right)
 }
 
 func * (left: CGRect, right: CGFloat) -> CGRect {
+    CGRect(origin: left.origin * right, size: left.size * right)
+}
+
+func * (left: CGRect, right: (CGFloat, CGFloat)) -> CGRect {
     CGRect(origin: left.origin * right, size: left.size * right)
 }
 
