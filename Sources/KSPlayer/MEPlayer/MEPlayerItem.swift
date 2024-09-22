@@ -927,7 +927,7 @@ extension MEPlayerItem: CodecCapacityDelegate {
         let loadingState = options.playable(capacitys: videoAudioTracks, isFirst: isFirst, isSeek: isSeek)
         if let preload = ioContext as? PreLoadProtocol, initFileSize > 0, initDuration > 0 {
             var loadingState = loadingState
-            if preload.urlPos == initFileSize {
+            if preload.urlPos == initFileSize, preload.loadedSize != 0 {
                 loadingState.loadedTime = initDuration - currentPlaybackTime
             } else {
                 let loadedTime = Double(preload.loadedSize) * initDuration / Double(initFileSize)
