@@ -76,13 +76,13 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
     convenience init?(stream: UnsafeMutablePointer<AVStream>) {
         let codecpar = stream.pointee.codecpar.pointee
         self.init(codecpar: codecpar)
+        self.stream = stream
         if stream.pointee.disposition & AV_DISPOSITION_STILL_IMAGE != 0 {
             stillImage = true
         }
-        if stream.pointee.nb_frames == 1 {
+        if stream.pointee.nb_frames == 1 || codecpar.codec_id == AV_CODEC_ID_MJPEG {
             image = true
         }
-        self.stream = stream
         let metadata = toDictionary(stream.pointee.metadata)
         if let value = metadata["variant_bitrate"] ?? metadata["BPS"], let bitRate = Int64(value) {
             self.bitRate = bitRate
