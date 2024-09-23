@@ -134,13 +134,14 @@ public final class MEPlayerItem: Sendable {
 
     private static var onceInitial: Void = {
         if var urls = try? FileManager.default.contentsOfDirectory(at: KSOptions.fontsDir, includingPropertiesForKeys: nil) {
-//            urls.removeAll {
-//                if $0.pathExtension == "ttc" {
-//                    try? FileManager.default.removeItem(at: $0)
-//                    return true
-//                }
-//                return false
-//            }
+            urls.removeAll {
+                // ttc字体会导致crash。所以先清理掉
+                if $0.pathExtension == "ttc" {
+                    try? FileManager.default.removeItem(at: $0)
+                    return true
+                }
+                return false
+            }
             CTFontManagerRegisterFontURLs(urls as CFArray, .process, true, nil)
         }
         var result = avformat_network_init()

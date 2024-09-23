@@ -214,7 +214,8 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
                 subtitleModel.isHDR = options.isHDR
             }
             if let view = player.view {
-                subtitleModel.subtitle(currentTime: currentTime, playSize: player.naturalSize.within(size: view.frame.size), screenSize: view.frame.size)
+                // pip播放的时候用view.frame.size获取到的大小不对，要用subtitleVC的
+                subtitleModel.subtitle(currentTime: currentTime, playSize: player.naturalSize.within(size: subtitleVC.view.frame.size), screenSize: subtitleVC.view.frame.size)
             }
         }
         delegate?.player(layer: self, currentTime: currentTime, totalTime: player.duration)
