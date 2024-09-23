@@ -36,7 +36,7 @@ extension FFmpegAssetTrack: KSSubtitleProtocol {
                     var hZoom = size.width / left.displaySize.width
                     var vZoom = size.height / left.displaySize.height
                     var newRect = left.rect * (hZoom, vZoom)
-                    part.render = .left(SubtitleImageInfo(rect: newRect, image: left.image, displaySize: size))
+                    part.render = .left(SubtitleImageInfo(rect: newRect.integral, image: left.image, displaySize: size))
                 }
             }
             return parts
