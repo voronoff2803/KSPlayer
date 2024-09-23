@@ -215,7 +215,11 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
             }
             if let view = player.view {
                 // pip播放的时候用view.frame.size获取到的大小不对，要用subtitleVC的
-                subtitleModel.subtitle(currentTime: currentTime, playSize: player.naturalSize.within(size: subtitleVC.view.frame.size), screenSize: subtitleVC.view.frame.size)
+                var screenSize = subtitleVC.view.frame.size
+                if screenSize.width == 0 || screenSize.height == 0 {
+                    screenSize = view.frame.size
+                }
+                subtitleModel.subtitle(currentTime: currentTime, playSize: player.naturalSize.within(size: screenSize), screenSize: screenSize)
             }
         }
         delegate?.player(layer: self, currentTime: currentTime, totalTime: player.duration)
