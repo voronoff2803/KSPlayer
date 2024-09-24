@@ -40,7 +40,7 @@ public protocol PlayerControllerDelegate: AnyObject {
 
 open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
     public typealias ControllerDelegate = PlayerControllerDelegate
-    public var playerLayer: KSComplexPlayerLayer? {
+    open var playerLayer: KSComplexPlayerLayer? {
         didSet {
             oldValue?.delegate = nil
             oldValue?.stop()

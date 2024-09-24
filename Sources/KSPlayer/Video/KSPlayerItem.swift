@@ -109,7 +109,7 @@ public struct KSNowPlayableMetadata {
     private let artwork: MPMediaItemArtwork?
     private let albumArtist: String?
     private let albumTitle: String?
-    var nowPlayingInfo: [String: Any] {
+    public var nowPlayingInfo: [String: Any] {
         var nowPlayingInfo = [String: Any]()
         nowPlayingInfo[MPNowPlayingInfoPropertyMediaType] = mediaType?.rawValue
         nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = isLiveStream
