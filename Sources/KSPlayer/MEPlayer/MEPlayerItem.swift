@@ -133,15 +133,7 @@ public final class MEPlayerItem: Sendable {
     }
 
     private static var onceInitial: Void = {
-        if var urls = try? FileManager.default.contentsOfDirectory(at: KSOptions.fontsDir, includingPropertiesForKeys: nil) {
-            urls.removeAll {
-                // ttc字体会导致crash。所以先清理掉
-                if $0.pathExtension == "ttc" {
-                    try? FileManager.default.removeItem(at: $0)
-                    return true
-                }
-                return false
-            }
+        if let urls = try? FileManager.default.contentsOfDirectory(at: KSOptions.fontsDir, includingPropertiesForKeys: nil) {
             CTFontManagerRegisterFontURLs(urls as CFArray, .process, true, nil)
         }
         var result = avformat_network_init()
@@ -476,11 +468,8 @@ extension MEPlayerItem {
                             var fontsDir = KSOptions.fontsDir
                             try? FileManager.default.createDirectory(at: fontsDir, withIntermediateDirectories: true)
                             fontsDir.appendPathComponent(filename)
-                            // ttc格式的字体会导致crash，所以不能加入
-                            if fontsDir.pathExtension != "ttc" {
-                                try? data.write(to: fontsDir)
-                                let result = CTFontManagerRegisterFontsForURL(fontsDir as CFURL, .process, nil)
-                            }
+                            try? data.write(to: fontsDir)
+                            let result = CTFontManagerRegisterFontsForURL(fontsDir as CFURL, .process, nil)
                         }
                     }
                 }
