@@ -133,9 +133,9 @@ public final class MEPlayerItem: Sendable {
     }
 
     private static var onceInitial: Void = {
-        if let urls = try? FileManager.default.contentsOfDirectory(at: KSOptions.fontsDir, includingPropertiesForKeys: nil) {
-            CTFontManagerRegisterFontURLs(urls as CFArray, .process, true, nil)
-        }
+//        if let urls = try? FileManager.default.contentsOfDirectory(at: KSOptions.fontsDir, includingPropertiesForKeys: nil) {
+//            CTFontManagerRegisterFontURLs(urls as CFArray, .process, true, nil)
+//        }
         var result = avformat_network_init()
         av_log_set_callback { ptr, level, format, args in
             guard let format else {
@@ -189,6 +189,8 @@ public final class MEPlayerItem: Sendable {
         operationQueue.maxConcurrentOperationCount = 1
         operationQueue.qualityOfService = .userInteractive
         _ = MEPlayerItem.onceInitial
+        // 一开始要清空字体，不然字体太多用ass加载的话，会内存暴涨
+        try? FileManager.default.removeItem(at: KSOptions.fontsDir)
     }
 
     func select(track: some MediaPlayerTrack) -> Bool {
@@ -224,7 +226,9 @@ public final class MEPlayerItem: Sendable {
         return true
     }
 
-    deinit {}
+//    deinit {
+//        KSLog("MEPlayerItem deinit")
+//    }
 }
 
 // MARK: private functions
