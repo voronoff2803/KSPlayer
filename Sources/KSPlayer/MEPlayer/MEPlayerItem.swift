@@ -579,7 +579,8 @@ extension MEPlayerItem {
             /// 因为mkv只会在第一次seek的时候请求index信息，
             /// 所以为了让预加载不会在第一次seek有缓冲，就手动seek提前请求index。(比较trick，但是没想到更好的方案)
             if options.formatName.contains("matroska"), ioContext as? PreLoadProtocol != nil, options.startPlayTime == 0 {
-                options.startPlayTime = 0.1
+                options.startPlayTime = 0.0001
+//                options.seekFlags |= AVSEEK_FLAG_ANY
             }
             if options.startPlayTime > 0 {
                 var flags = options.seekFlags
@@ -599,7 +600,7 @@ extension MEPlayerItem {
                 let result = avformat_seek_file(formatCtx, -1, Int64.min, timestamp, Int64.max, flags)
                 audioClock.time = time
                 videoClock.time = time
-                KSLog("start PlayTime: \(time.seconds) spend Time: \(CACurrentMediaTime() - seekStartTime)")
+                KSLog("start seek PlayTime: \(time.seconds) spend Time: \(CACurrentMediaTime() - seekStartTime)")
             }
             state = .reading
         }
