@@ -249,9 +249,11 @@ public class MetalView: UIView {
         #endif
         metalLayer.device = MetalRender.device
         metalLayer.framebufferOnly = true
-        if #available(tvOS 18.0, *) {
+        #if os(tvOS)
+        if #available(macOS 15.0, tvOS 18.0, iOS 18.0, visionOS 2.0, *) {
             metalLayer.toneMapMode = .ifSupported
         }
+        #endif
 //        metalLayer.displaySyncEnabled = false
     }
 
