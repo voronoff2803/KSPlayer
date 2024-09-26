@@ -66,9 +66,10 @@ extension ObjectQueueItem {
 
 public protocol FrameOutput: AnyObject {
     var renderSource: OutputRenderSourceDelegate? { get set }
+    func play()
     func pause()
     func flush()
-    func play()
+    func invalidate()
 }
 
 protocol MEFrame: ObjectQueueItem {

@@ -173,13 +173,7 @@ public class KSMEPlayer: NSObject {
         #endif
     }
 
-    deinit {
-        #if !os(macOS)
-        try? AVAudioSession.sharedInstance().setPreferredOutputNumberOfChannels(2)
-        #endif
-        NotificationCenter.default.removeObserver(self)
-        videoOutput?.invalidate()
-    }
+    deinit {}
 }
 
 // MARK: - private functions
@@ -371,7 +365,7 @@ extension KSMEPlayer: MediaPlayerProtocol {
 
     public func replace(item: MEPlayerItem) {
         KSLog("replace item \(item)")
-        shutdown()
+        reset()
         playerItem.delegate = nil
         let options = item.options
         playerItem = item
@@ -458,10 +452,9 @@ extension KSMEPlayer: MediaPlayerProtocol {
         }
     }
 
-    public func shutdown() {
-        KSLog("shutdown \(self)")
-        playbackState = .stopped
+    public func reset() {
         loadState = .idle
+        playbackState = .idle
         isReadyToPlay = false
         loopCount = 0
         playerItem.shutdown()
@@ -479,6 +472,18 @@ extension KSMEPlayer: MediaPlayerProtocol {
         if KSOptions.isClearVideoWhereReplace {
             videoOutput?.flush()
         }
+    }
+
+    public func shutdown() {
+        KSLog("shutdown \(self)")
+        playbackState = .stopped
+        reset()
+        #if !os(macOS)
+        try? AVAudioSession.sharedInstance().setPreferredOutputNumberOfChannels(2)
+        #endif
+        NotificationCenter.default.removeObserver(self)
+        audioOutput.invalidate()
+        videoOutput?.invalidate()
     }
 
     public func thumbnailImageAtCurrentTime() async -> CGImage? {

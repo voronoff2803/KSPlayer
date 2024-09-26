@@ -107,7 +107,7 @@ public final class AudioUnitPlayer: AudioOutput {
         #endif
     }
 
-    deinit {
+    public func invalidate() {
         AudioUnitUninitialize(audioUnitForOutput)
     }
 }

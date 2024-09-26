@@ -108,6 +108,8 @@ public class AudioRendererPlayer: AudioOutput {
         flushTime = true
     }
 
+    public func invalidate() {}
+
     private func request() {
         guard !isPaused, var render = renderSource?.getAudioOutputRender() else {
             return

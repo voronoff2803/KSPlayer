@@ -214,7 +214,7 @@ public final class AudioGraphPlayer: AudioOutput, AudioDynamicsProcessor {
         #endif
     }
 
-    deinit {
+    public func invalidate() {
         AUGraphStop(graph)
         AUGraphUninitialize(graph)
         AUGraphClose(graph)

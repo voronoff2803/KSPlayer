@@ -220,7 +220,9 @@ public final class MEPlayerItem: Sendable {
         }
 
         // 切换轨道的话，要把缓存给清空了，这样seek才不会走缓存
-        allPlayerItemTracks.forEach { $0.seek(time: currentPlaybackTime) }
+        for track in allPlayerItemTracks {
+            track.seek(time: currentPlaybackTime)
+        }
         seek(time: currentPlaybackTime) { _ in
         }
         return true

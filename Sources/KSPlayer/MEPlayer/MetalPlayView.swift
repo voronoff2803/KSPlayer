@@ -21,7 +21,6 @@ public protocol VideoOutput: FrameOutput {
     var displayLayer: AVSampleBufferDisplayLayer { get }
     var pixelBuffer: PixelBufferProtocol? { get set }
     init(options: KSOptions)
-    func invalidate()
     func readNextFrame()
     func enterForeground()
 }

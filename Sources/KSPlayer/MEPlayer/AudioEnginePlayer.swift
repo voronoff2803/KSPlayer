@@ -331,7 +331,7 @@ public class AudioEnginePlayer: AudioOutput {
         }
     }
 
-    deinit {}
+    public func invalidate() {}
 }
 
 extension AVAudioEngine {
