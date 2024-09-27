@@ -853,7 +853,7 @@ extension MEPlayerItem: MediaPlayback {
         }
     }
 
-    public func shutdown() {
+    public func stop() {
         guard state != .closed else { return }
         state = .closed
         av_packet_free(&outputPacket)

@@ -123,7 +123,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
                     }
                 }
             } else {
-                stop()
+                player.shutdown()
                 player = firstPlayerType.init(url: url, options: options)
             }
         }
@@ -263,15 +263,26 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         }
     }
 
-    public func stop() {
-        KSLog("stop Player")
+    // 这个是用来清空资源，例如断开网络和缓存，调用这个方法之后，就要调用replace(url)才能重新开始播放
+    public func reset() {
         state = .initialized
         if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
             player.pipController?.contentSource = nil
         }
-        subtitleVC.view.removeFromSuperview()
         subtitleModel.selectedSubtitleInfo = nil
-        player.shutdown()
+        player.reset()
+    }
+
+//    deinit之前调用stop
+    public func stop() {
+        KSLog("stop KSPlayerLayer")
+        state = .initialized
+        if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
+            player.pipController?.contentSource = nil
+        }
+        subtitleModel.selectedSubtitleInfo = nil
+        subtitleVC.view.removeFromSuperview()
+        player.stop()
         options.playerLayerDeinit()
     }
 

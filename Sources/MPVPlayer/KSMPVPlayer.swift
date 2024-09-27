@@ -200,7 +200,12 @@ extension KSMPVPlayer: MediaPlayerProtocol {
         loadFile(url: url)
     }
 
-    public func shutdown() {
+    public func stop() {
+        command(.stop)
+        mpv_set_wakeup_callback(mpv, nil, nil)
+    }
+
+    public func reset() {
         command(.stop)
         mpv_set_wakeup_callback(mpv, nil, nil)
     }

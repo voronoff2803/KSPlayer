@@ -28,7 +28,8 @@ public protocol MediaPlayback: AnyObject {
     func seek(time: TimeInterval, completion: @escaping ((Bool) -> Void))
     func startRecord(url: URL)
     func stopRecord()
-    func shutdown()
+    // deinit之前调用stop
+    func stop()
 }
 
 public class DynamicInfo: ObservableObject {
@@ -106,6 +107,8 @@ public protocol MediaPlayerProtocol: MediaPlayback {
     func replace(url: URL, options: KSOptions)
     func play()
     func pause()
+    // 这个是用来清空资源，例如断开网络和缓存，调用这个方法之后，就要调用replace(url)才能重新开始播放
+    func reset()
     func enterBackground()
     func enterForeground()
     func thumbnailImageAtCurrentTime() async -> CGImage?
@@ -187,6 +190,10 @@ public extension MediaPlayerProtocol {
     func updateProgress(to: CGFloat) {
         seek(time: to * totalTime) { _ in
         }
+    }
+
+    func shutdown() {
+        stop()
     }
 }
 

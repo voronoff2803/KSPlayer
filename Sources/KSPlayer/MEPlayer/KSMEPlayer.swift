@@ -457,7 +457,7 @@ extension KSMEPlayer: MediaPlayerProtocol {
         playbackState = .idle
         isReadyToPlay = false
         loopCount = 0
-        playerItem.shutdown()
+        playerItem.stop()
         options.prepareTime = 0
         options.dnsStartTime = 0
         options.tcpStartTime = 0
@@ -474,8 +474,8 @@ extension KSMEPlayer: MediaPlayerProtocol {
         }
     }
 
-    public func shutdown() {
-        KSLog("shutdown \(self)")
+    public func stop() {
+        KSLog("stop \(self)")
         playbackState = .stopped
         reset()
         #if !os(macOS)

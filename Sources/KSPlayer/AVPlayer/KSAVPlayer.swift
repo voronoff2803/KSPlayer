@@ -449,8 +449,12 @@ extension KSAVPlayer: MediaPlayerProtocol {
         playbackState = .paused
     }
 
-    public func shutdown() {
-        KSLog("shutdown \(self)")
+    public func stop() {
+        KSLog("stop \(self)")
+        reset()
+    }
+
+    public func reset() {
         isReadyToPlay = false
         playbackState = .stopped
         loadState = .idle
