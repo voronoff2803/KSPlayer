@@ -111,7 +111,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
             subtitleModel.url = url
             let firstPlayerType = KSOptions.firstPlayerType
             if type(of: player) == firstPlayerType {
-                if url == oldValue {
+                if url == oldValue, state != .initialized {
                     if isAutoPlay {
                         play()
                     }
