@@ -44,6 +44,7 @@ public final class MEPlayerItem: Sendable {
     private var lastVideoClock = KSClock()
     private var ioContext: AbstractAVIOContext?
     private var pbArray = [PBClass]()
+    private var interrupt = false
     private var defaultIOOpen: ((UnsafeMutablePointer<AVFormatContext>?, UnsafeMutablePointer<UnsafeMutablePointer<AVIOContext>?>?, UnsafePointer<CChar>?, Int32, UnsafeMutablePointer<OpaquePointer?>?) -> Int32)? = nil
     private var defaultIOClose: ((UnsafeMutablePointer<AVFormatContext>?, UnsafeMutablePointer<AVIOContext>?) -> Int32)? = nil
 
@@ -156,7 +157,7 @@ public final class MEPlayerItem: Sendable {
                     }
                 } else if avclass != nil, let namePtr = avclass.pointee.class_name, String(cString: namePtr) == "URLContext" {
                     let context = ptr.assumingMemoryBound(to: URLContext.self).pointee
-                    /// 自定义IO的URLContext没有设置interrupt_callback。
+
                     /// 因为这里需要获取playerItem。所以如果有其他的播放器内核的话，那需要重新设置av_log_set_callback，不然在这里会crash。
                     /// 其他播放内核不设置interrupt_callback的话，那也不会有问题
                     if let opaque = context.interrupt_callback.opaque, context.interrupt_callback.callback != nil {
@@ -253,6 +254,9 @@ extension MEPlayerItem {
                 return 0
             }
             let formatContext = Unmanaged<MEPlayerItem>.fromOpaque(ctx).takeUnretainedValue()
+            if formatContext.interrupt {
+                return 1
+            }
             switch formatContext.state {
             case .finished, .closed, .failed:
                 return 1
@@ -263,7 +267,7 @@ extension MEPlayerItem {
         formatCtx.pointee.interrupt_callback = interruptCB
         formatCtx.pointee.opaque = Unmanaged.passUnretained(self).toOpaque()
         setHttpProxy()
-        ioContext = options.process(url: url)
+        ioContext = options.process(url: url, interrupt: interruptCB)
         if let ioContext {
             // 如果要自定义协议的话，那就用avio_alloc_context，对formatCtx.pointee.pb赋值
             formatCtx.pointee.pb = ioContext.getContext()
@@ -283,7 +287,7 @@ extension MEPlayerItem {
             if result >= 0 {
                 playerItem.pbArray.append(PBClass(pb: pb?.pointee))
             }
-//            if let ioContext = playerItem.ioContext, let url = URL(string: String(cString: url)), var subPb = ioContext.addSub(url: url, flags: flags, options: options) {
+//            if let ioContext = playerItem.ioContext, let url = URL(string: String(cString: url)), var subPb = ioContext.addSub(url: url, flags: flags, options: options, s.pointee.interrupt_callback) {
 //                pb?.pointee = subPb
 //                return 0
 //            } else {
@@ -606,22 +610,18 @@ extension MEPlayerItem {
         }
         allPlayerItemTracks.forEach { $0.decode() }
         while [MESourceState.paused, .seeking, .reading].contains(state) {
+            interrupt = false
             if state == .paused {
                 if let preload = ioContext as? PreLoadProtocol {
                     let size = preload.more()
-                    if size > 0 {
-                        continue
-                    } else {
-                        // more有可能要等很久才返回,所以这里要判断下状态
-                        if state == .paused {
-                            condition.wait()
-                        }
+                    // more有可能要等很久才返回,所以这里要判断下状态
+                    if size <= 0, state == .paused {
+                        condition.wait()
                     }
                 } else {
                     condition.wait()
                 }
-            }
-            if state == .seeking {
+            } else if state == .seeking {
                 let seekToTime = seekTime
                 let seekSuccess = seekUsePacketCache(seconds: seekToTime)
                 if seekSuccess {
@@ -790,7 +790,7 @@ extension MEPlayerItem {
                     first.subtitle?.putPacket(packet: packet)
                 }
             }
-        } else {
+        } else if !interrupt {
             if readResult == AVError.eof.code || avio_feof(formatCtx?.pointee.pb) > 0 {
                 if options.isLoopPlay, allPlayerItemTracks.allSatisfy({ !$0.isLoopModel }) {
                     allPlayerItemTracks.forEach { $0.isLoopModel = true }
@@ -867,7 +867,9 @@ extension MEPlayerItem: MediaPlayback {
             self.formatCtx?.pointee.interrupt_callback.callback = nil
             avformat_close_input(&self.formatCtx)
             if let ioContext = self.ioContext {
+                // close之后要马上把ioContext设置为nil。防止下次在进入到close方法
                 ioContext.close()
+                self.ioContext = nil
                 for item in self.pbArray {
                     if var pb = item.pb {
                         if pb.pointee.buffer != nil {
@@ -911,19 +913,20 @@ extension MEPlayerItem: MediaPlayback {
     }
 
     public func seek(time: TimeInterval, completion: @escaping ((Bool) -> Void)) {
-        if state == .reading || state == .paused {
+        if state == .reading || state == .paused || state == .seeking {
+            let oldState = state
             seekTime = time
-            state = .seeking
+            interrupt = true
             seekingCompletionHandler = completion
-            condition.broadcast()
+            state = .seeking
+            if oldState == .paused {
+                condition.broadcast()
+            }
         } else if state == .finished {
             seekTime = time
             state = .seeking
             seekingCompletionHandler = completion
             read()
-        } else if state == .seeking {
-            seekTime = time
-            seekingCompletionHandler = completion
         }
         isAudioStalled = audioTrack == nil
     }
@@ -931,14 +934,17 @@ extension MEPlayerItem: MediaPlayback {
 
 extension MEPlayerItem: CodecCapacityDelegate {
     func codecDidChangeCapacity() {
-        let loadingState = options.playable(capacitys: videoAudioTracks, isFirst: isFirst, isSeek: isSeek)
+        var loadingState = options.playable(capacitys: videoAudioTracks, isFirst: isFirst, isSeek: isSeek)
+        if state == .seeking {
+            loadingState.loadedTime = 0
+        }
         if let preload = ioContext as? PreLoadProtocol, initFileSize > 0, initDuration > 0 {
-            var loadingState = loadingState
             if preload.urlPos == initFileSize, preload.loadedSize != 0 {
                 loadingState.loadedTime = initDuration - currentPlaybackTime
             } else {
-                let loadedTime = Double(preload.loadedSize) * initDuration / Double(initFileSize)
-                loadingState.loadedTime += loadedTime
+                if preload.loadedSize >= 0 {
+                    loadingState.loadedTime += Double(preload.loadedSize) * initDuration / Double(initFileSize)
+                }
                 if preload.urlPos > initFileSize {
                     fileSize = preload.urlPos
                     duration = loadingState.loadedTime + currentPlaybackTime

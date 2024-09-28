@@ -383,7 +383,7 @@ open class AbstractAVIOContext {
     }
 
     open func close() {}
-    open func addSub(url _: URL, flags _: Int32, options _: UnsafeMutablePointer<OpaquePointer?>?) -> UnsafeMutablePointer<AVIOContext>? { nil }
+    open func addSub(url _: URL, flags _: Int32, options _: UnsafeMutablePointer<OpaquePointer?>?, interrupt _: AVIOInterruptCB) -> UnsafeMutablePointer<AVIOContext>? { nil }
     deinit {}
 }
 

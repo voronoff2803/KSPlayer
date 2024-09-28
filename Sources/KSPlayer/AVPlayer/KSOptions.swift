@@ -11,6 +11,7 @@ import SwiftUI
 import DisplayCriteria
 #endif
 import AVKit
+import Libavformat
 import OSLog
 
 open class KSOptions {
@@ -145,7 +146,8 @@ open class KSOptions {
 
     public var formatContextOptions = [String: Any]()
     public var nobuffer = false
-    open func process(url _: URL) -> AbstractAVIOContext? {
+    // interrupt用于seek的时候中断之前的网络请求。
+    open func process(url _: URL, interrupt _: AVIOInterruptCB) -> AbstractAVIOContext? {
         nil
     }
 
