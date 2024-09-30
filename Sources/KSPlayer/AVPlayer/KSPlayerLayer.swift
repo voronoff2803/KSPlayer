@@ -366,7 +366,10 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     }
 
     public func changeLoadState(player: some MediaPlayerProtocol) {
-        guard player.playbackState != .seeking else { return }
+        guard player.playbackState != .seeking else {
+            state = .buffering
+            return
+        }
         if player.loadState == .playable, startTime > 0 {
             let diff = CACurrentMediaTime() - startTime
             runOnMainThread { [weak self] in
