@@ -470,7 +470,10 @@ extension MEPlayerItem {
                     assetTrack.seekByBytes = seekByBytes
                     return assetTrack
                 } else if coreStream.pointee.codecpar.pointee.codec_type == AVMEDIA_TYPE_ATTACHMENT {
-                    if coreStream.pointee.codecpar.pointee.codec_id == AV_CODEC_ID_TTF || coreStream.pointee.codecpar.pointee.codec_id == AV_CODEC_ID_OTF {
+                    // 有的字体附件的codec_id 为0
+                    if coreStream.pointee.codecpar.pointee.codec_id == AV_CODEC_ID_TTF || coreStream.pointee.codecpar.pointee.codec_id == AV_CODEC_ID_OTF ||
+                        coreStream.pointee.codecpar.pointee.codec_id == AV_CODEC_ID_NONE
+                    {
                         let metadata = toDictionary(coreStream.pointee.metadata)
                         if let filename = metadata["filename"], let extradata = coreStream.pointee.codecpar.pointee.extradata {
                             let extradataSize = coreStream.pointee.codecpar.pointee.extradata_size
