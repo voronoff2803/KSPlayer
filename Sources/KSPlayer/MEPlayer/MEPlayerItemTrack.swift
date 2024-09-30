@@ -119,7 +119,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         decoderMap.removeAll()
     }
 
-    private var lastPacketBytes = Int32(0)
+    private var lastPacketBytes = Int64(0)
     private var lastPacketSeconds = Double(-1)
     var bitrate = Double(0)
     fileprivate func doDecode(packet: Packet) {
@@ -139,7 +139,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
                 lastPacketSeconds = seconds
             }
         }
-        lastPacketBytes += packet.size
+        lastPacketBytes += Int64(packet.size)
         let decoder = decoderMap.value(for: packet.assetTrack.trackID, default: makeDecode(assetTrack: packet.assetTrack))
         if corePacket.pointee.side_data_elems > 0 {
             for i in 0 ..< Int(corePacket.pointee.side_data_elems) {
