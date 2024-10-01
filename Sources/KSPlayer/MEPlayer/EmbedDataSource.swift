@@ -31,7 +31,7 @@ extension FFmpegAssetTrack: KSSubtitleProtocol {
                     prePart.end = part.start
                 }
                 prePart = part
-                if let left = part.render.left {
+                if KSOptions.isResizeImageSubtitle, let left = part.render.left {
                     // 图片字幕的比例可能跟视频的比例不一致，所以需要对图片的大小进行伸缩下
                     var hZoom = size.width / left.displaySize.width
                     var vZoom = size.height / left.displaySize.height

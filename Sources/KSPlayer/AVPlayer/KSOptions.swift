@@ -307,6 +307,8 @@ open class KSOptions {
     public static var defaultFont: URL?
     public static var isASSUseImageRender = false
     public static var isSRTUseImageRender = false
+    // 如果图片字幕的比率跟视频的比率不一致，是否要对图片进行伸缩
+    public static var isResizeImageSubtitle = false
     // 丢弃掉字幕自带的样式，用自定义的样式
     public static var stripSubtitleStyle = true
     public static var textColor: Color = .white
