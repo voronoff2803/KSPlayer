@@ -96,24 +96,19 @@ public final class MEPlayerItem: Sendable {
             case .opened:
                 delegate?.sourceDidOpened()
             case .reading:
-                DispatchQueue.global().async { [unowned self] in
-                    timer.tolerance = 0.02
-                    timer.fireDate = Date.distantPast
-                    RunLoop.current.add(timer, forMode: .default)
-                    RunLoop.current.run()
-                }
+                timer.fireDate = .distantPast
             case .closed:
                 timer.invalidate()
             case .failed:
                 delegate?.sourceDidFailed(error: error)
-                timer.fireDate = Date.distantFuture
+                timer.fireDate = .distantFuture
             case .idle, .opening, .seeking, .paused, .finished:
                 break
             }
         }
     }
 
-    private lazy var timer: Timer = .init(timeInterval: 0.05, repeats: true) { [weak self] _ in
+    private lazy var timer: Timer = .scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
         self?.codecDidChangeCapacity()
     }
 
@@ -192,6 +187,8 @@ public final class MEPlayerItem: Sendable {
         _ = MEPlayerItem.onceInitial
         // 一开始要清空字体，不然字体太多用ass加载的话，会内存暴涨
         try? FileManager.default.removeItem(at: KSOptions.fontsDir)
+        timer.tolerance = 0.02
+        timer.fireDate = Date.distantPast
     }
 
     func select(track: some MediaPlayerTrack) -> Bool {
@@ -608,6 +605,13 @@ extension MEPlayerItem {
                 audioClock.time = time
                 videoClock.time = time
                 KSLog("start seek PlayTime: \(time.seconds) spend Time: \(CACurrentMediaTime() - seekStartTime)")
+                if let seekingCompletionHandler {
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self else { return }
+                        self.seekingCompletionHandler?(result >= 0)
+                        self.seekingCompletionHandler = nil
+                    }
+                }
             }
             state = .reading
         }
@@ -930,6 +934,10 @@ extension MEPlayerItem: MediaPlayback {
             state = .seeking
             seekingCompletionHandler = completion
             read()
+        } else if state == .failed {
+            options.startPlayTime = time
+            seekingCompletionHandler = completion
+            prepareToPlay()
         }
         isAudioStalled = audioTrack == nil
     }
@@ -945,7 +953,7 @@ extension MEPlayerItem: CodecCapacityDelegate {
             if preload.urlPos == initFileSize, preload.loadedSize != 0 {
                 loadingState.loadedTime = initDuration - currentPlaybackTime
             } else {
-                if preload.loadedSize >= 0 {
+                if preload.loadedSize > 0 {
                     loadingState.loadedTime += Double(preload.loadedSize) * initDuration / Double(initFileSize)
                 }
                 if preload.urlPos > initFileSize {
@@ -981,7 +989,7 @@ extension MEPlayerItem: CodecCapacityDelegate {
         let allSatisfy = videoAudioTracks.allSatisfy { $0.isEndOfFile && $0.frameCount == 0 && $0.packetCount == 0 }
         if allSatisfy {
             delegate?.sourceDidFinished()
-            timer.fireDate = Date.distantFuture
+            timer.fireDate = .distantFuture
             if options.isLoopPlay {
                 isAudioStalled = audioTrack == nil
                 audioTrack?.isLoopModel = false
