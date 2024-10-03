@@ -922,11 +922,11 @@ extension MEPlayerItem: MediaPlayback {
     public func seek(time: TimeInterval, completion: @escaping ((Bool) -> Void)) {
         if state == .reading || state == .paused || state == .seeking {
             let oldState = state
-            seekTime = time
             // 有人反馈进行20s以内的seek，如果设置interrupt为true，容易触发失败。
             if abs(time - currentPlaybackTime) > 20 {
                 interrupt = true
             }
+            seekTime = time
             seekingCompletionHandler = completion
             state = .seeking
             if oldState == .paused {
