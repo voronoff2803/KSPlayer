@@ -103,7 +103,7 @@ open class KSOptions {
      AVSEEK_FLAG_FRAME: 8
      */
     public var seekFlags = Int32(1)
-
+    public static var seekInterruptIO = false
     open func adaptable(state: VideoAdaptationState?) -> (Int64, Int64)? {
         guard let state, let last = state.bitRateStates.last, CACurrentMediaTime() - last.time > maxBufferDuration / 2, let index = state.bitRates.firstIndex(of: last.bitRate) else {
             return nil

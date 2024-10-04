@@ -923,7 +923,7 @@ extension MEPlayerItem: MediaPlayback {
         if state == .reading || state == .paused || state == .seeking {
             let oldState = state
             // 有人反馈进行20s以内的seek，如果设置interrupt为true，容易触发失败。
-            if abs(time - currentPlaybackTime) > 20 {
+            if KSOptions.seekInterruptIO, abs(time - currentPlaybackTime) > 20 {
                 interrupt = true
             }
             seekTime = time
