@@ -95,6 +95,9 @@ public class KSMEPlayer: NSObject {
             if playbackRate != audioOutput.playbackRate {
                 audioOutput.playbackRate = playbackRate
                 playerItem.playbackRate = playbackRate
+                if let controlTimebase = videoOutput?.displayLayer.controlTimebase {
+                    CMTimebaseSetRate(controlTimebase, rate: Float64(playbackRate))
+                }
                 if audioOutput is AudioUnitPlayer {
                     var audioFilters = options.audioFilters.filter {
                         !$0.hasPrefix("atempo=")

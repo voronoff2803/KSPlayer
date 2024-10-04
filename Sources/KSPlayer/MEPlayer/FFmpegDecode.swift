@@ -190,7 +190,7 @@ class FFmpegDecode: DecodeProtocol {
                     }
                 }
             } else {
-                if result == AVError.eof.code {
+                if result == swift_AVERROR_EOF {
                     avcodec_flush_buffers(codecContext)
                     break
                 } else if result == AVError.tryAgain.code {

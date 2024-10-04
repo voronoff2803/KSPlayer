@@ -367,7 +367,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
 
     public func changeLoadState(player: some MediaPlayerProtocol) {
         guard player.playbackState != .seeking else {
-            state = .buffering
+            // seek的时候不要变成是buffering。不然会以为处于播放状态，显示播放按钮。
             return
         }
         if player.loadState == .playable, startTime > 0 {

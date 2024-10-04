@@ -60,7 +60,7 @@ public enum KSVideoPlayerViewBuilder {
             Text(title)
                 .font(.headline)
             ProgressView()
-                .opacity(config.state == .buffering ? 1 : 0)
+                .opacity((config.state == .buffering || config.playerLayer?.player.playbackState == .seeking) ? 1 : 0)
         }
     }
 

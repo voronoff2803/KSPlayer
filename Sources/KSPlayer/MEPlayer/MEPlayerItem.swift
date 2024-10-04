@@ -315,7 +315,7 @@ extension MEPlayerItem {
         var avOptions = options.formatContextOptions.avOptions
         var result = avformat_open_input(&self.formatCtx, urlString, nil, &avOptions)
         av_dict_free(&avOptions)
-        if result == AVError.eof.code {
+        if result == swift_AVERROR_EOF {
             state = .finished
             delegate?.sourceDidFinished()
             return
@@ -798,7 +798,7 @@ extension MEPlayerItem {
                 }
             }
         } else if !interrupt {
-            if readResult == AVError.eof.code || avio_feof(formatCtx?.pointee.pb) > 0 {
+            if readResult == swift_AVERROR_EOF || avio_feof(formatCtx?.pointee.pb) > 0 {
                 if options.isLoopPlay, allPlayerItemTracks.allSatisfy({ !$0.isLoopModel }) {
                     allPlayerItemTracks.forEach { $0.isLoopModel = true }
                     _ = av_seek_frame(formatCtx, -1, startTime.value, AVSEEK_FLAG_BACKWARD)
