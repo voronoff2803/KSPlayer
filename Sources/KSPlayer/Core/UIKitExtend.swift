@@ -208,6 +208,7 @@ extension UIView {
     }
 }
 
+#if os(iOS)
 public extension KSOptions {
     /**
      在AppDelegate重载这个方法就可以实现视频转屏了
@@ -223,5 +224,6 @@ extension UIApplication {
         UIApplication.shared.windows.first?.windowScene?.interfaceOrientation.isLandscape ?? false
     }
 }
+#endif
 
 #endif

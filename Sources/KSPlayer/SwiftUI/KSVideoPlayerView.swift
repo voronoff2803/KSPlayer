@@ -361,7 +361,9 @@ struct VideoControllerView: View {
             HStack {
                 Button {
                     dismiss()
+                    #if os(iOS)
                     KSOptions.supportedInterfaceOrientations = nil
+                    #endif
                 } label: {
                     Image(systemName: "x.circle.fill")
                 }
@@ -384,12 +386,10 @@ struct VideoControllerView: View {
                     #endif
                 }
                 Spacer()
-                #if !os(tvOS) && !os(xrOS)
+                #if os(iOS)
                 if config.playerLayer?.player.allowsExternalPlayback == true {
                     AirPlayView().fixedSize()
                 }
-                #endif
-                #if !os(xrOS)
                 contentModeButton
                 if config.playerLayer?.player.naturalSize.isHorizonal == true, UIApplication.isLandscape == false {
                     Button {
