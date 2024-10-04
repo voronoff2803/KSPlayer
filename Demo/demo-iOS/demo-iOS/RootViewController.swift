@@ -61,7 +61,7 @@ class RootViewController: UIViewController {
     }
 
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        KSOptions.supportedInterfaceOrientations
+        KSOptions.supportedInterfaceOrientations ?? .all
     }
     #endif
     @objc func addURL() {

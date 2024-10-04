@@ -361,6 +361,7 @@ struct VideoControllerView: View {
             HStack {
                 Button {
                     dismiss()
+                    KSOptions.supportedInterfaceOrientations = nil
                 } label: {
                     Image(systemName: "x.circle.fill")
                 }
@@ -390,6 +391,15 @@ struct VideoControllerView: View {
                 #endif
                 #if !os(xrOS)
                 contentModeButton
+                if config.playerLayer?.player.naturalSize.isHorizonal == true, UIApplication.isLandscape == false {
+                    Button {
+                        KSOptions.supportedInterfaceOrientations = .landscape
+                        UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
+                        UIViewController.attemptRotationToDeviceOrientation()
+                    } label: {
+                        Image(systemName: "arrow.up.left.and.arrow.down.right")
+                    }
+                }
                 #endif
             }
             Spacer()
