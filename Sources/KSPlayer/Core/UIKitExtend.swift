@@ -208,7 +208,7 @@ extension UIView {
     }
 }
 
-#if os(iOS)
+#if !os(tvOS)
 public extension KSOptions {
     /**
      在AppDelegate重载这个方法就可以实现视频转屏了
