@@ -823,7 +823,9 @@ extension KSComplexPlayerLayer {
         if #available(tvOS 14.0, *), player.pipController?.isPictureInPictureActive == true {
             return
         }
-        player.enterForeground()
+        if !KSOptions.canBackgroundPlay {
+            player.enterForeground()
+        }
     }
 
     @available(tvOS 14.0, *)
