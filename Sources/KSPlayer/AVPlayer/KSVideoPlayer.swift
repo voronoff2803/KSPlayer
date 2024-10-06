@@ -280,7 +280,7 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
                 isMaskShow = true
             }
             #if canImport(UIKit)
-            if state == .preparing, let view = layer.player.view {
+            if onSwipe != nil, state == .preparing, let view = layer.player.view {
                 let swipeDown = UISwipeGestureRecognizer(target: self, action: #selector(swipeGestureAction(_:)))
                 swipeDown.direction = .down
                 view.addGestureRecognizer(swipeDown)

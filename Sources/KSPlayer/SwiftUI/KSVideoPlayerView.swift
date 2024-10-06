@@ -219,9 +219,16 @@ public struct KSCorePlayerView: View {
             .onBufferChanged { bufferedCount, consumeTime in
                 KSLog("bufferedCount \(bufferedCount), consumeTime \(consumeTime)")
             }
-        #if canImport(UIKit)
-            .onSwipe { _ in
-                config.isMaskShow = true
+        #if canImport(UIKit) && !os(tvOS)
+            .onSwipe { direction in
+                switch direction {
+                case .left:
+                    config.skip(interval: -15)
+                case .right:
+                    config.skip(interval: 15)
+                default:
+                    config.isMaskShow = true
+                }
             }
         #endif
             .ignoresSafeArea()
