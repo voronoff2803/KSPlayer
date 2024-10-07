@@ -39,11 +39,8 @@ class FFmpegDecode: DecodeProtocol {
     }
 
     func decodeFrame(from packet: Packet, completionHandler: @escaping (Result<MEFrame, Error>) -> Void) {
-        guard let codecContext else {
-            return
-        }
         let status = avcodec_send_packet(codecContext, packet.corePacket)
-        guard status == 0 else {
+        if status != 0  {
             /**
               有些视频(.m2ts)seek完之后, 就会一直报错，重新createContext，也是会报错一段时间。转为软解就不会报错一段时间了。
               发现在seek的时候不要调用avcodec_flush_buffers就能解决这个问题。
@@ -54,11 +51,16 @@ class FFmpegDecode: DecodeProtocol {
               频繁seek的话，音频会报错-1094995529
              如果之前一直都没有成功过的话，那就需要切换成软解
               **/
-            if isVideo, !hasDecodeSuccess {
+            if isVideo, !hasDecodeSuccess || status == AVError.tryAgain.code {
                 avcodec_free_context(&self.codecContext)
                 options.hardwareDecode = false
                 self.codecContext = try? packet.assetTrack.createContext(options: options)
+                avcodec_send_packet(codecContext, packet.corePacket)
+            } else {
+                return
             }
+        }
+        guard let codecContext else {
             return
         }
         // 需要avcodec_send_packet之后，properties的值才会变成FF_CODEC_PROPERTY_CLOSED_CAPTIONS
