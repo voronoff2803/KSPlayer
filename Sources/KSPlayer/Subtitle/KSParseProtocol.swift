@@ -151,6 +151,6 @@ extension Scanner {
 
 extension KSOptions {
     static var assStyle: String {
-        "Style: Default,Arial,\(textFontSize * 2),&Hffffff,&Hffffff,&H0,&H0,\(textBold ? "1" : "0"),\(textItalic ? "1" : "0"),0,0,100,100,0,0,1,1,0,2,10,10,10,1"
+        "Style: Default,Arial,\(textFontSize * KSOptions.scale),&Hffffff,&Hffffff,&H0,&H0,\(textBold ? "1" : "0"),\(textItalic ? "1" : "0"),0,0,100,100,0,0,1,1,0,2,10,10,10,1"
     }
 }

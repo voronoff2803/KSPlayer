@@ -525,7 +525,7 @@ extension MEPlayerItem {
                 track.delegate = self
                 allPlayerItemTracks.append(track)
                 videoTrack = track
-                if first.codecpar.codec_id != AV_CODEC_ID_MJPEG {
+                if first.image {
                     videoAudioTracks.append(track)
                 }
                 let bitRates = videos.map(\.bitRate).filter {

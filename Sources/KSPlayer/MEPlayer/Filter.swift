@@ -15,7 +15,6 @@ class MEFilter {
     private var bufferSinkContext: UnsafeMutablePointer<AVFilterContext>?
     private var filters: String?
     let timebase: Timebase
-    private let isAudio: Bool
     private var format = Int32(0)
     private var height = Int32(0)
     private var width = Int32(0)
@@ -25,15 +24,14 @@ class MEFilter {
         avfilter_graph_free(&graph)
     }
 
-    public init(timebase: Timebase, isAudio: Bool, nominalFrameRate: Float, options: KSOptions) {
+    public init(timebase: Timebase, nominalFrameRate: Float, options: KSOptions) {
         graph = avfilter_graph_alloc()
         graph?.pointee.opaque = Unmanaged.passUnretained(options).toOpaque()
         self.timebase = timebase
-        self.isAudio = isAudio
         self.nominalFrameRate = nominalFrameRate
     }
 
-    private func setup(filters: String, params: UnsafeMutablePointer<AVBufferSrcParameters>?) -> Bool {
+    private func setup(filters: String, params: UnsafeMutablePointer<AVBufferSrcParameters>?, isVideo: Bool) -> Bool {
         var inputs = avfilter_inout_alloc()
         var outputs = avfilter_inout_alloc()
         var ret = avfilter_graph_parse2(graph, filters, &inputs, &outputs)
@@ -42,12 +40,12 @@ class MEFilter {
             avfilter_inout_free(&outputs)
             return false
         }
-        let bufferSink = avfilter_get_by_name(isAudio ? "abuffersink" : "buffersink")
+        let bufferSink = avfilter_get_by_name(isVideo ? "buffersink" : "abuffersink")
         ret = avfilter_graph_create_filter(&bufferSinkContext, bufferSink, "out", nil, nil, graph)
         guard ret >= 0 else { return false }
         ret = avfilter_link(outputs.pointee.filter_ctx, UInt32(outputs.pointee.pad_idx), bufferSinkContext, 0)
         guard ret >= 0 else { return false }
-        let buffer = avfilter_get_by_name(isAudio ? "abuffer" : "buffer")
+        let buffer = avfilter_get_by_name(isVideo ? "buffer" : "abuffer")
         bufferSrcContext = avfilter_graph_alloc_filter(graph, buffer, "in")
         guard bufferSrcContext != nil else { return false }
         av_buffersrc_parameters_set(bufferSrcContext, params)
@@ -67,11 +65,11 @@ class MEFilter {
         return true
     }
 
-    private func setup2(filters: String, params: UnsafeMutablePointer<AVBufferSrcParameters>?) -> Bool {
+    private func setup2(filters: String, params: UnsafeMutablePointer<AVBufferSrcParameters>?, isVideo: Bool) -> Bool {
         guard let graph else {
             return false
         }
-        let bufferName = isAudio ? "abuffer" : "buffer"
+        let bufferName = isVideo ? "buffer" : "abuffer"
         let bufferSrc = avfilter_get_by_name(bufferName)
         var ret = avfilter_graph_create_filter(&bufferSrcContext, bufferSrc, "ksplayer_\(bufferName)", params?.pointee.arg, nil, graph)
         av_buffersrc_parameters_set(bufferSrcContext, params)
@@ -104,12 +102,12 @@ class MEFilter {
         return true
     }
 
-    public func filter(options: KSOptions, inputFrame: UnsafeMutablePointer<AVFrame>, completionHandler: (UnsafeMutablePointer<AVFrame>) -> Void) {
+    public func filter(options: KSOptions, inputFrame: UnsafeMutablePointer<AVFrame>, isVideo: Bool, completionHandler: (UnsafeMutablePointer<AVFrame>) -> Void) {
         let filters: String
-        if isAudio {
-            filters = options.audioFilters.joined(separator: ",")
-        } else {
+        if isVideo {
             filters = options.videoFilters.joined(separator: ",")
+        } else {
+            filters = options.audioFilters.joined(separator: ",")
         }
         guard !filters.isEmpty else {
             completionHandler(inputFrame)
@@ -132,7 +130,7 @@ class MEFilter {
             if let ctx = inputFrame.pointee.hw_frames_ctx {
                 params?.pointee.hw_frames_ctx = ctx
             }
-            let result = setup(filters: filters, params: params)
+            let result = setup(filters: filters, params: params, isVideo: isVideo)
             av_freep(&params)
             if !result {
                 completionHandler(inputFrame)

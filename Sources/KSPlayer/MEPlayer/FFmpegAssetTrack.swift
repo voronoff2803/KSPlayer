@@ -80,7 +80,7 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
         if stream.pointee.disposition & AV_DISPOSITION_STILL_IMAGE != 0 {
             stillImage = true
         }
-        if stream.pointee.nb_frames == 1 || codecpar.codec_id == AV_CODEC_ID_MJPEG {
+        if stream.pointee.nb_frames == 1 || codecpar.codec_id == AV_CODEC_ID_MJPEG || codecpar.codec_id == AV_CODEC_ID_PNG {
             image = true
         }
         let metadata = toDictionary(stream.pointee.metadata)
