@@ -112,22 +112,27 @@ open class VideoPlayerView: PlayerView {
         }
     }
 
-    override public var playerLayer: KSComplexPlayerLayer? {
+    override public var playerLayer: KSPlayerLayer? {
         didSet {
             oldValue?.player.view?.removeFromSuperview()
-            if let view = playerLayer?.player.view {
-                #if canImport(UIKit)
-                insertSubview(view, belowSubview: contentOverlayView)
-                #else
-                addSubview(view, positioned: .below, relativeTo: contentOverlayView)
-                #endif
-                view.translatesAutoresizingMaskIntoConstraints = false
-                NSLayoutConstraint.activate([
-                    view.topAnchor.constraint(equalTo: topAnchor),
-                    view.leadingAnchor.constraint(equalTo: leadingAnchor),
-                    view.bottomAnchor.constraint(equalTo: bottomAnchor),
-                    view.trailingAnchor.constraint(equalTo: trailingAnchor),
-                ])
+            if let playerLayer {
+                if let view = playerLayer.player.view {
+                    #if canImport(UIKit)
+                    insertSubview(view, belowSubview: contentOverlayView)
+                    #else
+                    addSubview(view, positioned: .below, relativeTo: contentOverlayView)
+                    #endif
+                    view.translatesAutoresizingMaskIntoConstraints = false
+                    NSLayoutConstraint.activate([
+                        view.topAnchor.constraint(equalTo: topAnchor),
+                        view.leadingAnchor.constraint(equalTo: leadingAnchor),
+                        view.bottomAnchor.constraint(equalTo: bottomAnchor),
+                        view.trailingAnchor.constraint(equalTo: trailingAnchor),
+                    ])
+                }
+                if let cancellable = (playerLayer as? KSComplexPlayerLayer)?.$isPipActive.assign(to: \.isSelected, on: toolBar.pipButton) {
+                    cancellables.append(cancellable)
+                }
             }
         }
     }
@@ -135,9 +140,6 @@ open class VideoPlayerView: PlayerView {
     override public init(frame: CGRect) {
         super.init(frame: frame)
         setupUIComponents()
-        if let cancellable = playerLayer?.$isPipActive.assign(to: \.isSelected, on: toolBar.pipButton) {
-            cancellables.append(cancellable)
-        }
         toolBar.onFocusUpdate = { [weak self] _ in
             self?.autoFadeOutViewWithAnimation()
         }
@@ -150,7 +152,7 @@ open class VideoPlayerView: PlayerView {
         super.onButtonPressed(type: type, button: button)
         if type == .pictureInPicture {
             if #available(tvOS 14.0, *) {
-                playerLayer?.isPipActive.toggle()
+                (playerLayer as? KSComplexPlayerLayer)?.isPipActive.toggle()
             }
         }
         #if os(tvOS)

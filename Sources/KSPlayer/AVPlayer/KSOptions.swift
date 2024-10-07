@@ -78,10 +78,9 @@ open class KSOptions {
     public var registerRemoteControll: Bool = true // 默认支持来自系统控制中心的控制
     public static var firstPlayerType: MediaPlayerProtocol.Type = KSAVPlayer.self
     public static var secondPlayerType: MediaPlayerProtocol.Type? = KSMEPlayer.self
+    public static var playerLayerType: KSPlayerLayer.Type = KSComplexPlayerLayer.self
     /// 是否开启秒开
     public static var isSecondOpen = false
-    /// 开启精确seek
-    public static var isAccurateSeek = false
     /// Applies to short videos only
     public static var isLoopPlay = false
     /// 是否自动播放，默认true
@@ -90,20 +89,8 @@ open class KSOptions {
     public static var isSeekedAutoPlay = true
     /// 是否开启秒开
     public var isSecondOpen = KSOptions.isSecondOpen
-    /// 开启精确seek
-    public var isAccurateSeek = KSOptions.isAccurateSeek
     /// Applies to short videos only
     public var isLoopPlay = KSOptions.isLoopPlay
-    /// seek完是否自动播放
-    public var isSeekedAutoPlay = KSOptions.isSeekedAutoPlay
-    /*
-     AVSEEK_FLAG_BACKWARD: 1
-     AVSEEK_FLAG_BYTE: 2
-     AVSEEK_FLAG_ANY: 4
-     AVSEEK_FLAG_FRAME: 8
-     */
-    public var seekFlags = Int32(1)
-    public static var seekInterruptIO = false
     open func adaptable(state: VideoAdaptationState?) -> (Int64, Int64)? {
         guard let state, let last = state.bitRateStates.last, CACurrentMediaTime() - last.time > maxBufferDuration / 2, let index = state.bitRates.firstIndex(of: last.bitRate) else {
             return nil
@@ -137,6 +124,23 @@ open class KSOptions {
         //            return 1
         //        }
     }
+
+    // MARK: seek options
+
+    /// 开启精确seek
+    public static var isAccurateSeek = false
+    /// 开启精确seek
+    public var isAccurateSeek = KSOptions.isAccurateSeek
+    /// seek完是否自动播放
+    public var isSeekedAutoPlay = KSOptions.isSeekedAutoPlay
+    /*
+     AVSEEK_FLAG_BACKWARD: 1
+     AVSEEK_FLAG_BYTE: 2
+     AVSEEK_FLAG_ANY: 4
+     AVSEEK_FLAG_FRAME: 8
+     */
+    public var seekFlags = Int32(1)
+    public static var seekInterruptIO = false
 
     // MARK: record options
 

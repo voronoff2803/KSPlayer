@@ -522,7 +522,7 @@ struct VideoControllerView: View {
 
     private var pipButton: some View {
         Button {
-            config.playerLayer?.isPipActive.toggle()
+            (config.playerLayer as? KSComplexPlayerLayer)?.isPipActive.toggle()
         } label: {
             Image(systemName: "rectangle.on.rectangle.circle.fill")
         }

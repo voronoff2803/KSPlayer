@@ -152,7 +152,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     private var shouldSeekTo: TimeInterval = 0
     private var startTime: TimeInterval = 0
     public let subtitleModel: SubtitleModel
-    public init(url: URL, isAutoPlay: Bool = KSOptions.isAutoPlay, options: KSOptions, delegate: KSPlayerLayerDelegate? = nil) {
+    public required init(url: URL, isAutoPlay: Bool = KSOptions.isAutoPlay, options: KSOptions, delegate: KSPlayerLayerDelegate? = nil) {
         self.url = url
         self.options = options
         self.delegate = delegate
@@ -521,7 +521,7 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
         }
     }
 
-    override public init(url: URL, isAutoPlay: Bool = KSOptions.isAutoPlay, options: KSOptions, delegate: KSPlayerLayerDelegate? = nil) {
+    public required init(url: URL, isAutoPlay: Bool = KSOptions.isAutoPlay, options: KSOptions, delegate: KSPlayerLayerDelegate? = nil) {
         super.init(url: url, isAutoPlay: isAutoPlay, options: options, delegate: delegate)
         if options.registerRemoteControll {
             registerRemoteControllEvent()
