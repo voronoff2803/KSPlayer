@@ -83,7 +83,7 @@ class FFmpegDecode: DecodeProtocol {
         }
         while true {
             let result = avcodec_receive_frame(codecContext, coreFrame)
-            // 有的音频可以多次调用avcodec_receive_frame，所以不能第一次成功就直接return
+            // 有的音频视频可以多次调用avcodec_receive_frame，所以不能第一次成功就直接return
             if result == 0, let inputFrame = coreFrame {
                 hasDecodeSuccess = true
                 decodeFrame(inputFrame: inputFrame, packet: packet, completionHandler: completionHandler)
@@ -93,7 +93,7 @@ class FFmpegDecode: DecodeProtocol {
                     return
                 } else if result == AVError.tryAgain.code {
                     // png封面需要多次调用avcodec_send_packet才能显示封面.其他格式的不要加这个处理。
-                    if packet.assetTrack.image {
+                    if !hasDecodeSuccess, packet.assetTrack.image {
                         let status = avcodec_send_packet(codecContext, packet.corePacket)
                         if status != 0 {
                             return

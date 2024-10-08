@@ -140,7 +140,11 @@ public final class MetalPlayView: UIView, VideoOutput {
     }
 
     public func invalidate() {
+        flush()
         displayLink.invalidate()
+        if let mtlTextureCache = MetalRender.mtlTextureCache {
+            CVMetalTextureCacheFlush(mtlTextureCache, 0)
+        }
     }
 
     public func readNextFrame() {
@@ -191,7 +195,8 @@ extension MetalPlayView {
                 pixelBuffer.aspectRatio = CGSize(width: dar.width, height: dar.height * par.width / par.height)
             }
             checkFormatDescription(pixelBuffer: pixelBuffer)
-            if let pixelBuffer = pixelBuffer.cvPixelBuffer, options.isUseDisplayLayer() {
+            // 高度太高用AVSampleBufferDisplayLayer在macos播放会导致电脑重启，所以做一下判断
+            if let pixelBuffer = pixelBuffer.cvPixelBuffer, options.isUseDisplayLayer(), par.height < 6000 {
                 if displayView.isHidden {
                     displayView.isHidden = false
                     metalView.isHidden = true
