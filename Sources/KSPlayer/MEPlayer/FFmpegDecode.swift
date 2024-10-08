@@ -40,7 +40,7 @@ class FFmpegDecode: DecodeProtocol {
 
     func decodeFrame(from packet: Packet, completionHandler: @escaping (Result<MEFrame, Error>) -> Void) {
         let status = avcodec_send_packet(codecContext, packet.corePacket)
-        if status != 0  {
+        if status != 0 {
             /**
               有些视频(.m2ts)seek完之后, 就会一直报错，重新createContext，也是会报错一段时间。转为软解就不会报错一段时间了。
               发现在seek的时候不要调用avcodec_flush_buffers就能解决这个问题。
@@ -50,8 +50,9 @@ class FFmpegDecode: DecodeProtocol {
               硬解前后台切换的话，视频会报错-1313558101
               频繁seek的话，音频会报错-1094995529
              如果之前一直都没有成功过的话，那就需要切换成软解
+             视频报错AVError.tryAgain.code的话，也不要转为软解。因为dovi解码有可能返回这个错。如果
               **/
-            if isVideo, !hasDecodeSuccess || status == AVError.tryAgain.code {
+            if isVideo, !hasDecodeSuccess {
                 avcodec_free_context(&self.codecContext)
                 options.hardwareDecode = false
                 self.codecContext = try? packet.assetTrack.createContext(options: options)
@@ -82,10 +83,10 @@ class FFmpegDecode: DecodeProtocol {
         }
         while true {
             let result = avcodec_receive_frame(codecContext, coreFrame)
+            // 有的音频可以多次调用avcodec_receive_frame，所以不能第一次成功就直接return
             if result == 0, let inputFrame = coreFrame {
                 hasDecodeSuccess = true
                 decodeFrame(inputFrame: inputFrame, packet: packet, completionHandler: completionHandler)
-                return
             } else {
                 if result == swift_AVERROR_EOF {
                     avcodec_flush_buffers(codecContext)
