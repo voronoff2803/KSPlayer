@@ -272,15 +272,16 @@ extension AVPixelFormat {
         case AV_PIX_FMT_RGB565LE: return kCVPixelFormatType_16LE565
 //             PixelBufferPool 无法支持24BGR
 //        case AV_PIX_FMT_BGR24: return kCVPixelFormatType_24BGR
-        // metal不支持24RGB，所以不能转为24RGB
+        // metal不支持24RGB, ios 18以下AVSampleBufferDisplayLayer也不支持24RGB，所以不能转为24RGB
 //        case AV_PIX_FMT_RGB24: return kCVPixelFormatType_24RGB
         case AV_PIX_FMT_0RGB: return kCVPixelFormatType_32ARGB
         case AV_PIX_FMT_ARGB: return kCVPixelFormatType_32ARGB
         case AV_PIX_FMT_BGR0: return kCVPixelFormatType_32BGRA
         case AV_PIX_FMT_BGRA: return kCVPixelFormatType_32BGRA
         case AV_PIX_FMT_0BGR: return kCVPixelFormatType_32ABGR
-        case AV_PIX_FMT_RGB0: return kCVPixelFormatType_32RGBA
-        case AV_PIX_FMT_RGBA: return kCVPixelFormatType_32RGBA
+//        case AV_PIX_FMT_RGB0: return kCVPixelFormatType_32RGBA
+        // CVPixelBufferPoolCreatePixelBuffer 不支持32RGBA
+//        case AV_PIX_FMT_RGBA: return kCVPixelFormatType_32RGBA
         case AV_PIX_FMT_RGBA64LE: return kCVPixelFormatType_64RGBALE
         case AV_PIX_FMT_BGR48BE, AV_PIX_FMT_BGR48LE: return kCVPixelFormatType_48RGB
         case AV_PIX_FMT_NV12: return fullRange ? kCVPixelFormatType_420YpCbCr8BiPlanarFullRange : kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
