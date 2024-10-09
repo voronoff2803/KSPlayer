@@ -193,16 +193,16 @@ extension KSVideoPlayer: UIViewRepresentable {
         public func makeView(url: URL, options: KSOptions) -> UIView {
             if let playerLayer {
                 if playerLayer.url == url {
-                    return playerLayer.player.view ?? UIView()
+                    return playerLayer.player.view
                 }
                 playerLayer.delegate = nil
                 playerLayer.set(url: url, options: options)
                 playerLayer.delegate = self
-                return playerLayer.player.view ?? UIView()
+                return playerLayer.player.view
             } else {
                 let playerLayer = KSComplexPlayerLayer(url: url, options: options, delegate: self)
                 self.playerLayer = playerLayer
-                return playerLayer.player.view ?? UIView()
+                return playerLayer.player.view
             }
         }
 
@@ -280,7 +280,8 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
                 isMaskShow = true
             }
             #if canImport(UIKit)
-            if onSwipe != nil, state == .preparing, let view = layer.player.view {
+            if onSwipe != nil, state == .preparing {
+                let view = layer.player.view
                 let swipeDown = UISwipeGestureRecognizer(target: self, action: #selector(swipeGestureAction(_:)))
                 swipeDown.direction = .down
                 view.addGestureRecognizer(swipeDown)

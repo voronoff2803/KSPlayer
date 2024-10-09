@@ -163,7 +163,7 @@ public struct KSVideoPlayerView: View {
     }
 
     private var controllerView: some View {
-        VideoControllerView(config: config, title: $title, playerWidth: config.playerLayer?.player.view?.frame.width ?? 0, focusableView: $focusableView)
+        VideoControllerView(config: config, title: $title, playerWidth: config.playerLayer?.player.view.frame.width ?? 0, focusableView: $focusableView)
             .focused($focusableView, equals: .controller)
             .opacity(config.isMaskShow ? 1 : 0)
         #if os(tvOS)
@@ -265,7 +265,7 @@ public struct KSCorePlayerView: View {
             view.layoutSubtreeIfNeeded()
         }
         .onExitCommand {
-            config.playerLayer?.player.view?.exitFullScreenMode()
+            config.playerLayer?.player.view.exitFullScreenMode()
         }
         .onMoveCommand { direction in
             switch direction {

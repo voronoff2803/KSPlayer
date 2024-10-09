@@ -78,7 +78,7 @@ public struct Chapter {
 
 public protocol MediaPlayerProtocol: MediaPlayback {
     var delegate: MediaPlayerDelegate? { get set }
-    var view: UIView? { get }
+    var view: UIView { get }
     var playableTime: TimeInterval { get }
     var isReadyToPlay: Bool { get }
     var playbackState: MediaPlaybackState { get }
@@ -120,10 +120,10 @@ public extension MediaPlayerProtocol {
     @MainActor
     var contentMode: UIViewContentMode {
         get {
-            view?.contentMode ?? .center
+            view.contentMode
         }
         set {
-            view?.contentMode = newValue
+            view.contentMode = newValue
         }
     }
 

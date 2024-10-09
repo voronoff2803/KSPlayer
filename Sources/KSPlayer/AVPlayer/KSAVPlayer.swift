@@ -375,7 +375,7 @@ extension KSAVPlayer: MediaPlayerProtocol {
 
     public var subtitleDataSource: (any EmbedSubtitleDataSource)? { nil }
     public var isPlaying: Bool { player.rate > 0 ? true : playbackState == .playing }
-    public var view: UIView? { playerView }
+    public var view: UIView { playerView }
     public var currentPlaybackTime: TimeInterval {
         get {
             if shouldSeekTo > 0 {

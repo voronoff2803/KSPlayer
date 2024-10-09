@@ -79,13 +79,14 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
             state = .initialized
             runOnMainThread { [weak self] in
                 guard let self else { return }
-                if let oldView = oldValue.view, let superview = oldView.superview, let view = player.view {
+                if let superview = oldValue.view.superview {
+                    let view = player.view
                     #if canImport(UIKit)
-                    superview.insertSubview(view, belowSubview: oldView)
+                    superview.insertSubview(view, belowSubview: oldValue.view)
                     #else
-                    superview.addSubview(view, positioned: .below, relativeTo: oldView)
+                    superview.addSubview(view, positioned: .below, relativeTo: oldValue.view)
                     #endif
-                    view.frame = oldView.frame
+                    view.frame = oldValue.view.frame
                     view.translatesAutoresizingMaskIntoConstraints = false
                     NSLayoutConstraint.activate([
                         view.topAnchor.constraint(equalTo: superview.topAnchor),
@@ -94,7 +95,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
                         view.trailingAnchor.constraint(equalTo: superview.trailingAnchor),
                     ])
                 }
-                oldValue.view?.removeFromSuperview()
+                oldValue.view.removeFromSuperview()
             }
             player.playbackRate = oldValue.playbackRate
             player.playbackVolume = oldValue.playbackVolume
@@ -213,14 +214,12 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
             if subtitleModel.isHDR != options.isHDR {
                 subtitleModel.isHDR = options.isHDR
             }
-            if let view = player.view {
-                // pip播放的时候用view.frame.size获取到的大小不对，要用subtitleVC的
-                var screenSize = subtitleVC.view.frame.size
-                if screenSize.width == 0 || screenSize.height == 0 {
-                    screenSize = view.frame.size
-                }
-                subtitleModel.subtitle(currentTime: currentTime, playSize: player.naturalSize.within(size: screenSize), screenSize: screenSize)
+            // pip播放的时候用view.frame.size获取到的大小不对，要用subtitleVC的
+            var screenSize = subtitleVC.view.frame.size
+            if screenSize.width == 0 || screenSize.height == 0 {
+                screenSize = player.view.frame.size
             }
+            subtitleModel.subtitle(currentTime: currentTime, playSize: player.naturalSize.within(size: screenSize), screenSize: screenSize)
         }
         delegate?.player(layer: self, currentTime: currentTime, totalTime: player.duration)
         if player.playbackState == .playing, player.loadState == .playable, state == .buffering {
@@ -325,9 +324,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     }
 
     public func readyToPlay(player: some MediaPlayerProtocol) {
-        if let view = player.view {
-            addSubtitle(to: view)
-        }
+        addSubtitle(to: player.view)
         if let subtitleDataSource = player.subtitleDataSource {
             subtitleModel.addSubtitle(dataSource: subtitleDataSource)
             if subtitleModel.selectedSubtitleInfo == nil, let infos = subtitleDataSource.infos as? [MediaPlayerTrack & SubtitleInfo] {
@@ -338,7 +335,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         #if os(macOS)
         runOnMainThread { [weak self] in
             guard let self else { return }
-            if let window = player.view?.window {
+            if let window = player.view.window {
                 window.isMovableByWindowBackground = true
                 if options.automaticWindowResize {
                     let naturalSize = player.naturalSize
@@ -639,9 +636,7 @@ extension KSComplexPlayerLayer: AVPictureInPictureControllerDelegate {
     @MainActor
     public func pictureInPictureControllerDidStopPictureInPicture(_: AVPictureInPictureController) {
         player.pipController?.stop(restoreUserInterface: false)
-        if let view = player.view {
-            addSubtitle(to: view)
-        }
+        addSubtitle(to: player.view)
     }
 
     @MainActor

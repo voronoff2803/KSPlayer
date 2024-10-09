@@ -104,7 +104,7 @@ extension KSMPVPlayer: MediaPlayerProtocol {
 
     public func stopRecord() {}
 
-    public var view: UIView? {
+    public var view: UIView {
         metalView
     }
 

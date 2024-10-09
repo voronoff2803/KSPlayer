@@ -19,14 +19,7 @@ public class KSMEPlayer: NSObject {
     public let audioOutput: AudioOutput
     private var options: KSOptions
     private var bufferingCountDownTimer: Timer?
-    public private(set) var videoOutput: (VideoOutput & UIView)? {
-        didSet {
-            oldValue?.invalidate()
-            runOnMainThread {
-                oldValue?.removeFromSuperview()
-            }
-        }
-    }
+    public let videoOutput: VideoOutput & UIView
 
     public private(set) var bufferingProgress = 0 {
         willSet {
@@ -40,7 +33,7 @@ public class KSMEPlayer: NSObject {
     #if os(tvOS)
     // 在visionOS，这样的代码会crash，所以只能区分下系统
     private lazy var _pipController: Any? = {
-        if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *), let videoOutput {
+        if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
             let contentSource = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: videoOutput.displayLayer, playbackDelegate: self)
             let pip = KSOptions.pictureInPictureType.init(contentSource: contentSource)
             return pip
@@ -57,7 +50,7 @@ public class KSMEPlayer: NSObject {
     }
     #else
     public lazy var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? = {
-        if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *), let videoOutput {
+        if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
             let contentSource = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: videoOutput.displayLayer, playbackDelegate: self)
             let pip = KSOptions.pictureInPictureType.init(contentSource: contentSource)
             return pip
@@ -95,7 +88,7 @@ public class KSMEPlayer: NSObject {
             if playbackRate != audioOutput.playbackRate {
                 audioOutput.playbackRate = playbackRate
                 playerItem.playbackRate = playbackRate
-                if let controlTimebase = videoOutput?.displayLayer.controlTimebase {
+                if let controlTimebase = videoOutput.displayLayer.controlTimebase {
                     CMTimebaseSetRate(controlTimebase, rate: Float64(playbackRate))
                 }
                 if audioOutput is AudioUnitPlayer {
@@ -137,16 +130,12 @@ public class KSMEPlayer: NSObject {
         KSOptions.setAudioSession()
         audioOutput = KSOptions.audioPlayerType.init()
         playerItem = MEPlayerItem(url: url, options: options)
-        if options.videoDisable {
-            videoOutput = nil
-        } else {
-            videoOutput = KSOptions.videoPlayerType.init(options: options)
-        }
+        videoOutput = KSOptions.videoPlayerType.init(options: options)
         self.options = options
         super.init()
         playerItem.delegate = self
         audioOutput.renderSource = playerItem
-        videoOutput?.renderSource = playerItem
+        videoOutput.renderSource = playerItem
         #if os(macOS)
         let audioId = AudioObjectID(bitPattern: kAudioObjectSystemObject)
         var forPropertyAddress = AudioObjectPropertyAddress(
@@ -162,9 +151,9 @@ public class KSMEPlayer: NSObject {
                 DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1) { [weak self] in
                     guard let self else { return }
                     self.audioOutput.pause()
-                    self.videoOutput?.pause()
+                    self.videoOutput.pause()
                     self.audioOutput.play()
-                    self.videoOutput?.play()
+                    self.videoOutput.play()
                 }
             }
         }
@@ -187,11 +176,11 @@ private extension KSMEPlayer {
             guard let self else { return }
             let isPaused = !(self.playbackState == .playing && self.loadState == .playable)
             if isPaused {
-                self.videoOutput?.pause()
+                self.videoOutput.pause()
                 self.audioOutput.pause()
             } else {
                 // 要先调用video的play。这样才能减少seek之后，声音出来了，但是画面还卡住的概率。
-                self.videoOutput?.play()
+                self.videoOutput.play()
                 /// audioOutput 要手动的调用setAudio(time下，这样才能及时的更新音频的时间
                 /// 不然如果音频没有先渲染的话，那音视频同步算法就无法取到正确的时间戳。导致误丢数据
                 /// 暂停会导致getTime变大，所以要用time更新下时间戳
@@ -230,9 +219,9 @@ private extension KSMEPlayer {
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
                 self.audioOutput.pause()
-                self.videoOutput?.pause()
+                self.videoOutput.pause()
                 self.audioOutput.play()
-                self.videoOutput?.play()
+                self.videoOutput.play()
             }
         }
     }
@@ -243,10 +232,6 @@ extension KSMEPlayer: MEPlayerDelegate {
     func sourceDidOpened() {
         isReadyToPlay = true
         options.readyTime = CACurrentMediaTime()
-        let vidoeTracks = tracks(mediaType: .video)
-        if vidoeTracks.isEmpty {
-            videoOutput = nil
-        }
         let audioDescriptor = tracks(mediaType: .audio).first { $0.isEnabled }.flatMap {
             $0 as? FFmpegAssetTrack
         }?.audioDescriptor
@@ -256,7 +241,7 @@ extension KSMEPlayer: MEPlayerDelegate {
                 KSLog("[audio] audio type: \(audioOutput) prepare audioFormat )")
                 audioOutput.prepare(audioFormat: audioDescriptor.audioFormat)
             }
-            if let controlTimebase = videoOutput?.displayLayer.controlTimebase, options.startPlayTime > 1 {
+            if let controlTimebase = videoOutput.displayLayer.controlTimebase, options.startPlayTime > 1 {
                 CMTimebaseSetTime(controlTimebase, time: CMTimeMake(value: Int64(options.startPlayTime), timescale: 1))
             }
             delegate?.readyToPlay(player: self)
@@ -277,7 +262,7 @@ extension KSMEPlayer: MEPlayerDelegate {
                 self.loopCount += 1
                 self.delegate?.playBack(player: self, loopCount: self.loopCount)
                 self.audioOutput.play()
-                self.videoOutput?.play()
+                self.videoOutput.play()
             } else {
                 self.playbackState = .finished
             }
@@ -360,7 +345,7 @@ extension KSMEPlayer: MediaPlayerProtocol {
         options.display.isSphere ? KSOptions.sceneSize : playerItem.naturalSize
     }
 
-    public var view: UIView? { videoOutput }
+    public var view: UIView { videoOutput }
 
     public func replace(url: URL, options: KSOptions) {
         replace(item: MEPlayerItem(url: url, options: options))
@@ -372,17 +357,12 @@ extension KSMEPlayer: MediaPlayerProtocol {
         playerItem.delegate = nil
         let options = item.options
         playerItem = item
-        if options.videoDisable {
-            videoOutput = nil
-        } else if videoOutput == nil {
-            videoOutput = KSOptions.videoPlayerType.init(options: options)
-        }
         self.options = options
         playerItem.delegate = self
         audioOutput.flush()
         audioOutput.renderSource = playerItem
-        videoOutput?.renderSource = playerItem
-        videoOutput?.options = options
+        videoOutput.renderSource = playerItem
+        videoOutput.options = options
     }
 
     public var currentPlaybackTime: TimeInterval {
@@ -419,11 +399,11 @@ extension KSMEPlayer: MediaPlayerProtocol {
         playerItem.seek(time: seekTime) { [weak self] result in
             guard let self else { return }
             if result {
-                self.videoOutput?.pixelBuffer = nil
+                self.videoOutput.pixelBuffer = nil
                 self.audioOutput.flush()
                 runOnMainThread { [weak self] in
                     guard let self else { return }
-                    if let controlTimebase = self.videoOutput?.displayLayer.controlTimebase {
+                    if let controlTimebase = self.videoOutput.displayLayer.controlTimebase {
                         CMTimebaseSetTime(controlTimebase, time: CMTimeMake(value: Int64(self.currentPlaybackTime), timescale: 1))
                     }
                 }
@@ -473,7 +453,7 @@ extension KSMEPlayer: MediaPlayerProtocol {
         options.decodeAudioTime = 0
         options.decodeVideoTime = 0
         if KSOptions.isClearVideoWhereReplace {
-            videoOutput?.flush()
+            videoOutput.flush()
         }
     }
 
@@ -486,17 +466,17 @@ extension KSMEPlayer: MediaPlayerProtocol {
         #endif
         NotificationCenter.default.removeObserver(self)
         audioOutput.invalidate()
-        videoOutput?.invalidate()
+        videoOutput.invalidate()
     }
 
     public func thumbnailImageAtCurrentTime() async -> CGImage? {
-        videoOutput?.pixelBuffer?.cgImage(isHDR: false)
+        videoOutput.pixelBuffer?.cgImage(isHDR: false)
     }
 
     public func enterBackground() {}
 
     public func enterForeground() {
-        videoOutput?.enterForeground()
+        videoOutput.enterForeground()
         /// 因为硬解进入前台会失败。如果视频 i 帧间隔比较长，那画面会卡比较久。所以要seek让页面不会卡住。
         /// 过滤掉直播流或是不能seek的视频
         if playerItem.seekable, duration > 0, options.hardwareDecode {

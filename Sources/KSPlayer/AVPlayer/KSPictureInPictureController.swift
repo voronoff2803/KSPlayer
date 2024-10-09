@@ -32,7 +32,7 @@ public class KSPictureInPictureController: AVPictureInPictureController, KSPictu
             return
         }
         #if canImport(UIKit)
-        guard let viewController = layer.player.view?.viewController else { return }
+        guard let viewController = layer.player.view.viewController else { return }
         originalViewController = viewController
         if let navigationController = viewController.navigationController, navigationController.viewControllers.count == 1 {
             self.viewController = navigationController
