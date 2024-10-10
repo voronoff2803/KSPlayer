@@ -134,6 +134,9 @@ public final class MetalPlayView: UIView, VideoOutput {
         pixelBuffer = nil
         if displayView.isHidden {
             drawable.clear()
+            if let mtlTextureCache = MetalRender.mtlTextureCache {
+                CVMetalTextureCacheFlush(mtlTextureCache, 0)
+            }
         } else {
             displayView.displayLayer.flushAndRemoveImage()
         }
@@ -142,9 +145,6 @@ public final class MetalPlayView: UIView, VideoOutput {
     public func invalidate() {
         flush()
         displayLink.invalidate()
-        if let mtlTextureCache = MetalRender.mtlTextureCache {
-            CVMetalTextureCacheFlush(mtlTextureCache, 0)
-        }
     }
 
     public func readNextFrame() {

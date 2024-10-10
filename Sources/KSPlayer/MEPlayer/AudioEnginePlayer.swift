@@ -163,6 +163,11 @@ public class AudioEnginePlayer: AudioOutput {
         if sourceNodeAudioFormat == audioFormat {
             return
         }
+        let isRunning = engine.isRunning
+        if sourceNodeAudioFormat != nil {
+            engine.reset()
+            engine.stop()
+        }
         sourceNodeAudioFormat = audioFormat
         #if !os(macOS)
         try? AVAudioSession.sharedInstance().setPreferredOutputNumberOfChannels(Int(audioFormat.channelCount))
@@ -172,9 +177,6 @@ public class AudioEnginePlayer: AudioOutput {
         if let channelLayout = audioFormat.channelLayout {
             KSLog("[audio] outputFormat channelLayout \(channelLayout.channelDescriptions)")
         }
-        let isRunning = engine.isRunning
-        engine.stop()
-        engine.reset()
         sourceNode = AVAudioSourceNode(format: audioFormat) { [weak self] _, timestamp, frameCount, audioBufferList in
             if timestamp.pointee.mSampleTime == 0 {
                 return noErr
@@ -331,7 +333,10 @@ public class AudioEnginePlayer: AudioOutput {
         }
     }
 
-    public func invalidate() {}
+    public func invalidate() {
+        engine.reset()
+        engine.stop()
+    }
 }
 
 extension AVAudioEngine {

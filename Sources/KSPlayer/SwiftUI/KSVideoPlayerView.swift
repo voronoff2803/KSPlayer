@@ -72,7 +72,7 @@ public struct KSVideoPlayerView: View {
                 }
                 .overlay {
                     #if canImport(UIKit)
-                    GestureView(swipeAction: { direction in
+                    GestureView() { direction in
                         switch direction {
                         case .left:
                             config.skip(interval: -15)
@@ -81,7 +81,7 @@ public struct KSVideoPlayerView: View {
                         default:
                             config.isMaskShow = true
                         }
-                    }, pressAction: { direction in
+                    } pressAction: { direction in
                         if !config.isMaskShow {
                             switch direction {
                             case .left:
@@ -96,7 +96,7 @@ public struct KSVideoPlayerView: View {
                                 break
                             }
                         }
-                    })
+                    }
                     #if !os(iOS)
                     .focused($focusableView, equals: .play)
                     #endif
@@ -104,7 +104,6 @@ public struct KSVideoPlayerView: View {
                         config.isMaskShow.toggle()
                     }
                     #endif
-                    
                     controllerView
                 }
                 .preferredColorScheme(.dark)
@@ -127,29 +126,29 @@ public struct KSVideoPlayerView: View {
                     }
                 }
             #if os(tvOS)
-            // 要放在最上层才不会有焦点丢失问题
+                // 要放在最上层才不会有焦点丢失问题
                 .onPlayPauseCommand {
-                if config.state.isPlaying {
-                    config.playerLayer?.pause()
-                } else {
-                    config.playerLayer?.play()
-                }
-            }
-            .onExitCommand {
-                if config.isMaskShow {
-                    config.isMaskShow = false
-                } else {
-                    switch focusableView {
-                    case .play:
-                        dismiss()
-                    default:
-                        focusableView = .play
+                    if config.state.isPlaying {
+                        config.playerLayer?.pause()
+                    } else {
+                        config.playerLayer?.play()
                     }
                 }
-            }
-            .sheet(isPresented: $isDropdownShow) {
-                VideoSettingView(config: config, subtitleTitle: title)
-            }
+                .onExitCommand {
+                    if config.isMaskShow {
+                        config.isMaskShow = false
+                    } else {
+                        switch focusableView {
+                        case .play:
+                            dismiss()
+                        default:
+                            focusableView = .play
+                        }
+                    }
+                }
+                .sheet(isPresented: $isDropdownShow) {
+                    VideoSettingView(config: config, subtitleTitle: title)
+                }
             #endif
             #if !os(tvOS)
             // 要放在最上面的view。这样才不会被controllerView盖住
