@@ -71,6 +71,40 @@ public struct KSVideoPlayerView: View {
                     //                    #endif
                 }
                 .overlay {
+                    #if canImport(UIKit)
+                    GestureView(swipeAction: { direction in
+                        switch direction {
+                        case .left:
+                            config.skip(interval: -15)
+                        case .right:
+                            config.skip(interval: 15)
+                        default:
+                            config.isMaskShow = true
+                        }
+                    }, pressAction: { direction in
+                        if !config.isMaskShow {
+                            switch direction {
+                            case .left:
+                                config.skip(interval: -15)
+                            case .right:
+                                config.skip(interval: 15)
+                            case .up:
+                                config.mask(show: true, autoHide: false)
+                            case .down:
+                                isDropdownShow = true
+                            default:
+                                break
+                            }
+                        }
+                    })
+                    #if !os(iOS)
+                    .focused($focusableView, equals: .play)
+                    #endif
+                    .onTapGesture {
+                        config.isMaskShow.toggle()
+                    }
+                    #endif
+                    
                     controllerView
                 }
                 .preferredColorScheme(.dark)
@@ -92,9 +126,6 @@ public struct KSVideoPlayerView: View {
                         focusableView = .play
                     }
                 }
-            #if !os(iOS)
-                .focused($focusableView, equals: .play)
-            #endif
             #if os(tvOS)
             // 要放在最上层才不会有焦点丢失问题
                 .onPlayPauseCommand {
@@ -113,22 +144,6 @@ public struct KSVideoPlayerView: View {
                         dismiss()
                     default:
                         focusableView = .play
-                    }
-                }
-            }
-            .onMoveCommand { direction in
-                if !config.isMaskShow {
-                    switch direction {
-                    case .left:
-                        config.skip(interval: -15)
-                    case .right:
-                        config.skip(interval: 15)
-                    case .up:
-                        config.mask(show: true, autoHide: false)
-                    case .down:
-                        isDropdownShow = true
-                    @unknown default:
-                        break
                     }
                 }
             }
@@ -219,18 +234,6 @@ public struct KSCorePlayerView: View {
             .onBufferChanged { bufferedCount, consumeTime in
                 KSLog("bufferedCount \(bufferedCount), consumeTime \(consumeTime)")
             }
-        #if canImport(UIKit) && !os(tvOS)
-            .onSwipe { direction in
-                switch direction {
-                case .left:
-                    config.skip(interval: -15)
-                case .right:
-                    config.skip(interval: 15)
-                default:
-                    config.isMaskShow = true
-                }
-            }
-        #endif
             .ignoresSafeArea()
 
         #if os(iOS) || os(xrOS)
@@ -282,9 +285,6 @@ public struct KSCorePlayerView: View {
             }
         }
         #endif
-        .onTapGesture {
-            config.isMaskShow.toggle()
-        }
     }
 }
 
