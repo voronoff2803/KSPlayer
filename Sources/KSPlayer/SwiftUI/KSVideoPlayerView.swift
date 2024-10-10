@@ -72,7 +72,7 @@ public struct KSVideoPlayerView: View {
                 }
                 .overlay {
                     #if canImport(UIKit)
-                    GestureView() { direction in
+                    GestureView { direction in
                         switch direction {
                         case .left:
                             config.skip(interval: -15)

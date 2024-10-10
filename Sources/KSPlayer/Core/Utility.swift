@@ -161,7 +161,7 @@ extension AVAsset {
     public func generateGIF(beginTime: TimeInterval, endTime: TimeInterval, interval: Double = 0.2, savePath: URL, progress: @escaping (Double) -> Void, completion: @escaping (Error?) -> Void) {
         let count = Int(ceil((endTime - beginTime) / interval))
         let timesM = (0 ..< count).map { NSValue(time: CMTime(seconds: beginTime + Double($0) * interval)) }
-        let imageGenerator = ceateImageGenerator()
+        let imageGenerator = createImageGenerator()
         let gifCreator = GIFCreator(savePath: savePath, imagesCount: count)
         var i = 0
         imageGenerator.generateCGImagesAsynchronously(forTimes: timesM) { _, imageRef, _, result, error in
@@ -190,7 +190,7 @@ extension AVAsset {
         }
     }
 
-    private func ceateComposition(beginTime: TimeInterval, endTime: TimeInterval) async throws -> AVMutableComposition {
+    private func createComposition(beginTime: TimeInterval, endTime: TimeInterval) async throws -> AVMutableComposition {
         let compositionM = AVMutableComposition()
         let audioTrackM = compositionM.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
         let videoTrackM = compositionM.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
@@ -215,8 +215,8 @@ extension AVAsset {
 
     // todo 先注释掉。等到xcode16出正式版本了，在处理，不然老版本会找不到符号。
     #if !os(xrOS)
-    func ceateExportSession(beginTime: TimeInterval, endTime: TimeInterval) async throws -> AVAssetExportSession? {
-        let compositionM = try await ceateComposition(beginTime: beginTime, endTime: endTime)
+    func createExportSession(beginTime: TimeInterval, endTime: TimeInterval) async throws -> AVAssetExportSession? {
+        let compositionM = try await createComposition(beginTime: beginTime, endTime: endTime)
         guard let exportSession = AVAssetExportSession(asset: compositionM, presetName: "") else {
             return nil
         }
@@ -228,7 +228,7 @@ extension AVAsset {
     func exportMp4(beginTime: TimeInterval, endTime: TimeInterval, outputURL: URL, progress: @escaping (Double) -> Void, completion: @escaping (Result<URL, Error>) -> Void) throws {
         try FileManager.default.removeItem(at: outputURL)
         Task {
-            guard let exportSession = try await ceateExportSession(beginTime: beginTime, endTime: endTime) else { return }
+            guard let exportSession = try await createExportSession(beginTime: beginTime, endTime: endTime) else { return }
             exportSession.outputURL = outputURL
             await exportSession.export()
             switch exportSession.status {

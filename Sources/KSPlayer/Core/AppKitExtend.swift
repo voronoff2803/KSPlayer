@@ -535,7 +535,6 @@ extension UIView {
     }
 }
 
-// todo
 open class UIAlertController: UIViewController {
     public enum Style: Int {
         case actionSheet
