@@ -113,14 +113,7 @@ public struct KSVideoPlayerView: View {
                 .focusedObject(config)
                 .onChange(of: config.isMaskShow) { newValue in
                     if newValue {
-                        focusableView = .controller
-                    } else {
-                        focusableView = .play
-                    }
-                }
-                .onChange(of: isDropdownShow) { newValue in
-                    if newValue {
-                        focusableView = .info
+                        focusableView = .slider
                     } else {
                         focusableView = .play
                     }
@@ -197,7 +190,7 @@ public struct KSVideoPlayerView: View {
     }
 
     fileprivate enum FocusableView {
-        case play, controller, info
+        case play, controller, slider
     }
 }
 
@@ -327,7 +320,7 @@ struct VideoControllerView: View {
             }
             if config.isMaskShow {
                 VideoTimeShowView(config: config, model: config.timemodel, timeFont: .caption2)
-                    .focused($focusableView, equals: .controller)
+                    .focused($focusableView, equals: .slider)
             }
             #elseif os(macOS)
             Spacer()
