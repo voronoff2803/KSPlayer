@@ -45,7 +45,9 @@ public final class MetalPlayView: UIView, VideoOutput {
                 if options.preferredFrame(fps: fps) {
                     let preferredFramesPerSecond = ceil(fps)
                     if #available(iOS 15.0, tvOS 15.0, macOS 14.0, *) {
-                        displayLink.preferredFrameRateRange = CAFrameRateRange(minimum: preferredFramesPerSecond, maximum: 2 * preferredFramesPerSecond, __preferred: preferredFramesPerSecond)
+                        /// 一定要用preferredFrameRateRange，并且maximum不能两倍。
+                        /// 不然在60fps的tvos播放25fps的视频无法很丝滑
+                        displayLink.preferredFrameRateRange = CAFrameRateRange(minimum: preferredFramesPerSecond, maximum: preferredFramesPerSecond, __preferred: preferredFramesPerSecond)
                     } else {
                         displayLink.preferredFramesPerSecond = Int(preferredFramesPerSecond)
                     }
