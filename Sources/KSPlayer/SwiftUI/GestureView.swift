@@ -10,15 +10,19 @@ import UIKit
 
 public typealias Action = (UISwipeGestureRecognizer.Direction) -> Void
 
-struct GestureView: UIViewRepresentable {
+public struct GestureView: UIViewRepresentable {
     let swipeAction: Action
     let pressAction: Action
+    public init(swipeAction: @escaping Action, pressAction: @escaping Action) {
+        self.swipeAction = swipeAction
+        self.pressAction = pressAction
+    }
 
-    func makeUIView(context _: Context) -> UIView {
+    public func makeUIView(context _: Context) -> UIView {
         TVGestureHelpView(swipeAction: swipeAction, pressAction: pressAction)
     }
 
-    func updateUIView(_: UIView, context _: Context) {}
+    public func updateUIView(_: UIView, context _: Context) {}
 }
 
 public class TVGestureHelpView: UIControl {
