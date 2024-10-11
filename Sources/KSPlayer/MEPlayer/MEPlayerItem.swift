@@ -586,7 +586,7 @@ extension MEPlayerItem {
                 options.startPlayTime = 0.0001
 //                options.seekFlags |= AVSEEK_FLAG_ANY
             }
-            if options.startPlayTime > 0 {
+            if options.startPlayTime > 0, options.startPlayTime < duration {
                 var flags = options.seekFlags
                 let timestamp: Int64
                 let time = startTime + CMTime(seconds: options.startPlayTime)
