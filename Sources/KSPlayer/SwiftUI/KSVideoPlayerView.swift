@@ -61,7 +61,6 @@ public struct KSVideoPlayerView: View {
         if let url {
             KSCorePlayerView(config: config, url: url, options: options, title: _title, subtitleDataSource: subtitleDataSource)
                 .onAppear {
-                    focusableView = .play
                     // 不要加这个，不然config无法释放，也可以在onDisappear调用removeMonitor释放
                     //                    #if os(macOS)
                     //                    NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) {
@@ -97,12 +96,11 @@ public struct KSVideoPlayerView: View {
                             }
                         }
                     }
-                    #if !os(iOS)
                     .focused($focusableView, equals: .play)
-                    #endif
                     .onTapGesture {
                         config.isMaskShow.toggle()
                     }
+                    .opacity(!config.isMaskShow ? 1 : 0)
                     #endif
                     controllerView
                 }
