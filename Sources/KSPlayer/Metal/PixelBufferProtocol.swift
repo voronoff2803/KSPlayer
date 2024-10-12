@@ -260,8 +260,15 @@ class PixelBuffer: PixelBufferProtocol {
         if format == AV_PIX_FMT_RGB24 {
             image = PointerImagePipeline(rgbData: buffers[0]!.contents().assumingMemoryBound(to: UInt8.self), stride: Int(lineSize[0]), width: width, height: height).cgImage(isHDR: isHDR, alphaInfo: .none)
         } else {
-            let scale = VideoSwresample(isDovi: false)
-            image = scale.transfer(format: format, width: Int32(width), height: Int32(height), data: buffers.map { $0?.contents().assumingMemoryBound(to: UInt8.self) }, linesize: lineSize.map { Int32($0) })?.cgImage(isHDR: isHDR)
+            let scale = VideoSwresample(dstFormat: bitDepth > 8 ? AV_PIX_FMT_RGBA64LE : AV_PIX_FMT_ARGB, isDovi: false)
+            let pbuf = scale.transfer(format: format, width: Int32(width), height: Int32(height), data: buffers.map { $0?.contents().assumingMemoryBound(to: UInt8.self) }, linesize: lineSize.map { Int32($0) })
+            if let pbuf {
+                pbuf.aspectRatio = aspectRatio
+                pbuf.yCbCrMatrix = yCbCrMatrix
+                pbuf.colorPrimaries = colorPrimaries
+                pbuf.transferFunction = transferFunction
+            }
+            image = pbuf?.cgImage(isHDR: isHDR)
             scale.shutdown()
         }
         return image
