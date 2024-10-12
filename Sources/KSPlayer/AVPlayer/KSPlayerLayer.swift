@@ -508,7 +508,6 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
                 guard let pipController = player.pipController else {
                     return
                 }
-                pipController.delegate = self
                 if isPipActive {
                     pipController.start(layer: self)
                 } else {
@@ -578,6 +577,7 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
         super.readyToPlay(player: player)
         #if !os(macOS) && !os(tvOS)
         if #available(iOS 14.2, *) {
+            player.pipController?.delegate = self
             if options.canStartPictureInPictureAutomaticallyFromInline {
                 player.pipController?.canStartPictureInPictureAutomaticallyFromInline = true
             }
