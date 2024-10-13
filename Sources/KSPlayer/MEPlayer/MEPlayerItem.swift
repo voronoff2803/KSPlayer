@@ -1046,7 +1046,7 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
 
     public func setVideo(time: CMTime, position: Int64) {
 //        KSLog("[video] video interval \(CACurrentMediaTime() - videoClock.lastMediaTime) video diff \(time.seconds - videoClock.time.seconds)")
-        videoClock.time = time
+        videoClock.time = CMTime(seconds: videoClock.getTime(), preferredTimescale: time.timescale)
         videoClock.position = position
         videoDisplayCount += 1
         let diff = videoClock.lastMediaTime - lastVideoClock.lastMediaTime
