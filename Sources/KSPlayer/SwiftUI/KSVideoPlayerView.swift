@@ -101,7 +101,7 @@ public struct KSVideoPlayerView: View {
                     #endif
                     controllerView
                 }
-            // 要放在这里才可以生效
+                // 要放在这里才可以生效
                 .onTapGesture {
                     config.isMaskShow.toggle()
                 }

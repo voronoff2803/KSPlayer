@@ -359,6 +359,13 @@ open class KSOptions {
     /// 但是ts格式的视频seek完之后，FFmpeg的硬解会失败，需要切换到硬解才可以。自研的硬解不会失败，但是会有一小段的花屏。
     public static var asynchronousDecompression = false
     public static var isPipPopViewController = false
+    #if os(tvOS)
+    // 现在xcode beta版本，会在_pipController crash。因为tvos目前也无法使用pip。所以先返回nil。
+    public static var enablePictureInPicture = false
+    #else
+    public static var enablePictureInPicture = true
+    #endif
+
     public static var canStartPictureInPictureAutomaticallyFromInline = true
     public static var preferredFrame = false
     #if os(tvOS)

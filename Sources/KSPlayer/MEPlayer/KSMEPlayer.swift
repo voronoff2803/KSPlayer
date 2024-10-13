@@ -42,15 +42,13 @@ public class KSMEPlayer: NSObject {
         }
     }()
 
-    // 现在xcode beta版本，会在_pipController crash。因为tvos目前也无法使用pip。所以先返回nil。
     @available(tvOS 14.0, *)
     public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? {
-        return nil
-        _pipController as? any AVPictureInPictureController & KSPictureInPictureProtocol
+        KSOptions.enablePictureInPicture ? _pipController as? any AVPictureInPictureController & KSPictureInPictureProtocol : nil
     }
     #else
     public lazy var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? = {
-        if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
+        if KSOptions.enablePictureInPicture, #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
             let contentSource = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: videoOutput.displayLayer, playbackDelegate: self)
             let pip = KSOptions.pictureInPictureType.init(contentSource: contentSource)
             return pip
