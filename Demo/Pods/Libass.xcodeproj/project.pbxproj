@@ -40,68 +40,48 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXFileReference section */
-		0E60A3037C754CED6BD2522BEFB0D3C2 /* libfribidi.xcframework */ = {isa = PBXFileReference; includeInIndex = 1; name = libfribidi.xcframework; path = Sources/libfribidi.xcframework; sourceTree = "<group>"; };
-		1E6E46E1EB38364B92D3898E0BFC366E /* Libass-iOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Libass-iOS.debug.xcconfig"; sourceTree = "<group>"; };
-		2A4117320F00246A4EA1F0533624FF4C /* libfreetype.xcframework */ = {isa = PBXFileReference; includeInIndex = 1; name = libfreetype.xcframework; path = Sources/libfreetype.xcframework; sourceTree = "<group>"; };
-		393BD861EE717F06D42017F720F587EE /* Libass-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Libass-tvOS.release.xcconfig"; path = "../Libass-tvOS/Libass-tvOS.release.xcconfig"; sourceTree = "<group>"; };
-		3AF20F53BCB0992C68E223E3FA29441B /* Libass-iOS-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Libass-iOS-xcframeworks.sh"; sourceTree = "<group>"; };
-		5FD2AD698B76275452354E1B332A762A /* libharfbuzz.xcframework */ = {isa = PBXFileReference; includeInIndex = 1; name = libharfbuzz.xcframework; path = Sources/libharfbuzz.xcframework; sourceTree = "<group>"; };
-		8DCD5275179E26BEB36CE8A60CA518E8 /* Libass-macOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Libass-macOS.release.xcconfig"; path = "../Libass-macOS/Libass-macOS.release.xcconfig"; sourceTree = "<group>"; };
-		95EAAC4DEF10FEA9BF82B33B2389C902 /* Libass.podspec */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; lastKnownFileType = text; path = Libass.podspec; sourceTree = "<group>"; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
-		96549E50598BA28A670FD5F1C739611D /* Libass-macOS-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; name = "Libass-macOS-xcframeworks.sh"; path = "../Libass-macOS/Libass-macOS-xcframeworks.sh"; sourceTree = "<group>"; };
-		A21D89F87743C6D06E55FDF408BFFCC1 /* Libass-iOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Libass-iOS.release.xcconfig"; sourceTree = "<group>"; };
-		B2D2A4E824F7A87D9EF28E74ECF459F2 /* Libass-macOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Libass-macOS.debug.xcconfig"; path = "../Libass-macOS/Libass-macOS.debug.xcconfig"; sourceTree = "<group>"; };
-		C10908DE161836DCFDBC0AB78132CE57 /* Libass-tvOS-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; name = "Libass-tvOS-xcframeworks.sh"; path = "../Libass-tvOS/Libass-tvOS-xcframeworks.sh"; sourceTree = "<group>"; };
-		CB68E94948DE4A6AEA05BD8B018F7DBE /* Libass-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Libass-tvOS.debug.xcconfig"; path = "../Libass-tvOS/Libass-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
-		E24919A639BBF73E6084D16517717B28 /* libass.xcframework */ = {isa = PBXFileReference; includeInIndex = 1; name = libass.xcframework; path = Sources/libass.xcframework; sourceTree = "<group>"; };
+		2FB48B2718A3864A10982D25E03C4EB0 /* Libass-iOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Libass-iOS.debug.xcconfig"; sourceTree = "<group>"; };
+		3B8B3EF81B52F1CAC9D74EC72C3E62D0 /* libharfbuzz.xcframework */ = {isa = PBXFileReference; includeInIndex = 1; name = libharfbuzz.xcframework; path = Sources/libharfbuzz.xcframework; sourceTree = "<group>"; };
+		3E6B7A4CC93139FF5AD5B1A9BE0AEC87 /* libfribidi.xcframework */ = {isa = PBXFileReference; includeInIndex = 1; name = libfribidi.xcframework; path = Sources/libfribidi.xcframework; sourceTree = "<group>"; };
+		4455722928C77A2911BD70ABAA018721 /* Libass-macOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Libass-macOS.release.xcconfig"; path = "../Libass-macOS/Libass-macOS.release.xcconfig"; sourceTree = "<group>"; };
+		7397E1A3F3A960652169C794B08B9818 /* Libass-iOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Libass-iOS.release.xcconfig"; sourceTree = "<group>"; };
+		7A891A3AB2ADE2CF1CB2523E0EA15244 /* Libass-tvOS-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; name = "Libass-tvOS-xcframeworks.sh"; path = "../Libass-tvOS/Libass-tvOS-xcframeworks.sh"; sourceTree = "<group>"; };
+		7C61D2CBA7FC3C0F6596DE191FD498F6 /* Libass-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Libass-tvOS.release.xcconfig"; path = "../Libass-tvOS/Libass-tvOS.release.xcconfig"; sourceTree = "<group>"; };
+		96D113141E82DFFC03F454FB0AB096BC /* libfreetype.xcframework */ = {isa = PBXFileReference; includeInIndex = 1; name = libfreetype.xcframework; path = Sources/libfreetype.xcframework; sourceTree = "<group>"; };
+		B69C7674B2FBEEE6B2DABC6E41DED50A /* Libass-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Libass-tvOS.debug.xcconfig"; path = "../Libass-tvOS/Libass-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
+		B70E223E2692B3643840263C0E0A48E8 /* Libass-iOS-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Libass-iOS-xcframeworks.sh"; sourceTree = "<group>"; };
+		C4D79A9743BA0E3CE4B0E464B359A3B2 /* Libass-macOS-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; name = "Libass-macOS-xcframeworks.sh"; path = "../Libass-macOS/Libass-macOS-xcframeworks.sh"; sourceTree = "<group>"; };
+		DD8C184C15072B69196836604F261613 /* libass.xcframework */ = {isa = PBXFileReference; includeInIndex = 1; name = libass.xcframework; path = Sources/libass.xcframework; sourceTree = "<group>"; };
+		E8027E3AAA9569D54BBEEEF3710CE6D5 /* Libass-macOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Libass-macOS.debug.xcconfig"; path = "../Libass-macOS/Libass-macOS.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
-		28531CCA02FA4F9914DC831C244F2199 /* Frameworks */ = {
+		1290E689B84ABC12E56300569EF0A83C /* Libass */ = {
 			isa = PBXGroup;
 			children = (
-				E24919A639BBF73E6084D16517717B28 /* libass.xcframework */,
-				2A4117320F00246A4EA1F0533624FF4C /* libfreetype.xcframework */,
-				0E60A3037C754CED6BD2522BEFB0D3C2 /* libfribidi.xcframework */,
-				5FD2AD698B76275452354E1B332A762A /* libharfbuzz.xcframework */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		4C3FB4438D7B223C57E24F487A2B239F /* Libass */ = {
-			isa = PBXGroup;
-			children = (
-				28531CCA02FA4F9914DC831C244F2199 /* Frameworks */,
+				90225A0B0B66F8DA6742D4BF6A44554E /* Frameworks */,
 			);
 			name = Libass;
-			sourceTree = "<group>";
-		};
-		54C9BE1C47177D4644C96231B2769176 /* Pod */ = {
-			isa = PBXGroup;
-			children = (
-				95EAAC4DEF10FEA9BF82B33B2389C902 /* Libass.podspec */,
-			);
-			name = Pod;
 			sourceTree = "<group>";
 		};
 		8E00CB885EEB7436E9D74EDF2D26F63A = {
 			isa = PBXGroup;
 			children = (
 				A0BDDDC7DC0133A363428C28D31BFC86 /* Frameworks */,
-				92F0BEC4A30A7CD56E53F7F9E33244AB /* Libass */,
+				A5716F939B6FF03364EF383C6BB818D0 /* Libass */,
 				E1CEA05B1AA669A7DDB0E2A9DE43E463 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		92F0BEC4A30A7CD56E53F7F9E33244AB /* Libass */ = {
+		90225A0B0B66F8DA6742D4BF6A44554E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				4C3FB4438D7B223C57E24F487A2B239F /* Libass */,
-				54C9BE1C47177D4644C96231B2769176 /* Pod */,
-				A3FC96743603E812E233AEF0CA8430CD /* Support Files */,
+				DD8C184C15072B69196836604F261613 /* libass.xcframework */,
+				96D113141E82DFFC03F454FB0AB096BC /* libfreetype.xcframework */,
+				3E6B7A4CC93139FF5AD5B1A9BE0AEC87 /* libfribidi.xcframework */,
+				3B8B3EF81B52F1CAC9D74EC72C3E62D0 /* libharfbuzz.xcframework */,
 			);
-			name = Libass;
-			path = ../../FFmpegKit;
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		A0BDDDC7DC0133A363428C28D31BFC86 /* Frameworks */ = {
@@ -111,21 +91,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		A3FC96743603E812E233AEF0CA8430CD /* Support Files */ = {
+		A5716F939B6FF03364EF383C6BB818D0 /* Libass */ = {
 			isa = PBXGroup;
 			children = (
-				3AF20F53BCB0992C68E223E3FA29441B /* Libass-iOS-xcframeworks.sh */,
-				1E6E46E1EB38364B92D3898E0BFC366E /* Libass-iOS.debug.xcconfig */,
-				A21D89F87743C6D06E55FDF408BFFCC1 /* Libass-iOS.release.xcconfig */,
-				96549E50598BA28A670FD5F1C739611D /* Libass-macOS-xcframeworks.sh */,
-				B2D2A4E824F7A87D9EF28E74ECF459F2 /* Libass-macOS.debug.xcconfig */,
-				8DCD5275179E26BEB36CE8A60CA518E8 /* Libass-macOS.release.xcconfig */,
-				C10908DE161836DCFDBC0AB78132CE57 /* Libass-tvOS-xcframeworks.sh */,
-				CB68E94948DE4A6AEA05BD8B018F7DBE /* Libass-tvOS.debug.xcconfig */,
-				393BD861EE717F06D42017F720F587EE /* Libass-tvOS.release.xcconfig */,
+				1290E689B84ABC12E56300569EF0A83C /* Libass */,
+				F5CD695DF655811F702AF5265A662845 /* Support Files */,
 			);
-			name = "Support Files";
-			path = "../Demo/Pods/Target Support Files/Libass-iOS";
+			name = Libass;
+			path = Libass;
 			sourceTree = "<group>";
 		};
 		E1CEA05B1AA669A7DDB0E2A9DE43E463 /* Products */ = {
@@ -133,6 +106,23 @@
 			children = (
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		F5CD695DF655811F702AF5265A662845 /* Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				B70E223E2692B3643840263C0E0A48E8 /* Libass-iOS-xcframeworks.sh */,
+				2FB48B2718A3864A10982D25E03C4EB0 /* Libass-iOS.debug.xcconfig */,
+				7397E1A3F3A960652169C794B08B9818 /* Libass-iOS.release.xcconfig */,
+				C4D79A9743BA0E3CE4B0E464B359A3B2 /* Libass-macOS-xcframeworks.sh */,
+				E8027E3AAA9569D54BBEEEF3710CE6D5 /* Libass-macOS.debug.xcconfig */,
+				4455722928C77A2911BD70ABAA018721 /* Libass-macOS.release.xcconfig */,
+				7A891A3AB2ADE2CF1CB2523E0EA15244 /* Libass-tvOS-xcframeworks.sh */,
+				B69C7674B2FBEEE6B2DABC6E41DED50A /* Libass-tvOS.debug.xcconfig */,
+				7C61D2CBA7FC3C0F6596DE191FD498F6 /* Libass-tvOS.release.xcconfig */,
+			);
+			name = "Support Files";
+			path = "../Target Support Files/Libass-iOS";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -153,6 +143,7 @@
 				en,
 			);
 			mainGroup = 8E00CB885EEB7436E9D74EDF2D26F63A;
+			minimizedProjectReferenceProxies = 0;
 			productRefGroup = E1CEA05B1AA669A7DDB0E2A9DE43E463 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -285,7 +276,7 @@
 		};
 		2D1EFA5D5EA51351BDFEAFF25B6B46DC /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 393BD861EE717F06D42017F720F587EE /* Libass-tvOS.release.xcconfig */;
+			baseConfigurationReference = 7C61D2CBA7FC3C0F6596DE191FD498F6 /* Libass-tvOS.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -302,7 +293,7 @@
 		};
 		3ABB7C7A39BF578A04AA281ED65B845F /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1E6E46E1EB38364B92D3898E0BFC366E /* Libass-iOS.debug.xcconfig */;
+			baseConfigurationReference = 2FB48B2718A3864A10982D25E03C4EB0 /* Libass-iOS.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -319,7 +310,7 @@
 		};
 		5BD386733DC8E730FCA74742A50D37C1 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 8DCD5275179E26BEB36CE8A60CA518E8 /* Libass-macOS.release.xcconfig */;
+			baseConfigurationReference = 4455722928C77A2911BD70ABAA018721 /* Libass-macOS.release.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -337,7 +328,7 @@
 		};
 		65D356D1C3A6109486C1114DC56F0CB5 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A21D89F87743C6D06E55FDF408BFFCC1 /* Libass-iOS.release.xcconfig */;
+			baseConfigurationReference = 7397E1A3F3A960652169C794B08B9818 /* Libass-iOS.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -423,7 +414,7 @@
 		};
 		B4A57DB9EC5DFBC290430DABF4C256C9 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = B2D2A4E824F7A87D9EF28E74ECF459F2 /* Libass-macOS.debug.xcconfig */;
+			baseConfigurationReference = E8027E3AAA9569D54BBEEEF3710CE6D5 /* Libass-macOS.debug.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -441,7 +432,7 @@
 		};
 		EA4922D0C9EB60889336FBB4D700A04C /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = CB68E94948DE4A6AEA05BD8B018F7DBE /* Libass-tvOS.debug.xcconfig */;
+			baseConfigurationReference = B69C7674B2FBEEE6B2DABC6E41DED50A /* Libass-tvOS.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
